@@ -1,0 +1,105 @@
+/* Full-width background wrapper */
+.navbar-wrapper {
+  width: 100%;
+  background: #ffffff;
+  border-bottom: 1px solid #f2f4f7;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+/* THE NAV BAR: Fluid width with 80px side padding */
+.navbar {
+  display: flex;
+  width: 100%; /* Allows it to shrink/grow */
+  max-width: 1600px; /* Limits how far apart they can go on huge screens */
+  margin: 0 auto;
+  padding: 16px 80px; /* Fixed 80px padding anchors the sides */
+  justify-content: space-between; /* This creates the "push toward each other" effect */
+  align-items: center;
+  box-sizing: border-box;
+  height: 80px;
+}
+
+/* LEFT CONTAINER: Logo + Links */
+.nav-left-group {
+  display: flex;
+  align-items: center;
+  gap: 24px; /* Internal gap stays fixed */
+}
+
+.logo-container {
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Link Styles */
+.nav-link {
+  display: flex;
+  padding: 12px;
+  justify-content: center;
+  align-items: center;
+  text-decoration: none;
+  font-family: "Urbanist", sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 130%;
+  color: #333;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.nav-link.active {
+  width: 103px; /* Exact width from your properties */
+  background: #e9f2f2;
+  color: #1e807f;
+}
+
+/* RIGHT CONTAINER: Actions */
+.nav-right-group {
+  display: flex;
+  align-items: center;
+  gap: 24px; /* Internal gap stays fixed */
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 0;
+}
+
+.nav-btn-primary {
+  background: #1e807f;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-family: "Urbanist", sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.user-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Urbanist", sans-serif;
+  font-weight: 700;
+  color: #1e807f;
+}

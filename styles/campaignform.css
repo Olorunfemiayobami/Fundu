@@ -1,0 +1,345 @@
+/* --- GLOBAL RESET --- */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.create-campaign-page {
+  display: flex;
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 48px 80px 0 80px;
+  flex-direction: column;
+  align-items: center;
+  gap: 80px; /* 80px Spacing between Body and Footer */
+  min-height: 100vh;
+}
+
+.campaign-inner-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px; /* 80px Spacing between Progress Header and Form Body Content */
+  width: 100%;
+}
+
+/* --- PROGRESS HEADER --- */
+.progress-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  align-self: stretch;
+}
+
+.progress-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.progress-stage {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.step-num-container {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+}
+
+.step-num-container.active {
+  background: #1e807f;
+}
+
+.step-num-container.inactive {
+  background: #e6e6e6;
+}
+
+.step-number-text {
+  color: #fff;
+  font-family: "Urbanist";
+  font-weight: 500;
+}
+
+.step-label {
+  font-family: "Urbanist";
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.step-label.active {
+  color: #333;
+}
+
+.step-label.inactive {
+  color: #888;
+}
+
+.stage-line {
+  height: 2px;
+  flex: 1;
+  max-width: 120px; /* Max width as requested */
+  background: #e6e6e6;
+  border-radius: 100px;
+}
+
+.btn-save-draft {
+  padding: 10px 24px;
+  border-radius: 8px;
+  border: 1px solid #1e807f;
+  background: transparent;
+  color: #1e807f;
+  font-family: "Urbanist";
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* --- INTRO SECTION --- */
+/* --- UPDATED INTRO SECTION --- */
+.form-intro-section {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  align-self: stretch; /* This allows it to spread to the parent container's width */
+  width: 100%;
+  max-width: 1440px; /* Adjust this to match your Navbar/Progress bar width */
+  margin: 0 auto;
+  gap: 8px;
+}
+
+.form-main-title {
+  color: #333;
+  font-family: "Urbanist", sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 120%;
+}
+
+.form-sub-title {
+  color: #888;
+  font-family: "Urbanist", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 140%;
+}
+
+/* --- FORM CONTAINER --- */
+.form-container-main {
+  display: flex;
+  width: 880px;
+  padding: 40px;
+  flex-direction: column;
+  gap: 32px;
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #e6e6e6;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px; /* 12px padding between label and input */
+  width: 100%;
+  position: relative;
+}
+
+.form-label {
+  font-family: "Urbanist";
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.form-label span {
+  color: #fc1010;
+}
+
+.optional-text {
+  color: #888;
+  font-family: "Urbanist";
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 130%;
+}
+
+.helper-text {
+  color: #888;
+  font-family: "Urbanist";
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.input-field,
+.dropdown-trigger {
+  height: 56px;
+  padding: 0 16px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  background: #fff;
+  width: 100%;
+  font-family: "Urbanist";
+  font-size: 16px;
+  outline: none;
+}
+
+.dropdown-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+}
+
+/* --- DROPDOWN LISTS --- */
+.category-list-container {
+  position: absolute;
+  top: 92px;
+  left: 0;
+  z-index: 10;
+  width: 372px;
+  background: #e6e6e6;
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.category-item {
+  padding: 12px 16px;
+  background: #fff;
+  color: #333;
+  font-family: "Urbanist";
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.category-item:hover {
+  background: #f5fbfb;
+  color: #1e807f;
+}
+
+/* --- UPLOAD BOX --- */
+.upload-box {
+  padding: 64px 0;
+  border: 1px dashed #ddd;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  background: #fff;
+}
+
+.upload-text {
+  color: #333;
+  text-align: center;
+  font-family: "Urbanist";
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 130%;
+  margin-top: 12px;
+}
+
+.upload-subtext {
+  color: #888;
+  text-align: center;
+  font-family: "Urbanist";
+  font-size: 12px;
+  line-height: 16px;
+  margin-top: 4px;
+}
+
+/* --- ACTIONS --- */
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+}
+
+.btn-cancel {
+  padding: 17.5px 24px;
+  border: none;
+  background: transparent;
+  color: #888;
+  font-family: "Urbanist";
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-continue {
+  display: flex;
+  padding: 17.5px 24px;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  border-radius: 8px;
+  border: none;
+  background: #1e807f;
+  color: #fff;
+  font-family: "Urbanist";
+  font-size: 16px;
+  font-weight: 600;
+  opacity: 0.5;
+  cursor: not-allowed;
+  transition: 0.3s;
+}
+
+.btn-continue.filled {
+  opacity: 1;
+  cursor: pointer;
+}
+
+.rotate {
+  transform: rotate(180deg);
+  transition: 0.3s;
+}
+.preview-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.image-preview-render {
+  width: 100%;
+  max-height: 300px;
+  object-fit: cover;
+}
+
+.change-image-overlay {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  padding: 12px;
+  background: rgba(30, 128, 127, 0.8);
+  color: white;
+  text-align: center;
+  font-family: "Urbanist", sans-serif;
+  font-size: 14px;
+  opacity: 0;
+  transition: 0.3s;
+}
+
+.upload-box:hover .change-image-overlay {
+  opacity: 1;
+}
+
+.upload-box {
+  /* ... existing styles ... */
+  overflow: hidden; /* Ensure preview doesn't bleed out */
+}
+git init

@@ -1,0 +1,87 @@
+/* The main wrapper matching your Figma "Body" frame */
+.dashboard-page {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  align-self: stretch;
+
+  /* Your Figma Padding: 80px top, right, bottom, left */
+  padding: 80px;
+
+  /* UPDATED: 48px gap between sections as requested */
+  gap: 48px;
+
+  background-color: #ffffff;
+  min-height: 100vh;
+  box-sizing: border-box; /* Ensures padding doesn't push width beyond 100% */
+}
+
+/* Fluid container to let it stretch like Figma */
+.container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  /* Matching the parent gap for consistency within the container */
+  gap: 48px;
+}
+
+/* PIXEL PERFECT WELCOME HEADER */
+.welcome-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  width: 100%;
+}
+
+.welcome-text {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.welcome-text h1 {
+  font-family: "Urbanist", sans-serif;
+  font-size: 36px;
+  font-weight: 700;
+  color: #101828;
+  margin: 0;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.welcome-text p {
+  font-family: "Urbanist", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  color: #667085;
+  margin: 0;
+}
+
+/* Section Containers */
+.section-block {
+  width: 100%;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.section-header h3 {
+  font-family: "Urbanist", sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  color: #101828;
+  margin: 0;
+}
+
+/* GRID SYSTEM */
+.campaign-grid {
+  display: grid;
+  /* 4 columns stretching properly */
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  width: 100%;
+}

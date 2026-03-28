@@ -1,0 +1,119 @@
+.campaign-card {
+  display: flex;
+  height: 237.19px;
+  flex-direction: column;
+  align-items: flex-start;
+  flex-shrink: 0;
+  align-self: stretch;
+  aspect-ratio: 57 / 52;
+  border-radius: 16px;
+  border: 1px solid #E6E6E6;
+  background: #FFF;
+  box-shadow: 0px 1px 3px 0px rgba(0, 0, 0, 0.10), 0px 1px 2px -1px rgba(0, 0, 0, 0.10);
+  overflow: hidden;
+  position: relative; /* Required for the absolute positioned Active Tag */
+}
+
+/* IMAGE CONTAINER */
+.card-image-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  flex: 1 0 0;
+  align-self: stretch;
+  background: #E5E7EB;
+  position: relative;
+  width: 100%;
+}
+
+.card-image-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ACTIVE TAG */
+.active-tag {
+  display: flex;
+  padding: 4px 8px;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  position: absolute;
+  right: 16px;
+  top: 16px;
+  border-radius: 8px;
+  background: #069F43;
+  color: #FFFFFF;
+  font-family: 'Urbanist', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* CONTENT CONTAINER */
+.card-content {
+  display: flex;
+  padding: 12px 16px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  align-self: stretch;
+}
+
+.title-author-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.campaign-title {
+  color: #333;
+  font-family: 'Urbanist', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 130%; /* 20.8px */
+  margin: 0;
+}
+
+.campaign-author {
+  color: #333;
+  font-family: 'Urbanist', sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 130%; /* 15.6px */
+  margin: 0;
+}
+
+/* AMOUNT SECTION */
+.amount-container {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  align-self: stretch;
+}
+
+.amount-value {
+  color: #333;
+  font-family: 'Urbanist', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 110%;
+}
+
+.to-be-raised-box {
+  display: flex;
+  padding: 2px 0;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.to-be-raised-text {
+  color: #888;
+  font-family: 'Urbanist', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 130%; /* 18.2px */
+}

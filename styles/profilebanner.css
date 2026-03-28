@@ -1,0 +1,137 @@
+.profile-banner {
+  display: flex;
+  padding: 24px;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 24px;
+  align-self: stretch;
+  border-radius: 12px;
+  border: 1px solid #fc1010;
+  background: #fef5f5;
+  box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.05);
+}
+
+/* BANNER HEADER */
+.banner-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  align-self: stretch;
+}
+
+.banner-text-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.banner-text-group h3 {
+  color: #101828;
+  font-family: "Urbanist", sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 130%;
+  margin: 0;
+}
+
+.banner-text-group p {
+  color: #667085;
+  font-family: "Urbanist", sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 130%;
+  margin: 0;
+}
+
+/* COMPLETE SETUP BUTTON */
+.complete-setup-btn {
+  display: flex;
+  width: 190px;
+  padding: 17.5px 24px;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  border-radius: 8px;
+  border: 1px solid #1e807f;
+  background: #fff;
+
+  /* Text Styles */
+  color: #1e807f;
+  font-family: "Urbanist", sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 130%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.complete-setup-btn:hover {
+  background: #e9f2f2;
+}
+
+/* CHECKLIST ROW (Horizontal Layout) */
+.checklist-row {
+  display: flex;
+  width: 100%;
+  gap: 16px;
+}
+
+/* UNCOMPLETED STATE: Exact Figma Specs */
+.check-item {
+  display: flex;
+  height: 50px;
+  padding: 12px 16px; /* Added slightly more side padding */
+  align-items: center;
+  gap: 12px;
+  flex: 1; /* Allows the boxes to grow equally */
+
+  border-radius: 8px;
+  border: 1px solid rgba(189, 201, 200, 0.5);
+  background: rgba(0, 104, 104, 0.05);
+  box-sizing: border-box;
+  white-space: nowrap; /* CRITICAL: This prevents text from wrapping to 2 lines */
+}
+
+/* Update the text container */
+.check-item span {
+  display: flex;
+  width: max-content; /* Changed from 90.92px to max-content */
+  height: 20px;
+  flex-direction: column;
+  justify-content: center;
+
+  color: #888;
+  font-family: "Urbanist", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 130%;
+}
+/* THE CHECK CIRCLE (UNCOMPLETED) */
+.status-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1.5px solid #888;
+  background: transparent;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* COMPLETED STATE OVERRIDES */
+.check-item.completed {
+  background: #e9f2f2;
+  border: 1px solid #1e807f;
+}
+
+.check-item.completed span {
+  color: #1e807f;
+}
+
+.check-item.completed .status-icon {
+  background-color: #1e807f;
+  border-color: #1e807f;
+  color: white;
+  font-size: 10px;
+}

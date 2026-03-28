@@ -1,0 +1,45 @@
+.stats-grid {
+  display: flex;
+  background: #ffffff;
+  border: 1px solid #e6e6e6; /* Light gray border from your Figma */
+  border-radius: 8px;
+  overflow: hidden;
+  height: 72px; /* Fixed height to match design */
+}
+
+.stat-item {
+  padding: 12px 24px;
+  border-right: 1px solid #e6e6e6;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 120px;
+}
+
+.stat-item:last-child {
+  border-right: none;
+}
+
+.stat-item label {
+  font-family: "Urbanist", sans-serif;
+  font-size: 12px;
+  font-weight: 600; /* SemiBold */
+  color: #888888;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 2px;
+}
+
+.stat-item h2 {
+  font-family: "Urbanist", sans-serif;
+  font-size: 24px;
+  font-weight: 800; /* Extra Bold for the numbers */
+  margin: 0;
+  line-height: 1;
+  color: #101828;
+}
+
+/* Specific color for the 4.2M */
+.teal-text {
+  color: #1e807f !important;
+}
