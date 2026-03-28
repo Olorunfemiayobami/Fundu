@@ -1,66 +1,45 @@
-/* The main wrapper matching your Figma "Body" frame */
+/* GLOBAL DASHBOARD PAGE */
 .dashboard-page {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  align-self: stretch;
-
-  /* Your Figma Padding: 80px top, right, bottom, left */
-  padding: 80px;
-
-  /* UPDATED: 48px gap between sections as requested */
-  gap: 48px;
-
-  background-color: #ffffff;
-  min-height: 100vh;
-  box-sizing: border-box; /* Ensures padding doesn't push width beyond 100% */
-}
-
-/* Fluid container to let it stretch like Figma */
-.container {
+  background-color: #fafafa;
   width: 100%;
   display: flex;
   flex-direction: column;
-  /* Matching the parent gap for consistency within the container */
-  gap: 48px;
+  padding: px 0; /* Vertical spacing only */
 }
 
-/* PIXEL PERFECT WELCOME HEADER */
+/* THE SHARED GRID: Matching your .navbar class exactly */
+.dashboard-container {
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 80px 80px; /* Fixed 80px padding anchors the sides */
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+/* Welcome Header */
 .welcome-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
-  width: 100%;
-}
-
-.welcome-text {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  align-items: center;
 }
 
 .welcome-text h1 {
   font-family: "Urbanist", sans-serif;
-  font-size: 36px;
+  font-size: 32px;
   font-weight: 700;
-  color: #101828;
-  margin: 0;
-  line-height: 1.2;
-  letter-spacing: -0.02em;
+  color: #111;
+  margin-bottom: 8px;
 }
 
 .welcome-text p {
-  font-family: "Urbanist", sans-serif;
+  color: #666;
   font-size: 16px;
-  font-weight: 400;
-  color: #667085;
-  margin: 0;
 }
 
-/* Section Containers */
-.section-block {
-  width: 100%;
-}
+/* Section Layouts */
 
 .section-header {
   display: flex;
@@ -70,18 +49,41 @@
 }
 
 .section-header h3 {
-  font-family: "Urbanist", sans-serif;
-  font-size: 20px;
-  font-weight: 600;
-  color: #101828;
-  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: #111;
 }
 
-/* GRID SYSTEM */
+.text-link {
+  background: none;
+  border: none;
+  color: #1e807f;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+/* Campaign Grid */
 .campaign-grid {
   display: grid;
-  /* 4 columns stretching properly */
-  grid-template-columns: repeat(4, 1fr);
-  gap: 24px;
-  width: 100%;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 1024px) {
+  .dashboard-container {
+    padding: 0 40px;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-container {
+    padding: 0 20px;
+  }
+  .welcome-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 24px;
+  }
 }

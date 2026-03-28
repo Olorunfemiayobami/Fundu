@@ -1,62 +1,65 @@
-import "../styles/dashboard.css";
-import "../styles/statsbar.css";
-import StatsBar from "../components/dashboard/StatsBar";
-import ProfileBanner from "../components/dashboard/ProfileBanner";
-import CampaignCard from "../components/dashboard/CampaignCard";
+import Link from "next/link";
 import Footer from "../components/layout/Footer";
+import "./globals.css"; // Fixed path: globals.css is in the same folder as this file
 
-export default function HomePage() {
+export default function LandingPage() {
   return (
-    <div className="dashboard-page">
-      {/* Welcome Section */}
-      <header className="welcome-header">
-        <div className="welcome-text">
-          <h1>Welcome Back, Ayobami</h1>
-          <p>Your impact is growing. Here's what's happening today.</p>
-        </div>
-        <StatsBar />
-      </header>
+    <div
+      className="landing-page"
+      style={{
+        background: "#FFFFFF",
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      <main
+        style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          textAlign: "center",
+          padding: "0 20px",
+        }}
+      >
+        <h1
+          style={{
+            fontSize: "48px",
+            fontWeight: "800",
+            color: "#111",
+            maxWidth: "800px",
+            marginBottom: "24px",
+          }}
+        >
+          Simple, efficient solution to campaign hosting
+        </h1>
+        <p
+          style={{
+            fontSize: "18px",
+            color: "#666",
+            maxWidth: "600px",
+            marginBottom: "40px",
+          }}
+        >
+          Fundu helps you manage your crowdfunding campaigns with transparency
+          and ease.
+        </p>
 
-      {/* Profile Setup Section */}
-      <ProfileBanner />
-
-      {/* Campaigns Section */}
-      <section className="section-block">
-        <div className="section-header">
-          {/* UPDATED TITLE HERE */}
-          <h3>Campaigns</h3>
-          <button className="text-link">View All ›</button>
-        </div>
-
-        <div className="campaign-grid">
-          {/* UPDATED PROPS TO MATCH YOUR NEW CAMPAIGNCARD COMPONENT */}
-          <CampaignCard
-            title="Education for Rural Children"
-            author="Sarah Johnson"
-            amount="45,000"
-            imageSrc="/images/campaign-1.jpg"
-          />
-          <CampaignCard
-            title="Medical Emergency Fund"
-            author="David Smith"
-            amount="12,500"
-            imageSrc="/images/campaign-2.jpg"
-          />
-          <CampaignCard
-            title="Clean Water Initiative"
-            author="Community Health"
-            amount="8,000"
-            imageSrc="/images/campaign-3.jpg"
-          />
-          <CampaignCard
-            title="Tech for Schools"
-            author="Innovation Lab"
-            amount="22,000"
-            imageSrc="/images/campaign-4.jpg"
-          />
-        </div>
-      </section>
-
+        <Link href="/dashboard">
+          <button
+            className="nav-btn-primary"
+            style={{
+              padding: "16px 32px",
+              fontSize: "18px",
+              cursor: "pointer",
+            }}
+          >
+            Enter Webapp
+          </button>
+        </Link>
+      </main>
       <Footer />
     </div>
   );
