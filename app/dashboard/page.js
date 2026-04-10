@@ -1,3 +1,5 @@
+"use client";
+import React, { useState } from "react";
 import "../../styles/dashboard.css";
 import "../../styles/statsbar.css";
 import StatsBar from "../../components/dashboard/StatsBar";
@@ -6,9 +8,10 @@ import CampaignCard from "../../components/dashboard/CampaignCard";
 import ActivityFeed from "../../components/dashboard/ActivityFeed";
 
 export default function DashboardPage() {
+  const [campaigns, setCampaigns] = useState([]);
+
   return (
     <div className="dashboard-page">
-      {/* Container locks content to 1600px max-width and 80px side padding */}
       <div className="dashboard-container">
         <header className="welcome-header">
           <div className="welcome-text">
@@ -20,46 +23,78 @@ export default function DashboardPage() {
 
         <ProfileBanner />
 
+        {/* CAMPAIGNS SECTION */}
         <section className="section-block">
           <div className="section-header">
             <h3>Campaigns</h3>
-            <button className="text-link">View All ›</button>
+            {campaigns.length > 0 && (
+              <button className="text-link">View All ›</button>
+            )}
           </div>
-          <div className="campaign-grid">
-            <CampaignCard
-              title="Education for Rural Children"
-              author="Sarah Johnson"
-              amount="45,000"
-              imageSrc="/images/campaign-1.jpg"
-            />
-            <CampaignCard
-              title="Medical Emergency Fund"
-              author="David Smith"
-              amount="12,500"
-              imageSrc="/images/campaign-2.jpg"
-            />
-            <CampaignCard
-              title="Clean Water Initiative"
-              author="Community Health"
-              amount="8,000"
-              imageSrc="/images/campaign-3.jpg"
-            />
-            <CampaignCard
-              title="Tech for Schools"
-              author="Innovation Lab"
-              amount="22,000"
-              imageSrc="/images/campaign-4.jpg"
-            />
-          </div>
+
+          {campaigns.length > 0 ? (
+            <div className="campaign-grid">
+              {campaigns.map((camp, index) => (
+                <CampaignCard
+                  key={index}
+                  title={camp.title}
+                  author={camp.organiser}
+                  amount={camp.goal}
+                  imageSrc={camp.imagePreview}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="empty-state-container">
+              <div className="icon-container-round">
+                <svg
+                  width="42"
+                  height="41"
+                  viewBox="0 0 42 41"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M30 22L21.7 13.9C20.6667 12.9 19.7917 11.7917 19.075 10.575C18.3583 9.35833 18 8.03333 18 6.6C18 4.76667 18.6417 3.20833 19.925 1.925C21.2083 0.641667 22.7667 0 24.6 0C25.6667 0 26.6667 0.225 27.6 0.675C28.5333 1.125 29.3333 1.73333 30 2.5C30.6667 1.73333 31.4667 1.125 32.4 0.675C33.3333 0.225 34.3333 0 35.4 0C37.2333 0 38.7917 0.641667 40.075 1.925C41.3583 3.20833 42 4.76667 42 6.6C42 8.03333 41.65 9.35833 40.95 10.575C40.25 11.7917 39.3833 12.9 38.35 13.9L30 22V22M30 16.4L35.45 11.05C36.0833 10.4167 36.6667 9.74167 37.2 9.025C37.7333 8.30833 38 7.5 38 6.6C38 5.86667 37.75 5.25 37.25 4.75C36.75 4.25 36.1333 4 35.4 4C34.9333 4 34.4917 4.09167 34.075 4.275C33.6583 4.45833 33.3 4.73333 33 5.1L30 8.7L27 5.1C26.7 4.73333 26.3417 4.45833 25.925 4.275C25.5083 4.09167 25.0667 4 24.6 4C23.8667 4 23.25 4.25 22.75 4.75C22.25 5.25 22 5.86667 22 6.6C22 7.5 22.2667 8.30833 22.8 9.025C23.3333 9.74167 23.9167 10.4167 24.55 11.05L30 16.4V16.4M12 33L25.9 36.8L37.8 33.1C37.6333 32.8 37.3917 32.5417 37.075 32.325C36.7583 32.1083 36.4 32 36 32H25.9C25 32 24.2833 31.9667 23.75 31.9C23.2167 31.8333 22.6667 31.7 22.1 31.5L17.45 29.95L18.55 26.05L22.6 27.4C23.1667 27.5667 23.8333 27.7 24.6 27.8C25.3667 27.9 26.5 27.9667 28 28V28V28V28C28 27.6333 27.8917 27.2833 27.675 26.95C27.4583 26.6167 27.2 26.4 26.9 26.3L15.2 22V22V22H12V33V33M0 40V18H15.2C15.4333 18 15.6667 18.025 15.9 18.075C16.1333 18.125 16.35 18.1833 16.55 18.25L28.3 22.6C29.4 23 30.2917 23.7 30.975 24.7C31.6583 25.7 32 26.8 32 28H36C37.6667 28 39.0833 28.55 40.25 29.65C41.4167 30.75 42 32.2 42 34V36L26 41L12 37.1V37.1V40H0V40M4 36H8V22H4V36V36M30 8.7V8.7V8.7V8.7V8.7V8.7V8.7V8.7V8.7V8.7V8.7V8.7V8.7V8.7V8.7V8.7V8.7V8.7"
+                    fill="#C1DCDB"
+                  />
+                </svg>
+              </div>
+              <div className="empty-text-group">
+                <h4 className="empty-title-spec">No active campaigns yet</h4>
+                <p className="empty-subtitle-spec">
+                  Start your first campaign to begin making an impact.
+                  <br />
+                  It only takes a few minutes to set up.
+                </p>
+              </div>
+              <button
+                className="btn-continue-preview"
+                onClick={() => (window.location.href = "/create-campaign")}
+                style={{ display: "flex", alignItems: "center", gap: "8px" }}
+              >
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <path
+                    d="M5 6.66667H0V5H5V0H6.66667V5H11.6667V6.66667H6.66667V11.6667H5V6.66667"
+                    fill="white"
+                  />
+                </svg>
+                Start a Campaign
+              </button>
+            </div>
+          )}
         </section>
 
-        <section className="section-block">
+        {/* RECENT ACTIVITY SECTION */}
+        {/* <section className="section-block">
           <div className="section-header">
             <h3>Recent Activity</h3>
             <button className="text-link">View All ›</button>
           </div>
-          <ActivityFeed />
-        </section>
+          <div className="activity-feed-wrapper">
+            <ActivityFeed />
+          </div>
+        </section> */}
       </div>
     </div>
   );

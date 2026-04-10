@@ -1,118 +1,274 @@
+/* ================================
+   CAMPAIGN CARD
+================================ */
 .campaign-card {
   display: flex;
-  height: 310px;
   flex-direction: column;
   align-items: flex-start;
-  flex-shrink: 0;
-  align-self: stretch;
-  aspect-ratio: 57 / 52;
-  border-radius: 16px;
-  border: 1px solid #e6e6e6;
-  background: #fff;
-  overflow: hidden;
-  position: relative; /* Required for the absolute positioned Active Tag */
-}
-
-/* IMAGE CONTAINER */
-.card-image-container {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 10px;
-  flex: 1 0 0;
-  align-self: stretch;
-  background: #e5e7eb;
-  position: relative;
+  /* Remove align-self: stretch if it's there */
   width: 100%;
+  max-width: 100%; /* Ensures it doesn't break on mobile */
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid #f2f2f2;
+  overflow: hidden;
+  transition: box-shadow 0.2s ease;
 }
 
-.card-image-container img {
+.campaign-card:hover {
+  box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+/* ================================
+   COVER IMAGE & BADGE
+================================ */
+.card-cover-wrapper {
+  position: relative; /* REQUIRED for the badge to sit on top */
+  width: 100%;
+  height: 200px;
+  border-radius: 12px 12px 0 0;
+  overflow: hidden;
+}
+
+.card-cover-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
 }
 
-/* ACTIVE TAG */
-.active-tag {
-  display: flex;
-  padding: 4px 8px;
-  justify-content: center;
-  align-items: center;
-  gap: 10px;
+/* The Green "Active" Badge from Figma */
+.status-badge {
   position: absolute;
-  right: 16px;
-  top: 16px;
-  border-radius: 8px;
-  background: #069f43;
-  color: #ffffff;
-  font-family: "Urbanist", sans-serif;
+  top: 12px;
+  right: 12px;
+  background: #00ba51; /* Official FundU Green */
+  color: #fff;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-family: Urbanist, sans-serif;
   font-size: 12px;
   font-weight: 600;
+  z-index: 2;
 }
 
-/* CONTENT CONTAINER */
+/* ================================
+   CARD CONTENT
+================================ */
 .card-content {
   display: flex;
-  padding: 12px 16px;
+  padding: 16px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+  align-self: stretch;
+}
+
+.campaign-title {
+  color: #333;
+  font-family: Urbanist, sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 130%;
+  margin: 0;
+  align-self: stretch;
+}
+
+/* ================================
+   AMOUNT RAISED & PROGRESS
+================================ */
+.amount-raised-container {
+  display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 12px;
   align-self: stretch;
 }
 
-.title-author-group {
+.amount-header {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
-}
-
-.campaign-title {
-  color: #333;
-  font-family: "Urbanist", sans-serif;
-  font-size: 16px;
-  font-weight: 600;
-  line-height: 130%; /* 20.8px */
-  margin: 0;
-}
-
-.campaign-author {
-  color: #333;
-  font-family: "Urbanist", sans-serif;
-  font-size: 12px;
-  font-weight: 400;
-  line-height: 130%; /* 15.6px */
-  margin: 0;
-}
-
-/* AMOUNT SECTION */
-.amount-container {
-  display: flex;
-  align-items: flex-end;
+  align-items: baseline;
   gap: 6px;
+}
+
+.raised-value {
+  color: #333;
+  font-family: Urbanist, sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.goal-text {
+  color: #888;
+  font-family: Urbanist, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.progress-bar-bg {
+  width: 100%;
+  height: 8px;
+  background: #f2f2f2;
+  border-radius: 100px; /* Fully rounded as per Figma */
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: #1e807f; /* FundU Teal */
+  border-radius: 100px;
+  transition: width 0.3s ease;
+}
+
+/* ================================
+   STATS GRID
+================================ */
+.stats-grid {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
   align-self: stretch;
 }
 
-.amount-value {
-  color: #333;
-  font-family: "Urbanist", sans-serif;
-  font-size: 20px;
-  font-weight: 700;
-  line-height: 110%;
-}
-
-.to-be-raised-box {
+.stat-box {
   display: flex;
-  padding: 2px 0;
+  padding: 8px 12px;
+  flex-direction: column;
   justify-content: center;
-  align-items: flex-end;
-  gap: 10px;
+  align-items: flex-start;
+  gap: 4px;
+  flex: 1;
+  border-radius: 8px;
+  background: #f2f2f2;
 }
 
-.to-be-raised-text {
+.stat-label {
   color: #888;
-  font-family: "Urbanist", sans-serif;
+  font-family: Urbanist, sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.stat-value-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.stat-number {
+  color: #333;
+  font-size: 16px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ================================
+   ENGAGEMENT & STATUS
+================================ */
+.engagement-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+}
+
+.engagement-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #888;
+  font-family: Urbanist, sans-serif;
+  font-size: 12px;
+}
+
+.last-updated-container {
+  display: flex;
+  padding: 8px 12px;
+  align-items: center;
+  gap: 8px;
+  align-self: stretch;
+  border-radius: 8px;
+  background: #fafafa;
+}
+
+.last-updated-label {
+  color: #888;
+  font-size: 12px;
+}
+.last-updated-time {
+  color: #333;
+  font-weight: 500;
+  font-size: 12px;
+}
+
+/* ================================
+   ACTION BUTTONS
+================================ */
+.card-actions-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-self: stretch;
+}
+
+.primary-actions-row,
+.secondary-actions-row {
+  display: flex;
+  gap: 12px;
+  align-self: stretch;
+}
+
+/* Button Base Style */
+.card-btn,
+.card-btn-secondary {
+  display: flex;
+  height: 44px;
+  padding: 0 16px;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  border-radius: 8px;
+  font-family: Urbanist, sans-serif;
   font-size: 14px;
-  font-weight: 400;
-  line-height: 130%; /* 18.2px */
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.card-btn {
+  border: 1px solid #333;
+  background: #fff;
+  color: #333;
+}
+
+.card-btn-secondary {
+  border: none;
+  background: transparent;
+  color: #333;
+}
+
+.card-btn:hover,
+.card-btn-secondary:hover {
+  background: #f9f9f9;
+}
+.btn-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0; /* Prevents the SVG from squishing */
+}
+.stat-icon {
+  width: 16px; /* Slightly smaller than 20px usually looks better inside stat boxes */
+  height: 16px;
+  flex-shrink: 0;
+}
+
+/* Positioning the Badge component */
+.status-badge-container {
+  position: absolute;
+  top: 16px; /* Distance from top */
+  right: 16px; /* Distance from right */
+  z-index: 5; /* Ensures it stays above the image */
 }

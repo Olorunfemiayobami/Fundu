@@ -1,0 +1,1322 @@
+/* --- 1. GLOBAL RESET & FONTS --- */
+.content-container {
+  padding: 0 0;
+}
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #fafafa;
+  font-family: "Urbanist", sans-serif;
+}
+
+/* --- 2. LAYOUT CONTAINERS --- */
+.create-campaign-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+.page-title-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 24px 80px;
+  background: #fff;
+  border-bottom: 1px solid #f0f0f0;
+  margin-bottom: 40px;
+}
+
+.title-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.page-title-text {
+  font-size: 20px;
+  font-weight: 700;
+  color: #0a0a0a;
+}
+
+.campaign-inner-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 880px;
+  gap: 40px;
+  margin-bottom: 80px;
+}
+
+/* --- 3. PROGRESS HEADER (Labels Underneath) --- */
+.progress-container-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.step-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  z-index: 2;
+  position: relative;
+}
+
+.step-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: 600;
+  font-size: 18px;
+  transition: 0.3s;
+}
+
+.step-circle.active {
+  background: #1e807f;
+  color: #fff;
+}
+
+.step-circle.inactive {
+  background: #e6e6e6;
+  color: #888;
+}
+
+.step-label-bottom {
+  font-size: 15px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.step-label-bottom.active {
+  color: #333;
+  background: none;
+  font-weight: 600;
+}
+
+.step-label-bottom.inactive {
+  color: #888;
+}
+
+.step-connector-line {
+  flex: 1;
+  height: 2px;
+  background: #e6e6e6;
+  margin-top: -28px;
+  margin-left: -10px;
+  margin-right: -10px;
+}
+
+/* --- 4. INTRO SECTION --- */
+.form-intro-section {
+  text-align: left;
+  width: 100%;
+}
+
+.form-main-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: #0a0a0a;
+  margin-bottom: 8px;
+}
+
+.form-sub-title {
+  font-size: 16px;
+  color: #666;
+}
+
+/* --- 5. FORM BOX --- */
+.form-container-main {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 40px;
+  gap: 32px;
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #e6e6e6;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+  overflow: visible !important;
+  position: relative;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  position: relative;
+}
+
+.form-label {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.form-label span {
+  color: #fc1010;
+}
+
+.input-field {
+  height: 56px;
+  padding: 0 16px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  background: #fff;
+  width: 100%;
+  font-size: 16px;
+  outline: none;
+}
+
+.helper-text {
+  color: #888;
+  font-size: 12px;
+  margin-top: -4px;
+}
+
+/* --- 6. UPLOAD BOX --- */
+.upload-box {
+  padding: 64px 0;
+  border: 1px dashed #ddd;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  background: #fff;
+  overflow: hidden;
+}
+.upload-icon-container {
+  margin-bottom: 12px;
+}
+.upload-text {
+  align-self: stretch;
+  color: var(--Body-Text, #333);
+  text-align: center;
+
+  /* Body */
+  font-family: Urbanist;
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 130%; /* 20.8px */
+  margin-bottom: 6px;
+}
+.upload-subtext {
+  color: var(--secondary-placeholders, #888);
+  text-align: center;
+  font-family: Urbanist;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 130%; /* 15.6px */
+}
+
+.image-preview-render {
+  width: 100%;
+  max-height: 350px;
+  object-fit: cover;
+}
+
+/* --- 7. BUTTONS & ACTIONS --- */
+.btn-save-draft {
+  padding: 10px 24px;
+  border-radius: 8px;
+  border: 1px solid #1e807f;
+  background: transparent;
+  color: #1e807f;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 16px;
+  margin-top: 16px;
+}
+.btn-cancel {
+  display: flex;
+  padding: 17.5px 24px;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  border-radius: 8px;
+  border: 1px solid #888;
+  background: transparent;
+  color: #888;
+  font-family: "Urbanist", sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-continue {
+  padding: 17.5px 32px;
+  border-radius: 8px;
+  border: none;
+  background: #1e807f;
+  border: 1px solid #1e807f;
+  color: #fff;
+  font-weight: 600;
+  opacity: 0.5;
+  cursor: not-allowed;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.btn-continue.filled {
+  opacity: 1;
+  cursor: pointer;
+}
+.btn-continue.is-loading {
+  opacity: 0.7;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.button-loader-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: center;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #ffffff;
+  border-bottom-color: transparent;
+  border-radius: 50%;
+  display: inline-block;
+  animation: rotation 1s linear infinite;
+}
+
+@keyframes rotation {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+/* --- 8. STORY PAGE SPECIFIC --- */
+
+.add-block-container {
+  width: 100%;
+  position: relative; /* Added to anchor the popup menu */
+}
+
+.add-block-btn {
+  width: 100%;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px dashed #a3a3a3;
+  border-radius: 8px;
+  cursor: pointer;
+  background: transparent;
+}
+
+.add-block-btn span {
+  color: #737373;
+  font-size: 16px;
+  font-weight: 500;
+}
+/* --- STORY BLOCK CARDS --- */
+.blocks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+}
+
+.story-block-card {
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+  background: #ffffff;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.block-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.block-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.block-label-group {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* Space between icon and text */
+}
+
+.block-type-label {
+  font-weight: 600;
+  color: #333;
+  font-size: 18px;
+}
+.block-header-right {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.collapse-btn {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: transparent;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.block-control-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+}
+
+/* Media Block Container */
+.media-block-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.media-counter {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  margin: 0;
+}
+
+/* Upload Area */
+.media-dropzone {
+  border: 1px dashed #d1d1d1;
+  border-radius: 12px;
+  padding: 32px;
+  display: flex;
+  flex-direction: center;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.media-dropzone:hover {
+  background: #f9f9f9;
+}
+
+.media-dropzone h3 {
+  font-size: 16px;
+  margin: 12px 0 4px 0;
+  color: #333;
+}
+
+.media-dropzone p {
+  font-size: 13px;
+  color: #888;
+  margin: 0;
+}
+
+/* Image Grid */
+.media-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* 2x2 layout */
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.media-preview-item {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f0f0f0;
+}
+
+.media-preview-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Red 'X' Remove Button */
+.remove-img-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: white;
+  border: none;
+  border-radius: 4px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.block-body {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.block-input,
+.block-textarea {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 16px;
+  outline: none;
+}
+.drag-handle-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab; /* Shows hand icon */
+  padding: 4px;
+}
+
+.drag-handle-container:active {
+  cursor: grabbing;
+}
+.block-textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+/* MEDIA BLOCK SPECIFIC */
+.media-count {
+  font-size: 14px;
+  color: #1a1a1a;
+  margin-bottom: 8px;
+}
+
+.media-dropzone {
+  border: 1px dashed #d1d5db;
+  border-radius: 12px;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.media-dropzone p {
+  font-size: 16px;
+  font-weight: 500;
+  color: #1a1a1a;
+}
+
+.media-dropzone span {
+  font-size: 12px;
+  color: #9ca3af;
+}
+/* Your Requested Story Actions Container */
+.form-actions-story {
+  display: flex;
+  justify-content: flex-end; /* Aligns to right */
+  align-items: flex-start;
+  gap: 16px;
+}
+
+/* Your Requested Back Button Style */
+.btn-back-basics {
+  display: flex;
+  padding: 17.5px 24px;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  border-radius: 8px;
+  border: 1px solid #888;
+  background: transparent;
+  color: #888;
+  font-family: "Urbanist", sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-continue-preview {
+  display: flex;
+  padding: 17.5px 24px;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  border-radius: 8px;
+  border: none;
+  background-color: #1e807f;
+  color: white;
+  font-family: "Urbanist", sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.story-content-area {
+  min-height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  background: #fafafa;
+  padding: 20px;
+}
+
+/* Updated Save Draft Button - Matching Continue to Preview */
+.btn-save-draft-aligned {
+  display: flex;
+  padding: 17.5px 24px; /* Matching your requested padding */
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  border-radius: 8px;
+  border: 1px solid #1e807f;
+  background: transparent;
+  color: #1e807f;
+  font-family: "Urbanist", sans-serif; /* Matching font family */
+  font-size: 16px; /* Matching font size */
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.btn-save-draft-aligned:hover {
+  background-color: #f0fafa;
+}
+
+/* --- 9. RESPONSIVE --- */
+@media (max-width: 768px) {
+  .page-title-bar {
+    padding: 24px 20px;
+  }
+  .create-campaign-page {
+    padding: 0 20px 40px 20px;
+  }
+  .step-connector-line {
+    display: none;
+  }
+  .progress-container-main {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+  }
+}
+
+/* --- 10. NEW STORY POP-UP MENU --- */
+
+.story-options-menu {
+  position: absolute;
+  top: 72px;
+  left: 0;
+  width: 100%;
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e5e5e5;
+  box-shadow: 0px 12px 32px rgba(0, 0, 0, 0.08);
+  z-index: 9999; /* Ensure it stays on top of everything */
+  display: block !important;
+}
+.option-icon svg {
+  display: block; /* Ensures SVG renders inside the colored box */
+}
+.menu-option {
+  display: flex;
+  align-items: center;
+  padding: 16px 24px;
+  gap: 16px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.menu-option:hover {
+  background: #f9fafb;
+}
+
+.menu-separator {
+  height: 1px;
+  background: #f0f0f0;
+  margin: 0 24px;
+}
+
+.option-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.media-bg {
+  background: #ebf5ff;
+}
+.section-bg {
+  background: #e6f9f0;
+}
+.text-bg {
+  background: #f3e8ff;
+}
+
+.option-text h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 2px;
+}
+
+.option-text p {
+  font-size: 14px;
+  color: #737373;
+}
+/* 1. Main Container */
+.web-preview-container {
+  width: 100%;
+  max-width: 880px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  overflow: hidden;
+  margin: 0 auto;
+}
+
+/* PREVIEW PAGE */
+/* 6. Main Container (Matching Other Page Padding) */
+.form-container-main {
+  width: 100%;
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 40px; /* Standardized dashboard padding */
+  background: #ffffff;
+  border-radius: 12px;
+}
+
+/* Hero Section */
+.preview-hero-container {
+  width: 100%;
+  height: 440px;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 32px;
+}
+
+.preview-hero-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Meta & Badges Layout */
+.preview-meta-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+/* Header Typography & Flex */
+.preview-header-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 32px;
+}
+
+.preview-title-text {
+  font-family: "Urbanist", sans-serif;
+  font-size: 32px;
+  font-weight: 700;
+  color: #333333;
+  margin-bottom: 8px;
+}
+
+.preview-author-text {
+  font-family: "Urbanist", sans-serif;
+  font-size: 16px;
+  color: #888888;
+}
+
+.preview-amount-text {
+  font-family: "Urbanist", sans-serif;
+  font-size: 36px;
+  font-weight: 700;
+  color: #333333;
+}
+
+.preview-divider {
+  border: 0;
+  border-top: 1px solid #f2f2f2;
+  margin-bottom: 32px;
+}
+
+/* 4. Section Block Displays */
+.section-block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  align-self: stretch;
+}
+
+.section-block-title {
+  color: #333333; /* --Body-Text */
+  font-family: "Urbanist", sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 130%; /* 26px */
+}
+
+.section-block-body {
+  align-self: stretch;
+  color: #333333; /* --Body-Text */
+  font-family: "Urbanist", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 130%; /* 20.8px */
+}
+
+/* 5. Text Block Style */
+.text-block-style {
+  align-self: stretch;
+  color: #333333; /* --Body-Text */
+  font-family: "Urbanist", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 130%; /* 20.8px */
+}
+
+/* Block Spacing & Media Grid */
+.block-spacing {
+  margin-bottom: 40px;
+}
+
+.preview-media-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* Strict 4-column row */
+  gap: 16px;
+}
+
+.preview-media-item img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 12px;
+}
+.publish-success-card {
+  text-align: center;
+  padding: 40px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.publish-icon-circle {
+  margin-bottom: 24px;
+}
+
+.publish-title {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--brand-color);
+  margin-bottom: 12px;
+}
+
+.publish-description {
+  color: var(--secondary-placeholders);
+  max-width: 480px;
+  line-height: 1.6;
+  margin-bottom: 32px;
+}
+
+.publish-info-box {
+  background: var(--background-alt);
+  border-radius: 12px;
+  padding: 24px;
+  width: 100%;
+  max-width: 480px;
+  margin-bottom: 40px;
+  text-align: left;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.info-item:last-child {
+  margin-bottom: 0;
+}
+
+.info-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--brand-color);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.form-actions-publish {
+  display: flex;
+  gap: 16px;
+  width: 100%;
+  max-width: 480px;
+}
+
+.btn-publish-back {
+  flex: 1;
+  height: 52px;
+  border: 1px solid var(--90-line-shde);
+  border-radius: 10px;
+  font-weight: 700;
+}
+
+.btn-publish-live {
+  flex: 2;
+  height: 52px;
+  background: var(--brand-color);
+  color: white;
+  border-radius: 10px;
+  font-weight: 700;
+}
+
+/* --- 11. PUBLISH PAGE SPECIFIC --- */
+
+.publish-banner-promo {
+  display: flex;
+  padding: 16px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  align-self: stretch;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #1e807f 0%, #196d6c 100%);
+}
+
+.banner-title-text {
+  color: #fff;
+  font-family: "Urbanist", sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 130%;
+}
+
+.banner-body-text {
+  color: rgba(255, 255, 255, 0.9);
+  font-family: "Urbanist", sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 130%;
+  align-self: stretch;
+}
+
+.publish-status-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  align-self: stretch;
+  border-radius: 12px;
+  border: 1px solid #e6e6e6;
+  background: #fff;
+  padding: 0px 0px 0px 0px;
+}
+
+.publish-details-header {
+  display: flex;
+  padding: 16px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  align-self: stretch;
+}
+
+.status-flex-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.status-label-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.status-label-sub {
+  font-size: 14px;
+  color: #666;
+  margin-top: 2px;
+}
+
+.completeness-check-box {
+  display: flex;
+  padding: 16px;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 16px;
+  align-self: stretch;
+  border-radius: 12px;
+  background: #f2f2f2;
+}
+
+.check-item-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.check-item-title {
+  display: block;
+  font-size: 15px;
+  font-weight: 500;
+  color: #0a0a0a;
+}
+
+.check-item-sub {
+  font-size: 12px;
+  color: #888;
+  margin-top: 2px;
+}
+
+.payment-method-footer {
+  display: flex;
+  padding: 16px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  align-self: stretch;
+  border-top: 1px solid #e6e6e6;
+}
+.publish-status-card {
+  display: flex;
+  padding: 16px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  align-self: stretch;
+  border-top: 1px solid #e6e6e6;
+}
+/* --- 12. PUBLISH PAGE & MODAL UPDATES --- */
+
+/* Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  padding: 20px;
+}
+
+.payout-modal-content {
+  background-color: #ffffff;
+  width: 100%;
+  max-width: 440px;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0px 12px 32px rgba(0, 0, 0, 0.15);
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: modalFadeIn 0.2s ease-out;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+/* Duration Selectors */
+.duration-grid {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+  width: 100%;
+}
+
+.duration-btn {
+  flex: 1;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  background: white;
+  cursor: pointer;
+  font-weight: 600;
+  font-family: "Urbanist", sans-serif;
+  transition: 0.2s;
+}
+
+.duration-btn.selected {
+  border: 2px solid #1e807f;
+  background-color: #f0fafa;
+  color: #1e807f;
+}
+
+/* Info Box */
+.info-notice-box {
+  background-color: #f0f7ff;
+  padding: 16px;
+  border-radius: 12px;
+  display: flex;
+  gap: 12px;
+  border: 1px solid #d0e3ff;
+}
+
+.info-notice-text {
+  color: #2d5b9e;
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Terms Checkbox Area */
+.terms-container {
+  background-color: #f5f5f5;
+  padding: 16px;
+  border-radius: 12px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.terms-label {
+  font-size: 14px;
+  color: #4a4a4a;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.terms-link {
+  color: #1e807f;
+  font-weight: 600;
+}
+
+/* Custom Buttons for Payout */
+.btn-payout-primary {
+  background-color: #1e807f;
+  color: white;
+  padding: 16px;
+  border-radius: 12px;
+  border: none;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+}
+
+.btn-payout-secondary {
+  background-color: white;
+  color: #0a0a0a;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1.5px solid #0a0a0a;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+}
+
+.btn-payout-save {
+  color: white;
+  padding: 16px;
+  border-radius: 12px;
+  border: none;
+  font-size: 16px;
+  font-weight: 600;
+  width: 100%;
+  transition: 0.3s;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+/* Container for the custom select options */
+.select-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  background: #ffffff;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 12px;
+  margin-top: 4px;
+  box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 8px 0;
+}
+
+/* Individual Option Styling */
+.select-option {
+  padding: 12px 16px;
+  font-size: 14px;
+  color: #0a0a0a;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  font-family: "Urbanist", sans-serif;
+  text-align: left;
+}
+
+/* Hover & Active States */
+.select-option:hover {
+  background-color: #f0fafa; /* Matches your brand light teal */
+  color: #1e807f; /* Matches your brand primary teal */
+}
+
+/* Custom Scrollbar for the dropdown */
+.select-dropdown::-webkit-scrollbar {
+  width: 6px;
+}
+
+.select-dropdown::-webkit-scrollbar-thumb {
+  background: #e0e0e0;
+  border-radius: 10px;
+}
+.saved-bank-display {
+  display: flex;
+  align-self: stretch;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border: 1px solid #e0e0e0;
+  borderradius: 12px;
+  background-color: #ffffff;
+  margin-bottom: 8px;
+}
+
+.bank-info-left {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.duration-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.duration-btn {
+  padding: 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background: white;
+  font-family: "Urbanist", sans-serif;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.duration-btn.selected {
+  border-color: #1e807f;
+  background-color: #f0f8f7;
+  color: #1e807f;
+  font-weight: 600;
+}
+
+.promo-input-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.btn-add-payout-trigger {
+  width: 100%;
+  margin-top: 12px;
+  padding: 12px;
+  border: 1.5px dashed #1e807f;
+  border-radius: 8px;
+  background: transparent;
+  color: #1e807f;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.payout-modal-content {
+  background: white;
+  padding: 24px;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 400px;
+}
+
+.btn-payout-save {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-weight: 600;
+  margin-top: 10px;
+}

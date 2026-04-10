@@ -1,22 +1,18 @@
 /* GLOBAL DASHBOARD PAGE */
 .dashboard-page {
-  background-color: #fafafa;
   width: 100%;
   display: flex;
   flex-direction: column;
-  padding: px 0; /* Vertical spacing only */
+  /* Removed background and padding as they are global now */
 }
 
-/* THE SHARED GRID: Matching your .navbar class exactly */
+/* THE SHARED GRID: Now just handles internal spacing */
 .dashboard-container {
   width: 100%;
-  max-width: 1600px;
-  margin: 0 auto;
-  padding: 80px 80px; /* Fixed 80px padding anchors the sides */
-  box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: 40px;
+  gap: 40px; /* Internal vertical spacing between sections */
+  box-sizing: border-box;
 }
 
 /* Welcome Header */
@@ -24,6 +20,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  width: 100%;
 }
 
 .welcome-text h1 {
@@ -40,12 +37,19 @@
 }
 
 /* Section Layouts */
+.section-block {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
 
 .section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  width: 100%;
+  margin-bottom: 8px;
 }
 
 .section-header h3 {
@@ -57,7 +61,7 @@
 .text-link {
   background: none;
   border: none;
-  color: #1e807f;
+  color: var(--primary);
   font-weight: 600;
   cursor: pointer;
   font-size: 16px;
@@ -66,24 +70,33 @@
 /* Campaign Grid */
 .campaign-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  width: 100%;
 }
 
-/* Mobile Responsiveness */
-@media (max-width: 1024px) {
-  .dashboard-container {
-    padding: 0 40px;
-  }
+/* Empty State Styling - Preserved */
+.empty-state-container {
+  display: flex;
+  padding: 80px 24px;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  align-self: stretch;
+  border-radius: 16px;
+  border: 2px dashed var(--border);
+  background: #fff;
+  width: 100%;
 }
 
+/* Mobile Responsiveness - Only adjusting internal gaps now */
 @media (max-width: 768px) {
-  .dashboard-container {
-    padding: 0 20px;
-  }
   .welcome-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 24px;
+  }
+  .campaign-grid {
+    grid-template-columns: repeat(1, 1fr);
   }
 }

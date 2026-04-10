@@ -1,0 +1,423 @@
+/* --- 1. MAIN LAYOUT SHELL --- */
+
+.settings-main-flex {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+  width: 100%;
+  max-width: 1400px; /* Increased slightly for better spacing */
+  margin: 0 auto;
+}
+
+/* The White Container for Directory Content */
+.profile-container-body {
+  position: relative; /* Essential for the loading overlay to position correctly */
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  flex: 1;
+  padding: 24px; /* Added padding for the content inside the white box */
+  border-radius: 16px;
+  background: #fff;
+  border: 1px solid #e6e6e6;
+  min-height: 600px;
+}
+.profile-body {
+  position: relative; /* Essential for the loading overlay to position correctly */
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  flex: 1;
+  /* padding: 32px; Added padding for the content inside the white box */
+  /* border-radius: 16px; */
+  /* background: #fff; */
+  /* border: 1px solid #e6e6e6; */
+  min-height: 600px;
+}
+
+/* Loading Overlay inside the white container */
+.tab-loading-overlay {
+  position: absolute;
+  inset: 0; /* Shorthand for top/left/right/bottom: 0 */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(2px); /* Soft blur effect while loading */
+  border-radius: 16px;
+  z-index: 20;
+}
+
+/* The Spinner using Fundu Teal */
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #1e807f;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 15px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Smooth fade in when content appears */
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* --- 2. SIDEBAR STYLING --- */
+.settings-sidebar-container {
+  display: flex;
+  width: 364px;
+  padding: 24px;
+  flex-direction: column;
+  gap: 24px;
+  border-radius: 16px;
+  background: #fff;
+  border: 1px solid #e6e6e6;
+  flex-shrink: 0;
+}
+
+.name-container {
+  display: flex;
+  padding: 16px;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  align-self: stretch;
+  border-radius: 12px;
+  border: 1px solid #e6e6e6;
+}
+
+.profile-picture {
+  width: 64px;
+  height: 64px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  background: #e6e6e6;
+  font-weight: 700;
+  font-size: 20px;
+  overflow: hidden; /* Ensures uploaded images stay circular */
+}
+.name-text-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  align-self: stretch;
+}
+.name-title {
+  align-items: center;
+  justify-content: center;
+  display: flex;
+  font-size: 15px;
+}
+.name-body {
+  color: #888;
+  text-align: center;
+  font-family: Urbanist;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 130%; /* 18.2px */
+}
+
+.edit-profile-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  color: #1e807f;
+  font-weight: 600;
+  font-family: "Urbanist", sans-serif;
+  cursor: pointer;
+}
+
+/* Directory Cards & Items */
+.directory-wrapper {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+}
+.directory-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.section-label {
+  color: var(--secondary-placeholders, #888);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 130%; /* 15.6px */
+  text-transform: uppercase;
+}
+
+.section-content-card {
+  display: flex;
+  flex-direction: column;
+  border-radius: 12px;
+  border: 1px solid #e6e6e6;
+  background: #fff;
+  overflow: hidden;
+}
+
+.directory-item {
+  display: flex;
+  width: 100%;
+  background: none;
+  border: none;
+  border-bottom: 1px solid #e6e6e6;
+  padding: 16px;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  transition: background 0.2s;
+  cursor: pointer;
+  text-align: left;
+}
+
+.directory-item:last-child {
+  border-bottom: none;
+}
+
+.directory-item.active {
+  background: #f4f9f9;
+}
+.icon-wrapper {
+  display: flex;
+  width: 48px;
+  height: 48px;
+  padding-right: 0;
+  justify-content: center;
+  align-items: center;
+  aspect-ratio: 1/1;
+  border-radius: 42431300px;
+  background: #f2f2f2;
+}
+.directory-item.active .icon-wrapper {
+  background: #e9f2f2;
+  color: #fff;
+}
+.directory-text-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.directory-text {
+  color: #333;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.directory-sub {
+  color: #888;
+  font-size: 12px;
+}
+
+.directory-item.active .directory-text {
+  color: #1e807f;
+}
+
+.logout-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-top: 12px;
+}
+
+/* --- 3. PROFILE ACTION BUTTONS --- */
+
+.btn-continue.filled,
+.btn-save-draft-aligned {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 24px;
+  height: 44px;
+  border-radius: 10px;
+  font-family: "Urbanist", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  border: 1.5px solid transparent;
+}
+
+.btn-continue.filled {
+  background-color: #1e807f;
+  color: #ffffff;
+}
+
+.btn-continue.filled:hover {
+  background-color: #166665;
+  box-shadow: 0px 4px 12px rgba(30, 128, 127, 0.2);
+  transform: translateY(-1px);
+}
+
+.btn-save-draft-aligned {
+  background-color: transparent;
+  border-color: #e6e6e6;
+  color: #333;
+}
+
+.btn-save-draft-aligned:hover {
+  background-color: #f9f9f9;
+  border-color: #1e807f;
+  color: #1e807f;
+}
+
+.profile-avatar-circle {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  margin: 0 auto;
+  background: #f2f4f7;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 32px;
+  font-weight: 700;
+  border: 2px solid #fff;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.upload-camera-btn {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background: #1e807f;
+  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 2px solid #fff;
+  cursor: pointer;
+  z-index: 5;
+}
+
+/* --- 4. INPUTS & FORM --- */
+.profile-form-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+  align-self: stretch;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.form-label {
+  font-weight: 600;
+  font-size: 14px;
+  color: #333;
+}
+
+.input-field {
+  width: 100%;
+  height: 56px;
+  padding: 0 16px;
+  border-radius: 10px;
+  border: 1px solid #d0d5dd;
+  background: #fff;
+  font-family: "Urbanist", sans-serif;
+  font-size: 16px;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.input-field:focus {
+  border-color: #1e807f;
+  box-shadow: 0 0 0 1px #1e807f;
+}
+
+.is-disabled .input-field {
+  background-color: #f9fafb;
+  color: #667085;
+  cursor: not-allowed;
+  border-color: #e6e6e6;
+}
+
+textarea.input-field {
+  height: auto;
+  padding: 16px;
+  min-height: 120px;
+}
+
+/* --- 5. BANNER --- */
+.profile-bottom-banner {
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid #8abeff;
+  background: #eff6ff;
+  color: #1c398e;
+  font-size: 14px;
+  margin-top: auto; /* Pushes banner to bottom if content is short */
+}
+.phone-input-combined {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  align-items: flex-start;
+}
+
+.country-code-wrapper .input-field {
+  display: flex;
+  align-items: center; /* This pulls the "+234" down to the middle */
+  justify-content: center;
+  padding: 0;
+  text-align: center;
+  width: 88px; /* Slightly narrower to look more like a prefix */
+  flex-shrink: 0;
+  gap: 8px;
+}
+
+.phone-number-wrapper {
+  flex: 1;
+}
+
+/* Fix the invisible loading text */
+.tab-loading-overlay p {
+  color: #667085 !important; /* Force it to be visible gray */
+}

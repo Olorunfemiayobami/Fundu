@@ -1,9 +1,11 @@
+.activity-section {
+  width: 100%; /* Ensures the wrapper fills the parent */
+}
 .activity-list {
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   background: white;
   overflow: hidden;
-  margin-top: 16px;
 }
 
 .activity-item {

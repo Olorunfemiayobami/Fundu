@@ -1,0 +1,244 @@
+/* --- Global & Layout Fixes --- */
+.campaign-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.details-grid {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+  align-self: stretch;
+  margin-top: 30px;
+}
+
+/* --- Left Column (.details-left) --- */
+.details-left {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  flex: 1 0 0; /* Important: Allows it to grow while sidebar stays fixed */
+}
+
+.campaign-hero h1 {
+  font-size: 32px;
+  font-weight: 700;
+  margin: 12px 0 8px 0;
+  color: #0a0a0a;
+}
+
+.category-tag {
+  background: #e8f2f2;
+  color: #1e807f;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  width: fit-content;
+}
+
+.hero-image-container {
+  width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  margin: 24px 0;
+}
+
+.hero-image-container img {
+  width: 100%;
+  height: 480px;
+  object-fit: cover;
+  display: block;
+}
+
+/* --- Campaign Story (.story-section) --- */
+.story-section {
+  display: flex;
+  padding: 16px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 24px;
+  align-self: stretch;
+  border-radius: 12px;
+  border: 1px solid #e6e6e6; /* Figma Spec */
+  background: #fff;
+}
+
+.story-text {
+  font-size: 16px;
+  line-height: 1.6;
+  color: #4d4d4d;
+  margin-bottom: 16px;
+}
+
+.story-image-wrapper {
+  width: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.story-image {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.story-footer {
+  margin-top: 16px;
+  padding: 16px;
+  background: #f4f9f9;
+  border-radius: 12px;
+  border-left: 4px solid #1e807f;
+  align-self: stretch;
+}
+
+.disclaimer {
+  font-size: 14px;
+  color: #1e807f;
+  margin: 0;
+}
+
+/* --- Right Column (.details-right) --- */
+.details-right {
+  width: 372px; /* Exact Figma Width */
+  flex-shrink: 0;
+}
+
+.sticky-sidebar {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 24px;
+  position: sticky;
+  top: 100px;
+}
+
+/* Raised Box & Stats Container */
+.raised-box {
+  display: flex;
+  padding: 16px 16px 0 16px; /* Padding for the top section */
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+  align-self: stretch;
+  border-radius: 12px 12px 0 0;
+  border: 1px solid #e6e6e6;
+  border-bottom: none;
+  background: #fff;
+}
+
+.stats-list {
+  display: flex;
+  padding: 0 16px 16px 16px;
+  flex-direction: column;
+  gap: 12px;
+  align-self: stretch;
+  border: 1px solid #e6e6e6;
+  border-top: none;
+  border-radius: 0 0 12px 12px;
+  background: #fff;
+}
+
+.raised-info h2 {
+  font-size: 28px;
+  margin: 0;
+}
+
+.stat-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  font-size: 14px;
+}
+
+.stat-item .label {
+  color: #666;
+}
+.stat-item .value {
+  font-weight: 700;
+  color: #0a0a0a;
+}
+
+/* Progress Bar */
+.progress-bar-container {
+  background: #f2f2f2;
+  height: 8px;
+  border-radius: 100px;
+  width: 100%;
+}
+
+.progress-fill {
+  background: #1e807f;
+  height: 100%;
+  border-radius: 100px;
+}
+
+/* Donate Button */
+.donate-button {
+  width: 100%;
+  background: #1e807f;
+  color: white;
+  border: none;
+  padding: 16px;
+  border-radius: 12px;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* Donation Routes (.sidebar-routes) */
+.sidebar-routes {
+  display: flex;
+  padding: 16px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+  align-self: stretch;
+  border-radius: 12px;
+  border: 1px solid #e6e6e6;
+  background: #fff;
+}
+
+.mini-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+/* Route Cards */
+.route-card {
+  display: flex;
+  padding: 12px;
+  align-items: center;
+  gap: 12px;
+  align-self: stretch;
+  border-radius: 8px;
+  border: 1px solid #e6e6e6;
+}
+
+.icon-circle {
+  font-size: 20px;
+}
+
+.route-name {
+  font-weight: 700;
+  font-size: 14px;
+  margin: 0;
+}
+
+.route-acct {
+  font-size: 12px;
+  color: #666;
+  margin: 0;
+}
+
+/* --- Updates & Comments --- */
+.updates-section,
+.comments-section {
+  margin-top: 32px;
+  width: 100%;
+}

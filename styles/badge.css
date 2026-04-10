@@ -1,0 +1,65 @@
+.badge-container {
+  display: inline-flex;
+  padding: 4px 8px;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  border-radius: 8px;
+}
+
+.badge-text {
+  font-family: "Urbanist", sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 130%;
+}
+
+/* Status variants based on your design specs */
+.active {
+  background: #069f43;
+}
+.active .badge-text {
+  color: #f5f5f5;
+}
+
+.draft {
+  background: #e6e6e6;
+}
+.draft .badge-text {
+  color: #888888;
+}
+
+.paused {
+  background: #ff912c;
+}
+.paused .badge-text {
+  color: #ffffff;
+}
+
+.completed {
+  background: #888888;
+}
+.completed .badge-text {
+  color: #ffffff;
+}
+
+/* Container for any of the 12 categories */
+.category-badge {
+  display: flex;
+  padding: 4px 8px;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  border-radius: 8px;
+  background: #f2f2f2; /* --95-Little-lighter-shade */
+}
+
+/* Text style for any category */
+.category-badge-text {
+  color: #333333; /* --Body-Text */
+  font-family: "Urbanist", sans-serif;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 130%;
+}
