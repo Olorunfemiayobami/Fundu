@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useState } from "react";
 import InputField from "@/components/ui/InputField";
 
@@ -11,17 +12,18 @@ const SuccessCheck = () => (
     viewBox="0 0 24 24"
     fill="none"
   >
-    <path
-      d="M11.9946 21.9891C17.5144 21.9891 21.9891 17.5144 21.9891 11.9946C21.9891 6.47472 17.5144 2 11.9946 2C6.47472 2 2 6.47472 2 11.9946C2 17.5144 6.47472 21.9891 11.9946 21.9891Z"
+    <circle
+      cx="12"
+      cy="12"
+      r="10"
       stroke="#00A63E"
-      strokeWidth="1.99891"
-      strokeLinecap="round"
-      strokeLinejoin="round"
+      strokeWidth="2"
+      fill="#fff"
     />
     <path
-      d="M8.99219 11.995L10.9911 13.9939L14.9889 9.99609"
+      d="M8.99 11.99L10.99 13.99L14.99 9.99"
       stroke="#00A63E"
-      strokeWidth="1.99891"
+      strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
     />
@@ -121,6 +123,7 @@ const BankIcon = () => (
 
 const PayoutMethodModal = ({ isOpen, onClose, onSave }) => {
   const [activeView, setActiveView] = useState("selection");
+
   const [bankDetails, setBankDetails] = useState({
     accountName: "",
     bankName: "",
@@ -132,6 +135,7 @@ const PayoutMethodModal = ({ isOpen, onClose, onSave }) => {
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
+
     setBankDetails((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
@@ -164,9 +168,14 @@ const PayoutMethodModal = ({ isOpen, onClose, onSave }) => {
           <h3>
             {activeView === "selection" ? "Add Payout Method" : "Bank Details"}
           </h3>
+
           <button
             onClick={onClose}
-            style={{ background: "none", border: "none", cursor: "pointer" }}
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+            }}
           >
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
               <path
@@ -181,9 +190,14 @@ const PayoutMethodModal = ({ isOpen, onClose, onSave }) => {
 
         {activeView === "selection" ? (
           <div
-            style={{ display: "flex", flexDirection: "column", gap: "12px" }}
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "12px",
+            }}
           >
             <button className="btn-payout-primary">Connect Paystack</button>
+
             <button
               className="btn-payout-secondary"
               onClick={() => setActiveView("bank-form")}
@@ -193,7 +207,11 @@ const PayoutMethodModal = ({ isOpen, onClose, onSave }) => {
           </div>
         ) : (
           <div
-            style={{ display: "flex", flexDirection: "column", gap: "20px" }}
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "20px",
+            }}
           >
             <InputField
               label="Account Holder Name"
@@ -203,6 +221,7 @@ const PayoutMethodModal = ({ isOpen, onClose, onSave }) => {
               onChange={handleInputChange}
               required
             />
+
             <InputField
               label="Bank Name"
               name="bankName"
@@ -213,6 +232,7 @@ const PayoutMethodModal = ({ isOpen, onClose, onSave }) => {
               onChange={handleInputChange}
               required
             />
+
             <div>
               <InputField
                 label="Account Number"
@@ -224,6 +244,7 @@ const PayoutMethodModal = ({ isOpen, onClose, onSave }) => {
                 }
                 required
               />
+
               <p
                 style={{
                   fontSize: "12px",
@@ -235,20 +256,37 @@ const PayoutMethodModal = ({ isOpen, onClose, onSave }) => {
                 {bankDetails.accountNumber.length}/10 digits
               </p>
             </div>
+
             <div
-              style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}
+              style={{
+                display: "flex",
+                gap: "12px",
+                alignItems: "flex-start",
+              }}
             >
               <input
                 type="checkbox"
                 name="confirmOwnership"
                 checked={bankDetails.confirmOwnership}
                 onChange={handleInputChange}
-                style={{ width: "18px", height: "18px", marginTop: "2px" }}
+                style={{
+                  width: "18px",
+                  height: "18px",
+                  marginTop: "2px",
+                }}
               />
-              <p style={{ fontSize: "13px", color: "#666", margin: 0 }}>
+
+              <p
+                style={{
+                  fontSize: "13px",
+                  color: "#666",
+                  margin: 0,
+                }}
+              >
                 I confirm that this bank account belongs to me.
               </p>
             </div>
+
             <button
               className="btn-payout-save"
               style={{
@@ -267,35 +305,59 @@ const PayoutMethodModal = ({ isOpen, onClose, onSave }) => {
   );
 };
 
-export default function PublishCampaign({ onBack, onPublish, isSaving }) {
+export default function PublishCampaign({
+  onBack,
+  onPublish,
+  isSaving,
+  duration,
+}) {
   const [agreed, setAgreed] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [weeks, setWeeks] = useState(1);
   const [savedPayment, setSavedPayment] = useState(null);
-  const [promoCode, setPromoCode] = useState("");
-  const [isPromoApplied, setIsPromoApplied] = useState(false);
 
-  const feePerWeek = 2000;
-  const totalFee = isPromoApplied ? 0 : weeks * feePerWeek;
+  // Early-access promotion
+  const promoCode = "EARLYACCESS2026";
+  const isPromoApplied = true;
+
+  // Standard hosting price
+  const feePerDay = 200;
+
+  const campaignEndDate = duration ? new Date(`${duration}T00:00:00`) : null;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const durationInDays = campaignEndDate
+    ? Math.max(
+        1,
+        Math.floor(
+          (campaignEndDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
+        ),
+      )
+    : 1;
+
+  const normalHostingFee = durationInDays * feePerDay;
+
+  const totalFee = isPromoApplied ? 0 : normalHostingFee;
+
+  const formattedEndDate = campaignEndDate
+    ? campaignEndDate.toLocaleDateString("en-US", {
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+      })
+    : "No end date selected";
 
   const handleSavePayment = (details) => {
     setSavedPayment(details);
     setIsModalOpen(false);
   };
 
-  const handleApplyPromo = () => {
-    if (promoCode.trim() === "My First Campaign") {
-      setIsPromoApplied(true);
-      setWeeks(1);
-    } else {
-      alert("Invalid promo code");
-    }
-  };
-
   return (
     <div className="form-container-main" style={{ gap: "24px" }}>
       <div className="publish-banner-promo">
         <h3 className="banner-title-text">You're almost live! 🎉</h3>
+
         <p className="banner-body-text">
           Your campaign is ready to be published and shared with the world.
         </p>
@@ -305,22 +367,29 @@ export default function PublishCampaign({ onBack, onPublish, isSaving }) {
         <div className="publish-details-header">
           <div className="status-flex-row">
             <SuccessCheck />
+
             <div className="status-text-stack">
               <h4 className="status-label-title">Campaign details</h4>
+
               <p className="status-label-sub">
                 Your campaign information is complete.
               </p>
             </div>
           </div>
         </div>
+
         <div className="payment-method-footer">
           <div
             className="status-flex-row"
-            style={{ marginBottom: savedPayment ? "16px" : "0" }}
+            style={{
+              marginBottom: savedPayment ? "16px" : "0",
+            }}
           >
             {savedPayment ? <SuccessCheck /> : <ErrorCheck />}
+
             <div className="status-text-stack">
               <h4 className="status-label-title">Add a payout method</h4>
+
               <p className="status-label-sub">
                 Connect bank details so donations go directly to your account.
               </p>
@@ -341,25 +410,35 @@ export default function PublishCampaign({ onBack, onPublish, isSaving }) {
               }}
             >
               <div
-                style={{ display: "flex", gap: "12px", alignItems: "center" }}
+                style={{
+                  display: "flex",
+                  gap: "12px",
+                  alignItems: "center",
+                }}
               >
                 <BankIcon />
+
                 <div className="status-text-stack">
                   <h4 className="status-label-title" style={{ margin: 0 }}>
                     {savedPayment.bankName}
                   </h4>
+
                   <p className="status-label-sub" style={{ margin: 0 }}>
                     {savedPayment.accountName}
                   </p>
                 </div>
               </div>
+
               <SuccessCheck />
             </div>
           )}
 
           <button
             className="btn-save-draft-aligned"
-            style={{ width: "100%", marginTop: "12px" }}
+            style={{
+              width: "100%",
+              marginTop: "12px",
+            }}
             onClick={() => setIsModalOpen(true)}
           >
             {savedPayment ? "Change Payout Method" : "Add New Payout Method"}
@@ -367,70 +446,386 @@ export default function PublishCampaign({ onBack, onPublish, isSaving }) {
         </div>
       </div>
 
-      <div className="publish-status-card" style={{ padding: "20px" }}>
-        <div className="status-flex-row">
-          {isPromoApplied ? <SuccessCheck /> : <ErrorCheck />}
-          <div className="status-text-stack">
-            <h4 className="status-label-title">Pay hosting fee</h4>
-            <p className="status-label-sub">
-              {isPromoApplied
-                ? "First campaign promo applied!"
-                : "A one-time fee based on your chosen duration."}
-            </p>
-          </div>
-        </div>
+      {/* HOSTING FEE SECTION */}
+      <div
+        style={{
+          fontFamily: "'Urbanist', sans-serif",
+          width: "100%",
+          padding: "24px",
+          border: "1px solid #e6e6e6",
+          borderRadius: "12px",
+          background: "#fff",
+          display: "flex",
+          flexDirection: "column",
+          gap: "20px",
+        }}
+      >
+        {/* Header */}
         <div
-          className="duration-grid"
           style={{
-            opacity: isPromoApplied ? 0.6 : 1,
-            pointerEvents: isPromoApplied ? "none" : "auto",
+            display: "flex",
+            gap: "12px",
+            alignItems: "flex-start",
           }}
         >
-          {[1, 2, 4, 8].map((w) => (
-            <button
-              key={w}
-              className={`duration-btn ${weeks === w ? "selected" : ""}`}
-              onClick={() => setWeeks(w)}
+          {isPromoApplied ? <SuccessCheck /> : <ErrorCheck />}
+
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "4px",
+            }}
+          >
+            <span
+              style={{
+                fontSize: "18px",
+                fontWeight: "700",
+                color: "#333",
+              }}
             >
-              {w} {w === 1 ? "Week" : "Weeks"}
-            </button>
-          ))}
+              Pay hosting fee
+            </span>
+
+            <span
+              style={{
+                fontSize: "14px",
+                color: "#888",
+              }}
+            >
+              Your campaign is hosted on Fundu for the duration you choose.
+            </span>
+          </div>
         </div>
 
-        {!isPromoApplied && (
-          <div style={{ marginTop: "16px" }}>
-            <InputField
-              placeholder="Enter promo code"
-              value={promoCode}
-              onChange={(e) => setPromoCode(e.target.value)}
+        {/* Standard Pricing */}
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "12px",
+          }}
+        >
+          <span
+            style={{
+              fontSize: "14px",
+              fontWeight: "600",
+              color: "#333",
+            }}
+          >
+            Standard pricing
+          </span>
+
+          <div
+            style={{
+              display: "flex",
+              border: "1px solid #e6e6e6",
+              borderRadius: "8px",
+              overflow: "hidden",
+            }}
+          >
+            <div
+              style={{
+                flex: 1,
+                padding: "12px",
+                display: "flex",
+                flexDirection: "column",
+                gap: "4px",
+              }}
+            >
+              <span
+                style={{
+                  fontSize: "12px",
+                  color: "#888",
+                }}
+              >
+                Hosting rate
+              </span>
+
+              <span
+                style={{
+                  fontSize: "14px",
+                  fontWeight: "700",
+                  color: "#333",
+                }}
+              >
+                ₦200 / day
+              </span>
+            </div>
+
+            <div
+              style={{
+                width: "1px",
+                background: "#e6e6e6",
+              }}
             />
+
+            <div
+              style={{
+                flex: 1,
+                padding: "12px",
+                display: "flex",
+                flexDirection: "column",
+                gap: "4px",
+              }}
+            >
+              <span
+                style={{
+                  fontSize: "12px",
+                  color: "#888",
+                }}
+              >
+                Campaign duration
+              </span>
+
+              <span
+                style={{
+                  fontSize: "14px",
+                  fontWeight: "700",
+                  color: "#333",
+                }}
+              >
+                {durationInDays} {durationInDays === 1 ? "day" : "days"}
+              </span>
+            </div>
+
+            <div
+              style={{
+                width: "1px",
+                background: "#e6e6e6",
+              }}
+            />
+
+            <div
+              style={{
+                flex: 1,
+                padding: "12px",
+                display: "flex",
+                flexDirection: "column",
+                gap: "4px",
+              }}
+            >
+              <span
+                style={{
+                  fontSize: "12px",
+                  color: "#888",
+                }}
+              >
+                Total hosting fee
+              </span>
+
+              <span
+                style={{
+                  fontSize: "14px",
+                  fontWeight: "700",
+                  color: "#333",
+                }}
+              >
+                ₦{normalHostingFee.toLocaleString("en-NG")}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Early Access Offer */}
+        {isPromoApplied && (
+          <div
+            style={{
+              padding: "16px",
+              background: "#F0FDFA",
+              border: "1px solid #1E807F",
+              borderRadius: "12px",
+              display: "flex",
+              flexDirection: "column",
+              gap: "8px",
+            }}
+          >
+            <span
+              style={{
+                fontSize: "14px",
+                fontWeight: "700",
+                color: "#1E807F",
+              }}
+            >
+              Early access offer
+            </span>
+
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "12px",
+              }}
+            >
+              <span
+                style={{
+                  fontSize: "16px",
+                  fontWeight: "600",
+                  color: "#888",
+                  textDecoration: "line-through",
+                }}
+              >
+                ₦{normalHostingFee.toLocaleString("en-NG")}
+              </span>
+
+              <span
+                style={{
+                  fontSize: "24px",
+                  fontWeight: "800",
+                  color: "#1E807F",
+                }}
+              >
+                ₦0
+              </span>
+            </div>
+
+            <span
+              style={{
+                fontSize: "13px",
+                color: "#333",
+              }}
+            >
+              Your early access promotion covers the full hosting fee for your
+              campaign.
+            </span>
           </div>
         )}
 
-        <div style={{ display: "flex", gap: "12px", marginTop: "16px" }}>
-          <button
-            className="btn-continue-preview"
-            style={{ width: "100%" }}
-            disabled={isPromoApplied}
+        {/* Promotion Applied */}
+        {isPromoApplied && (
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "8px",
+            }}
+          >
+            <span
+              style={{
+                fontSize: "14px",
+                fontWeight: "600",
+                color: "#333",
+              }}
+            >
+              Promotion applied
+            </span>
+
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                padding: "10px 14px",
+                background: "#F5F5F5",
+                border: "1px solid #e6e6e6",
+                borderRadius: "8px",
+              }}
+            >
+              <span
+                style={{
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  color: "#333",
+                }}
+              >
+                {promoCode}
+              </span>
+
+              <span
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "4px",
+                  padding: "2px 6px",
+                  background: "#E6F4F1",
+                  borderRadius: "4px",
+                }}
+              >
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <path
+                    d="M2 6L5 9L10 3"
+                    stroke="#00A63E"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+
+                <span
+                  style={{
+                    fontSize: "11px",
+                    fontWeight: "700",
+                    color: "#00A63E",
+                  }}
+                >
+                  Applied
+                </span>
+              </span>
+            </div>
+
+            <span
+              style={{
+                fontSize: "12px",
+                color: "#888",
+              }}
+            >
+              This promotion was automatically applied to your account. No
+              action needed.
+            </span>
+          </div>
+        )}
+
+        {/* Total to Pay */}
+        <div
+          style={{
+            padding: "16px",
+            background: "#F9FAFB",
+            border: "1px solid #e6e6e6",
+            borderRadius: "12px",
+            display: "flex",
+            flexDirection: "column",
+            gap: "4px",
+          }}
+        >
+          <span
+            style={{
+              fontSize: "14px",
+              fontWeight: "600",
+              color: "#333",
+            }}
+          >
+            Total to pay
+          </span>
+
+          <span
+            style={{
+              fontSize: "32px",
+              fontWeight: "800",
+              color: "#1E807F",
+            }}
+          >
+            ₦{totalFee.toLocaleString("en-NG")}
+          </span>
+
+          <span
+            style={{
+              fontSize: "13px",
+              fontWeight: "600",
+              color: isPromoApplied ? "#1E807F" : "#888",
+            }}
           >
             {isPromoApplied
-              ? "Hosting Fee: ₦0"
-              : `Pay ₦${totalFee.toLocaleString()}`}
-          </button>
-          {!isPromoApplied && (
-            <button
-              className="btn-save-draft-aligned"
-              style={{ width: "auto", whiteSpace: "nowrap" }}
-              onClick={handleApplyPromo}
-            >
-              Use promo code
-            </button>
-          )}
+              ? "Free during early access"
+              : `Hosting fee for ${durationInDays} ${
+                  durationInDays === 1 ? "day" : "days"
+                }`}
+          </span>
         </div>
       </div>
 
       <div className="info-notice-box">
         <InfoIcon />
+
         <p className="info-notice-text">
           Fundu does not hold funds. Donations are processed by trusted
           providers and sent directly to you.
@@ -443,8 +838,13 @@ export default function PublishCampaign({ onBack, onPublish, isSaving }) {
           id="terms-check"
           checked={agreed}
           onChange={(e) => setAgreed(e.target.checked)}
-          style={{ cursor: "pointer", width: "18px", height: "18px" }}
+          style={{
+            cursor: "pointer",
+            width: "18px",
+            height: "18px",
+          }}
         />
+
         <label htmlFor="terms-check" className="terms-label">
           I confirm all info is accurate and agree to{" "}
           <span className="terms-link">Terms of Service</span>
@@ -455,6 +855,7 @@ export default function PublishCampaign({ onBack, onPublish, isSaving }) {
         <button className="btn-back-basics" onClick={onBack}>
           Back to Preview
         </button>
+
         <button
           className="btn-continue-preview"
           disabled={isSaving || !agreed || !savedPayment}

@@ -1,12 +1,16 @@
 "use client";
+
 import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+
 import BasicInfo from "./components/BasicInfo";
 import Story from "./components/Story";
 import PreviewCampaign from "./components/PreviewCampaign";
 import PublishCampaign from "./components/PublishCampaign";
+
 import { saveCampaign } from "@/lib/saveCampaign";
 import { supabase } from "@/lib/supabase";
+
 import "./styles/campaignform.css";
 
 function CreateCampaignContent() {
@@ -18,7 +22,6 @@ function CreateCampaignContent() {
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(!!editId);
 
-  // --- NEW STATE FOR SUCCESS SCREEN ---
   const [isPublished, setIsPublished] = useState(false);
   const [campaignLink, setCampaignLink] = useState("");
 
@@ -52,6 +55,7 @@ function CreateCampaignContent() {
 
           if (data) {
             setCampaignId(data.id);
+
             const dbImage = data.cover_image || data.image_url || null;
 
             setFormData({
@@ -72,6 +76,7 @@ function CreateCampaignContent() {
                 typeof data.story_blocks === "string"
                   ? JSON.parse(data.story_blocks)
                   : data.story_blocks;
+
               setBlocks(parsedBlocks);
             }
           }
@@ -81,6 +86,7 @@ function CreateCampaignContent() {
           setIsLoading(false);
         }
       };
+
       fetchCampaignData();
     }
   }, [editId]);
@@ -92,11 +98,13 @@ function CreateCampaignContent() {
     isFinalPublish = false,
   ) => {
     setIsSaving(true);
+
     try {
       const {
         data: { user },
         error: authError,
       } = await supabase.auth.getUser();
+
       if (authError || !user) {
         alert("Authentication error: Please sign in to save your campaign.");
         return false;
@@ -113,10 +121,11 @@ function CreateCampaignContent() {
 
       if (result.success) {
         setCampaignId(result.campaignId);
-        // Set the link for the success screen
+
         setCampaignLink(
-          `${window.location.origin}/campaigns/${result.campaignId}`,
+          `${window.location.origin}/campaign/${result.campaignId}`,
         );
+
         return true;
       } else {
         alert("Save failed: " + result.error);
@@ -137,8 +146,8 @@ function CreateCampaignContent() {
       payoutDetails,
       true,
     );
+
     if (saved) {
-      // --- UPDATE: SHOW SUCCESS SCREEN INSTEAD OF ALERT ---
       setIsPublished(true);
     }
   };
@@ -146,12 +155,16 @@ function CreateCampaignContent() {
   const nextStep = async () => {
     if (step === 1 || step === 2) {
       const saved = await handleSaveProcess();
+
       if (!saved) return;
     }
+
     setStep((prev) => prev + 1);
   };
 
-  const prevStep = () => setStep((prev) => prev - 1);
+  const prevStep = () => {
+    setStep((prev) => prev - 1);
+  };
 
   const steps = [
     { id: 1, label: "Basic Info" },
@@ -164,17 +177,25 @@ function CreateCampaignContent() {
     return (
       <div
         className="create-campaign-page"
-        style={{ justifyContent: "center", alignItems: "center" }}
+        style={{
+          justifyContent: "center",
+          alignItems: "center",
+        }}
       >
         <div className="spinner"></div>
-        <p className="font-urbanist" style={{ marginTop: "12px" }}>
+
+        <p
+          className="font-urbanist"
+          style={{
+            marginTop: "12px",
+          }}
+        >
           Loading campaign data...
         </p>
       </div>
     );
   }
 
-  // --- NEW: SUCCESS SCREEN RENDER LOGIC ---
   if (isPublished) {
     return (
       <div
@@ -239,9 +260,14 @@ function CreateCampaignContent() {
           >
             Your campaign is live! 🥳
           </h2>
+
           <p
             className="font-urbanist"
-            style={{ color: "#666", marginBottom: "32px", lineHeight: "1.5" }}
+            style={{
+              color: "#666",
+              marginBottom: "32px",
+              lineHeight: "1.5",
+            }}
           >
             Congratulations! Your campaign has been created successfully.
           </p>
@@ -251,7 +277,7 @@ function CreateCampaignContent() {
             style={{
               width: "100%",
               backgroundColor: "#1B827F",
-              color: "#white",
+              color: "#fff",
               padding: "16px",
               borderRadius: "12px",
               border: "none",
@@ -264,7 +290,12 @@ function CreateCampaignContent() {
             View Campaign
           </button>
 
-          <div style={{ display: "flex", gap: "12px" }}>
+          <div
+            style={{
+              display: "flex",
+              gap: "12px",
+            }}
+          >
             <button
               onClick={() => {
                 navigator.clipboard.writeText(campaignLink);
@@ -284,8 +315,10 @@ function CreateCampaignContent() {
                 cursor: "pointer",
               }}
             >
-              <span>🔗</span> Copy Link
+              <span>🔗</span>
+              Copy Link
             </button>
+
             <button
               style={{
                 flex: 1,
@@ -301,7 +334,8 @@ function CreateCampaignContent() {
                 cursor: "pointer",
               }}
             >
-              <span>📤</span> Share
+              <span>📤</span>
+              Share
             </button>
           </div>
         </div>
@@ -328,6 +362,7 @@ function CreateCampaignContent() {
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
+
               <path
                 d="M15.8307 9.99805H4.16406"
                 stroke="#0A0A0A"
@@ -337,10 +372,12 @@ function CreateCampaignContent() {
               />
             </svg>
           </div>
+
           <h3 className="page-title-text">
             {editId ? "Edit campaign" : "Create campaign"}
           </h3>
         </div>
+
         <button
           className={`btn-save-draft-aligned ${isSaving ? "is-loading" : ""}`}
           onClick={() => handleSaveProcess()}
@@ -363,16 +400,22 @@ function CreateCampaignContent() {
             <React.Fragment key={item.id}>
               <div className="step-wrapper">
                 <div
-                  className={`step-circle ${step >= item.id ? "active" : "inactive"}`}
+                  className={`step-circle ${
+                    step >= item.id ? "active" : "inactive"
+                  }`}
                 >
                   {item.id}
                 </div>
+
                 <span
-                  className={`step-label-bottom ${step >= item.id ? "active" : "inactive"}`}
+                  className={`step-label-bottom ${
+                    step >= item.id ? "active" : "inactive"
+                  }`}
                 >
                   {item.label}
                 </span>
               </div>
+
               {index < steps.length - 1 && (
                 <div className="step-connector-line"></div>
               )}
@@ -419,6 +462,7 @@ function CreateCampaignContent() {
             onBack={prevStep}
             onPublish={handlePublish}
             isSaving={isSaving}
+            duration={formData.duration}
           />
         )}
       </div>
