@@ -1,0 +1,780 @@
+/* =========================================================
+   FUNDU APP SHELL
+========================================================= */
+
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  background: #eff6f6;
+}
+
+/* =========================================================
+   AUTH CHECK
+========================================================= */
+
+.app-auth-loading {
+  width: 100%;
+  min-height: 100vh;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  gap: 12px;
+
+  background: #eff6f6;
+}
+
+.app-auth-loading__spinner {
+  width: 36px;
+  height: 36px;
+
+  border: 3px solid #d2e4e4;
+  border-top-color: #1e807f;
+
+  border-radius: 50%;
+
+  animation: app-auth-spin 0.8s linear infinite;
+}
+
+.app-auth-loading p {
+  margin: 0;
+
+  color: #6b7280;
+
+  font-size: 14px;
+}
+
+@keyframes app-auth-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* =========================================================
+   DESKTOP SIDEBAR
+========================================================= */
+
+.app-sidebar {
+  width: 300px;
+  min-width: 300px;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  padding: 24px 20px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  background: #eff6f6;
+
+  transition:
+    width 0.25s ease,
+    min-width 0.25s ease,
+    padding 0.25s ease;
+
+  overflow: visible;
+}
+
+.app-sidebar--collapsed {
+  width: 70px;
+  min-width: 70px;
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+/* =========================================================
+   SIDEBAR TOP
+========================================================= */
+
+.app-sidebar__top {
+  width: 100%;
+  min-height: 24px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.app-sidebar__logo {
+  display: inline-flex;
+  align-items: baseline;
+
+  text-decoration: none;
+  font-size: 20px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.app-sidebar__logo span:first-child {
+  color: #1b7474;
+}
+
+.app-sidebar__logo span:last-child {
+  color: #ef9f27;
+}
+
+/* DESKTOP COLLAPSE + MOBILE CLOSE BUTTON */
+
+.app-sidebar__collapse,
+.app-mobile-drawer__close {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+
+  border: 0;
+  background: transparent;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.app-sidebar__collapse img,
+.app-mobile-drawer__close img {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+}
+
+/* =========================================================
+   PROFILE
+========================================================= */
+
+.app-sidebar__profile-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.app-sidebar__profile {
+  width: 100%;
+  min-height: 64px;
+  padding: 12px 0;
+
+  border: 0;
+  background: transparent;
+
+  font-family: inherit;
+  text-align: left;
+
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  cursor: pointer;
+}
+
+.app-sidebar__avatar {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+
+  overflow: hidden;
+  border-radius: 50%;
+
+  background: #d9d9d9;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.app-sidebar__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.app-sidebar__profile-info {
+  flex: 1;
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.app-sidebar__profile-name {
+  color: #333333;
+
+  font-size: 16px;
+  line-height: 1.3;
+  font-weight: 600;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.app-sidebar__profile-meta {
+  color: #888888;
+
+  font-size: 12px;
+  line-height: 1.3;
+  font-weight: 400;
+}
+
+.app-sidebar__profile-chevron {
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+
+  transition: transform 0.2s ease;
+}
+
+.app-sidebar__profile-chevron--open {
+  transform: rotate(90deg);
+}
+
+/* =========================================================
+   PROFILE DROPDOWN
+========================================================= */
+
+.app-sidebar__profile-menu {
+  position: absolute;
+  top: calc(100% - 4px);
+  left: 0;
+  z-index: 100;
+
+  width: 100%;
+  min-width: 180px;
+
+  padding: 4px;
+
+  display: flex;
+  flex-direction: column;
+
+  background: #ffffff;
+  border-radius: 8px;
+
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.08),
+    0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.app-sidebar__profile-menu-item {
+  width: 100%;
+  padding: 8px 12px;
+
+  border: 0;
+  border-radius: 6px;
+
+  background: transparent;
+  color: #333333;
+
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.3;
+  font-weight: 500;
+
+  text-decoration: none;
+  text-align: left;
+
+  cursor: pointer;
+}
+
+.app-sidebar__profile-menu-item:hover {
+  background: #f2f2f2;
+}
+
+.app-sidebar__profile-menu-item:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* =========================================================
+   SIDEBAR NAVIGATION
+========================================================= */
+
+.app-sidebar__nav {
+  flex: 1;
+  width: 100%;
+
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.app-sidebar__nav-item {
+  width: 100%;
+  padding: 12px;
+
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  border-radius: 8px;
+
+  color: #333333;
+  text-decoration: none;
+
+  font-size: 16px;
+  line-height: 1.3;
+  font-weight: 500;
+
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.app-sidebar__nav-item:hover {
+  background: #e5eeee;
+}
+
+/*
+   The SVG is used as a CSS mask.
+   This lets us control active/inactive icon colour.
+*/
+
+.app-sidebar__nav-icon {
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+
+  display: block;
+
+  background-color: #333333;
+
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+
+  -webkit-mask-position: center;
+  mask-position: center;
+
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+
+/* ACTIVE NAV ITEM */
+
+.app-sidebar__nav-item.active {
+  color: #1b7474;
+  background: #d2e4e4;
+  font-weight: 600;
+}
+
+.app-sidebar__nav-item.active .app-sidebar__nav-icon {
+  background-color: #1b7474;
+}
+
+/* =========================================================
+   HELP
+========================================================= */
+
+.app-sidebar__help {
+  width: 100%;
+  padding: 12px;
+
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  border-radius: 8px;
+
+  color: #333333;
+  text-decoration: none;
+
+  font-size: 16px;
+  line-height: 1.3;
+  font-weight: 500;
+}
+
+.app-sidebar__help:hover {
+  background: #e5eeee;
+}
+
+.app-sidebar__help-icon {
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+
+  display: block;
+
+  background-color: #333333;
+
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+
+  -webkit-mask-position: center;
+  mask-position: center;
+
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+
+/* =========================================================
+   CREATE CAMPAIGN BUTTON
+========================================================= */
+
+.app-sidebar__create {
+  width: 100%;
+  padding: 13.5px 24px;
+
+  border-radius: 8px;
+
+  background: #1e807f;
+  color: #ffffff;
+
+  text-align: center;
+  text-decoration: none;
+
+  font-size: 16px;
+  line-height: 1.3;
+  font-weight: 600;
+
+  transition: background-color 0.15s ease;
+}
+
+.app-sidebar__create:hover {
+  background: #1b7474;
+}
+
+/* =========================================================
+   COLLAPSED DESKTOP SIDEBAR
+========================================================= */
+
+.app-sidebar--collapsed .app-sidebar__top {
+  justify-content: center;
+}
+
+/* Hide logo, but keep collapse toggle visible */
+
+.app-sidebar--collapsed .app-sidebar__logo {
+  display: none;
+}
+
+/*
+   IMPORTANT:
+   Only text disappears.
+   Navigation icons stay visible.
+*/
+
+.app-sidebar--collapsed .app-sidebar__nav-label,
+.app-sidebar--collapsed .app-sidebar__profile-info,
+.app-sidebar--collapsed .app-sidebar__help-label,
+.app-sidebar--collapsed .app-sidebar__create {
+  display: none;
+}
+
+/* PROFILE WHEN COLLAPSED */
+
+.app-sidebar--collapsed .app-sidebar__profile {
+  justify-content: center;
+  gap: 0;
+}
+
+.app-sidebar--collapsed .app-sidebar__avatar {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+}
+
+.app-sidebar--collapsed .app-sidebar__profile-chevron {
+  display: none;
+}
+
+/* NAV ITEMS WHEN COLLAPSED */
+
+.app-sidebar--collapsed .app-sidebar__nav {
+  align-items: center;
+}
+
+.app-sidebar--collapsed .app-sidebar__nav-item {
+  width: 45px;
+  min-width: 45px;
+
+  padding: 12px;
+
+  justify-content: center;
+  gap: 0;
+}
+
+/* HELP WHEN COLLAPSED */
+
+.app-sidebar--collapsed .app-sidebar__help {
+  width: 45px;
+  min-width: 45px;
+
+  padding: 12px;
+
+  align-self: center;
+  justify-content: center;
+  gap: 0;
+}
+
+/* PROFILE DROPDOWN WHEN COLLAPSED */
+
+.app-sidebar--collapsed .app-sidebar__profile-menu {
+  top: 0;
+  left: 48px;
+
+  width: 180px;
+}
+
+/* =========================================================
+   MAIN APP CONTENT
+========================================================= */
+
+.app-shell__content {
+  flex: 1;
+  min-width: 0;
+
+  /*
+    Gives the white main surface the small gap visible
+    around it in the desktop Figma.
+  */
+  padding: 12px 12px 12px 0;
+}
+
+.app-shell__main {
+  min-height: calc(100vh - 24px);
+
+  background: #ffffff;
+
+  border-radius: 24px;
+
+  /*
+    Dashboard itself supplies its 32px content padding.
+    Do NOT add padding here.
+  */
+  overflow: hidden;
+}
+
+/* =========================================================
+   MOBILE HEADER
+========================================================= */
+
+.app-mobile-header {
+  display: none;
+}
+
+.app-mobile-overlay {
+  display: none;
+}
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 768px) {
+  .app-shell {
+    display: block;
+    min-height: 100vh;
+
+    background: #ffffff;
+  }
+
+  /* Hide desktop sidebar */
+
+  .app-sidebar {
+    display: none;
+  }
+
+  /* =======================================================
+     MOBILE TOP NAV
+  ======================================================= */
+
+  .app-mobile-header {
+    width: 100%;
+    height: 72px;
+
+    padding: 12px 20px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    background: #ffffff;
+
+    border-bottom: 1px solid #e6e6e6;
+  }
+
+  .app-mobile-header__menu {
+    width: 40px;
+    height: 40px;
+
+    padding: 0;
+
+    border: 0;
+    background: transparent;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    cursor: pointer;
+  }
+
+  .app-mobile-header__menu img {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+  }
+
+  /* =======================================================
+     MOBILE OVERLAY
+  ======================================================= */
+
+  .app-mobile-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+
+    display: block;
+
+    background: rgba(0, 0, 0, 0.45);
+  }
+
+  /* =======================================================
+     MOBILE DRAWER
+  ======================================================= */
+
+  .app-mobile-drawer {
+    width: min(310px, 85vw);
+    height: 100%;
+
+    padding: 24px 20px;
+
+    background: #eff6f6;
+
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    overflow-y: auto;
+    overflow-x: visible;
+  }
+
+  .app-mobile-drawer__close {
+    width: 24px;
+    height: 24px;
+  }
+
+  .app-mobile-drawer .app-sidebar__nav {
+    flex: 1;
+  }
+
+  .app-mobile-drawer .app-sidebar__profile-menu {
+    width: 100%;
+    left: 0;
+  }
+
+  /*
+     Desktop sidebar is hidden, but these elements are reused
+     inside the mobile drawer, so keep their normal visibility.
+  */
+
+  .app-mobile-drawer .app-sidebar__logo {
+    display: inline-flex;
+  }
+
+  .app-mobile-drawer .app-sidebar__profile-info {
+    display: flex;
+  }
+
+  .app-mobile-drawer .app-sidebar__profile-chevron {
+    display: block;
+  }
+
+  .app-mobile-drawer .app-sidebar__nav-label {
+    display: inline;
+  }
+
+  .app-mobile-drawer .app-sidebar__help-label {
+    display: inline;
+  }
+
+  .app-mobile-drawer .app-sidebar__create {
+    display: block;
+  }
+
+  /* =======================================================
+     MOBILE MAIN CONTENT
+  ======================================================= */
+
+  .app-shell__content {
+    padding: 0;
+  }
+
+  .app-shell__main {
+    /*
+      72px is the mobile top navigation height.
+    */
+    min-height: calc(100vh - 72px);
+
+    background: #ffffff;
+
+    /*
+      Figma mobile is a normal edge-to-edge page,
+      not a rounded desktop panel.
+    */
+    border-radius: 0;
+
+    /*
+      Dashboard page itself controls its mobile padding.
+    */
+    overflow: hidden;
+  }
+}
+/* =========================================================
+   ACTIVITY / NOTIFICATION BADGE
+========================================================= */
+
+.app-sidebar__activity-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 20px;
+  height: 20px;
+
+  margin-left: auto;
+  padding: 0 6px;
+
+  border-radius: 999px;
+
+  background: #dc2626;
+  color: #ffffff;
+
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 700;
+
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.app-sidebar--collapsed .app-sidebar__activity-badge {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+
+  min-width: 17px;
+  height: 17px;
+
+  padding: 0 4px;
+
+  border: 2px solid #ffffff;
+
+  font-size: 9px;
+}
+
+.app-sidebar--collapsed .app-sidebar__nav-item {
+  position: relative;
+}
+
+@media (max-width: 768px) {
+  .app-sidebar__activity-badge {
+    min-width: 20px;
+    height: 20px;
+
+    margin-left: auto;
+
+    font-size: 11px;
+  }
+}

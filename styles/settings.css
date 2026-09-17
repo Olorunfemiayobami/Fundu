@@ -1,423 +1,877 @@
-/* --- 1. MAIN LAYOUT SHELL --- */
+/* =========================================================
+   SETTINGS PAGE
+========================================================= */
 
-.settings-main-flex {
-  display: flex;
-  align-items: flex-start;
-  gap: 24px;
+.settings-page {
   width: 100%;
-  max-width: 1400px; /* Increased slightly for better spacing */
-  margin: 0 auto;
+  min-height: 100%;
+
+  padding: 32px;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 32px;
+
+  background: #ffffff;
+  color: #333333;
 }
 
-/* The White Container for Directory Content */
-.profile-container-body {
-  position: relative; /* Essential for the loading overlay to position correctly */
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  flex: 1;
-  padding: 24px; /* Added padding for the content inside the white box */
-  border-radius: 16px;
-  background: #fff;
-  border: 1px solid #e6e6e6;
-  min-height: 600px;
-}
-.profile-body {
-  position: relative; /* Essential for the loading overlay to position correctly */
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  flex: 1;
-  /* padding: 32px; Added padding for the content inside the white box */
-  /* border-radius: 16px; */
-  /* background: #fff; */
-  /* border: 1px solid #e6e6e6; */
-  min-height: 600px;
-}
+.settings-page--loading {
+  min-height: 500px;
 
-/* Loading Overlay inside the white container */
-.tab-loading-overlay {
-  position: absolute;
-  inset: 0; /* Shorthand for top/left/right/bottom: 0 */
-  display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(2px); /* Soft blur effect while loading */
-  border-radius: 16px;
-  z-index: 20;
 }
 
-/* The Spinner using Fundu Teal */
-.spinner {
+.settings-page--loading p {
+  margin: 0;
+
+  color: #888888;
+
+  font-size: 14px;
+}
+
+.settings-spinner {
   width: 40px;
   height: 40px;
-  border: 3px solid #f3f3f3;
-  border-top: 3px solid #1e807f;
+
+  border: 3px solid #e9f2f2;
+  border-top-color: #1e807f;
+
   border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 15px;
+
+  animation: settings-spin 0.8s linear infinite;
 }
 
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
+@keyframes settings-spin {
+  to {
     transform: rotate(360deg);
   }
 }
 
-/* Smooth fade in when content appears */
-.animate-fade-in {
-  animation: fadeIn 0.4s ease-out;
-}
+/* =========================================================
+   HEADER
+========================================================= */
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(5px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* --- 2. SIDEBAR STYLING --- */
-.settings-sidebar-container {
-  display: flex;
-  width: 364px;
-  padding: 24px;
-  flex-direction: column;
-  gap: 24px;
-  border-radius: 16px;
-  background: #fff;
-  border: 1px solid #e6e6e6;
-  flex-shrink: 0;
-}
-
-.name-container {
-  display: flex;
-  padding: 16px;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  align-self: stretch;
-  border-radius: 12px;
-  border: 1px solid #e6e6e6;
-}
-
-.profile-picture {
-  width: 64px;
-  height: 64px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 50%;
-  background: #e6e6e6;
-  font-weight: 700;
-  font-size: 20px;
-  overflow: hidden; /* Ensures uploaded images stay circular */
-}
-.name-text-group {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  align-self: stretch;
-}
-.name-title {
-  align-items: center;
-  justify-content: center;
-  display: flex;
-  font-size: 15px;
-}
-.name-body {
-  color: #888;
-  text-align: center;
-  font-family: Urbanist;
-  font-size: 14px;
-  font-style: normal;
-  font-weight: 400;
-  line-height: 130%; /* 18.2px */
-}
-
-.edit-profile-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: none;
-  border: none;
-  color: #1e807f;
-  font-weight: 600;
-  font-family: "Urbanist", sans-serif;
-  cursor: pointer;
-}
-
-/* Directory Cards & Items */
-.directory-wrapper {
-  display: flex;
+.settings-header {
   width: 100%;
-  flex-direction: column;
+
+  display: flex;
   align-items: flex-start;
-  gap: 16px;
-}
-.directory-section {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  justify-content: space-between;
+
+  gap: 24px;
 }
 
-.section-label {
-  color: var(--secondary-placeholders, #888);
-  font-size: 12px;
-  font-style: normal;
-  font-weight: 500;
-  line-height: 130%; /* 15.6px */
-  text-transform: uppercase;
+.settings-header h1 {
+  margin: 0 0 6px;
+
+  color: #111827;
+
+  font-size: 28px;
+  line-height: 1.3;
+  font-weight: 700;
 }
 
-.section-content-card {
-  display: flex;
-  flex-direction: column;
-  border-radius: 12px;
-  border: 1px solid #e6e6e6;
-  background: #fff;
-  overflow: hidden;
+.settings-header p {
+  margin: 0;
+
+  color: #6b7280;
+
+  font-size: 16px;
+  line-height: 1.4;
 }
 
-.directory-item {
-  display: flex;
+/* =========================================================
+   LAYOUT
+========================================================= */
+
+.settings-layout {
   width: 100%;
-  background: none;
-  border: none;
-  border-bottom: 1px solid #e6e6e6;
-  padding: 16px;
-  align-items: center;
-  gap: 12px;
-  text-decoration: none;
-  transition: background 0.2s;
-  cursor: pointer;
-  text-align: left;
+
+  display: grid;
+
+  grid-template-columns:
+    300px
+    minmax(0, 1fr);
+
+  gap: 24px;
+
+  align-items: start;
 }
 
-.directory-item:last-child {
-  border-bottom: none;
-}
+/* =========================================================
+   DIRECTORY
+========================================================= */
 
-.directory-item.active {
-  background: #f4f9f9;
-}
-.icon-wrapper {
+.settings-directory {
+  width: 100%;
+
+  padding: 20px;
+
+  border: 1px solid #e6e6e6;
+  border-radius: 16px;
+
+  background: #ffffff;
+
   display: flex;
+  flex-direction: column;
+
+  gap: 20px;
+
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.settings-user-card {
+  width: 100%;
+
+  padding: 16px;
+
+  border-radius: 12px;
+
+  background: #eff6f6;
+
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+}
+
+.settings-avatar-small {
   width: 48px;
   height: 48px;
-  padding-right: 0;
-  justify-content: center;
-  align-items: center;
-  aspect-ratio: 1/1;
-  border-radius: 42431300px;
-  background: #f2f2f2;
-}
-.directory-item.active .icon-wrapper {
-  background: #e9f2f2;
-  color: #fff;
-}
-.directory-text-group {
-  flex: 1;
+  min-width: 48px;
+
+  overflow: hidden;
+
+  border-radius: 50%;
+
+  background: #d2e4e4;
+  color: #1e807f;
+
   display: flex;
-  flex-direction: column;
-  gap: 6px;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 16px;
+  font-weight: 700;
 }
 
-.directory-text {
-  color: #333;
+.settings-avatar-small img {
+  width: 100%;
+  height: 100%;
+
+  display: block;
+
+  object-fit: cover;
+}
+
+.settings-user-card__text {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 2px;
+}
+
+.settings-user-card__text strong {
+  overflow: hidden;
+
+  color: #333333;
+
+  font-size: 15px;
+  font-weight: 600;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.settings-user-card__text span {
+  overflow: hidden;
+
+  color: #888888;
+
+  font-size: 12px;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* =========================================================
+   TABS
+========================================================= */
+
+.settings-tabs {
+  width: 100%;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 8px;
+}
+
+.settings-tab {
+  width: 100%;
+
+  padding: 14px;
+
+  border: 0;
+  border-radius: 10px;
+
+  background: transparent;
+
+  font-family: inherit;
+  text-align: left;
+
+  cursor: pointer;
+}
+
+.settings-tab:hover {
+  background: #f5f8f8;
+}
+
+.settings-tab.active {
+  background: #e9f2f2;
+}
+
+.settings-tab > div {
+  display: flex;
+  flex-direction: column;
+
+  gap: 3px;
+}
+
+.settings-tab strong {
+  color: #333333;
+
   font-size: 14px;
+  line-height: 1.3;
   font-weight: 600;
 }
 
-.directory-sub {
-  color: #888;
+.settings-tab span {
+  color: #888888;
+
   font-size: 12px;
+  line-height: 1.3;
 }
 
-.directory-item.active .directory-text {
+.settings-tab.active strong {
   color: #1e807f;
 }
 
-.logout-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 16px;
+.settings-logout-btn {
   width: 100%;
-  background: none;
-  border: none;
-  cursor: pointer;
-  margin-top: 12px;
-}
 
-/* --- 3. PROFILE ACTION BUTTONS --- */
+  margin-top: auto;
 
-.btn-continue.filled,
-.btn-save-draft-aligned {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 10px 24px;
-  height: 44px;
-  border-radius: 10px;
-  font-family: "Urbanist", sans-serif;
+  padding: 12px 14px;
+
+  border: 1px solid #ffd5d6;
+  border-radius: 8px;
+
+  background: #ffffff;
+  color: #d92d20;
+
+  font-family: inherit;
   font-size: 14px;
   font-weight: 600;
+
   cursor: pointer;
-  transition: all 0.2s ease-in-out;
-  border: 1.5px solid transparent;
 }
 
-.btn-continue.filled {
-  background-color: #1e807f;
+/* =========================================================
+   CONTENT
+========================================================= */
+
+.settings-content {
+  min-width: 0;
+}
+
+.settings-panel {
+  width: 100%;
+
+  padding: 24px;
+
+  border: 1px solid #d1d1d1;
+  border-radius: 16px;
+
+  background: #ffffff;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 24px;
+
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* =========================================================
+   PANEL HEADER
+========================================================= */
+
+.settings-panel-header {
+  width: 100%;
+
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 20px;
+}
+
+.settings-panel-header h2 {
+  margin: 0 0 5px;
+
+  color: #1b2022;
+
+  font-size: 20px;
+  line-height: 1.3;
+  font-weight: 600;
+}
+
+.settings-panel-header p {
+  margin: 0;
+
+  color: #888888;
+
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+/* =========================================================
+   BUTTONS
+========================================================= */
+
+.settings-primary-btn,
+.settings-outline-btn {
+  min-height: 44px;
+
+  padding: 11px 20px;
+
+  border-radius: 8px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.3;
+  font-weight: 600;
+
+  text-align: center;
+  text-decoration: none;
+
+  cursor: pointer;
+}
+
+.settings-primary-btn {
+  border: 1px solid #1e807f;
+
+  background: #1e807f;
   color: #ffffff;
 }
 
-.btn-continue.filled:hover {
-  background-color: #166665;
-  box-shadow: 0px 4px 12px rgba(30, 128, 127, 0.2);
-  transform: translateY(-1px);
+.settings-primary-btn:hover {
+  background: #1b7474;
 }
 
-.btn-save-draft-aligned {
-  background-color: transparent;
-  border-color: #e6e6e6;
-  color: #333;
-}
+.settings-outline-btn {
+  border: 1px solid #1e807f;
 
-.btn-save-draft-aligned:hover {
-  background-color: #f9f9f9;
-  border-color: #1e807f;
+  background: #ffffff;
   color: #1e807f;
 }
 
-.profile-avatar-circle {
-  position: relative;
-  width: 120px;
-  height: 120px;
-  margin: 0 auto;
-  background: #f2f4f7;
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 32px;
-  font-weight: 700;
-  border: 2px solid #fff;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+.settings-outline-btn:hover {
+  background: #eff6f6;
 }
 
-.upload-camera-btn {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  background: #1e807f;
-  border-radius: 50%;
-  width: 34px;
-  height: 34px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border: 2px solid #fff;
-  cursor: pointer;
-  z-index: 5;
+.settings-primary-btn:disabled,
+.settings-outline-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
-/* --- 4. INPUTS & FORM --- */
-.profile-form-container {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 16px;
-  align-self: stretch;
-}
+.settings-text-btn {
+  width: fit-content;
 
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  width: 100%;
-}
+  padding: 0;
 
-.form-label {
-  font-weight: 600;
+  border: 0;
+
+  background: transparent;
+  color: #1e807f;
+
+  font-family: inherit;
   font-size: 14px;
-  color: #333;
+  font-weight: 600;
+
+  cursor: pointer;
 }
 
-.input-field {
+/* =========================================================
+   AVATAR
+========================================================= */
+
+.settings-profile-avatar-row {
   width: 100%;
-  height: 56px;
-  padding: 0 16px;
-  border-radius: 10px;
+
+  padding-bottom: 24px;
+
+  border-bottom: 1px solid #e6e6e6;
+
+  display: flex;
+  align-items: center;
+
+  gap: 20px;
+}
+
+.settings-avatar-large {
+  width: 96px;
+  height: 96px;
+  min-width: 96px;
+
+  overflow: hidden;
+
+  border-radius: 50%;
+
+  background: #eff6f6;
+  color: #1e807f;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.settings-avatar-large img {
+  width: 100%;
+  height: 100%;
+
+  display: block;
+
+  object-fit: cover;
+}
+
+.settings-avatar-large > span {
+  padding: 8px;
+
+  font-size: 14px;
+  text-align: center;
+}
+
+.settings-profile-avatar-copy {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 5px;
+}
+
+.settings-profile-avatar-copy strong {
+  color: #333333;
+
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.settings-profile-avatar-copy p {
+  margin: 0;
+
+  color: #888888;
+
+  font-size: 13px;
+}
+
+/* =========================================================
+   FORM
+========================================================= */
+
+.settings-form-grid {
+  width: 100%;
+
+  display: grid;
+
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  gap: 20px;
+}
+
+.settings-field {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 8px;
+}
+
+.settings-field--full {
+  grid-column: 1 / -1;
+}
+
+.settings-field > span {
+  color: #333333;
+
+  font-size: 14px;
+  line-height: 1.3;
+  font-weight: 600;
+}
+
+.settings-field input,
+.settings-field select,
+.settings-field textarea {
+  width: 100%;
+
   border: 1px solid #d0d5dd;
-  background: #fff;
-  font-family: "Urbanist", sans-serif;
-  font-size: 16px;
-  transition: all 0.2s ease;
+  border-radius: 8px;
+
+  background: #ffffff;
+  color: #333333;
+
+  font-family: inherit;
+  font-size: 15px;
+
   outline: none;
 }
 
-.input-field:focus {
-  border-color: #1e807f;
-  box-shadow: 0 0 0 1px #1e807f;
+.settings-field input,
+.settings-field select {
+  height: 52px;
+
+  padding: 0 14px;
 }
 
-.is-disabled .input-field {
-  background-color: #f9fafb;
-  color: #667085;
-  cursor: not-allowed;
-  border-color: #e6e6e6;
-}
-
-textarea.input-field {
-  height: auto;
-  padding: 16px;
+.settings-field textarea {
   min-height: 120px;
+
+  padding: 14px;
+
+  resize: vertical;
 }
 
-/* --- 5. BANNER --- */
-.profile-bottom-banner {
-  padding: 16px;
-  border-radius: 12px;
-  border: 1px solid #8abeff;
-  background: #eff6ff;
-  color: #1c398e;
-  font-size: 14px;
-  margin-top: auto; /* Pushes banner to bottom if content is short */
+.settings-field input:focus,
+.settings-field select:focus,
+.settings-field textarea:focus {
+  border-color: #1e807f;
+
+  box-shadow: 0 0 0 2px rgba(30, 128, 127, 0.08);
 }
-.phone-input-combined {
-  display: flex;
-  gap: 12px;
+
+.settings-field input:disabled,
+.settings-field select:disabled,
+.settings-field textarea:disabled {
+  background: #f5f5f5;
+  color: #888888;
+
+  cursor: not-allowed;
+}
+
+/* =========================================================
+   NOTES
+========================================================= */
+
+.settings-info-note,
+.settings-bank-warning {
   width: 100%;
-  align-items: flex-start;
+
+  padding: 14px 16px;
+
+  border-radius: 10px;
+
+  font-size: 13px;
+  line-height: 1.4;
 }
 
-.country-code-wrapper .input-field {
+.settings-info-note {
+  border: 1px solid #b9dada;
+
+  background: #eff6f6;
+  color: #1b7474;
+}
+
+.settings-bank-warning {
+  border: 1px solid #fed7aa;
+
+  background: #fff7ed;
+  color: #92400e;
+}
+
+/* =========================================================
+   BANK STATUS
+========================================================= */
+
+.settings-bank-status {
+  width: 100%;
+
+  padding: 16px;
+
+  border-radius: 12px;
+
+  background: #fafafa;
+
+  display: grid;
+
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  gap: 16px;
+}
+
+.settings-bank-status > div {
   display: flex;
-  align-items: center; /* This pulls the "+234" down to the middle */
-  justify-content: center;
-  padding: 0;
-  text-align: center;
-  width: 88px; /* Slightly narrower to look more like a prefix */
-  flex-shrink: 0;
-  gap: 8px;
+  flex-direction: column;
+
+  gap: 4px;
 }
 
-.phone-number-wrapper {
-  flex: 1;
+.settings-bank-status span {
+  color: #888888;
+
+  font-size: 12px;
 }
 
-/* Fix the invisible loading text */
-.tab-loading-overlay p {
-  color: #667085 !important; /* Force it to be visible gray */
+.settings-bank-status strong {
+  color: #333333;
+
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* =========================================================
+   EMPTY
+========================================================= */
+
+.settings-empty-card {
+  width: 100%;
+
+  padding: 32px;
+
+  border: 1px solid #e6e6e6;
+  border-radius: 12px;
+
+  background: #fafafa;
+
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+
+  gap: 10px;
+}
+
+.settings-empty-card h3 {
+  margin: 0;
+
+  color: #333333;
+
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.settings-empty-card p {
+  margin: 0;
+
+  color: #888888;
+
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+/* =========================================================
+   ERROR
+========================================================= */
+
+.settings-error-card {
+  width: min(100%, 560px);
+
+  padding: 32px;
+
+  border: 1px solid #e6e6e6;
+  border-radius: 16px;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 16px;
+}
+
+.settings-error-card h1 {
+  margin: 0;
+
+  color: #1b2022;
+
+  font-size: 24px;
+}
+
+.settings-error-card p {
+  margin: 0;
+
+  color: #888888;
+
+  font-size: 14px;
+}
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (min-width: 769px) and (max-width: 1180px) {
+  .settings-page {
+    padding: 24px;
+
+    gap: 28px;
+  }
+
+  .settings-layout {
+    grid-template-columns:
+      240px
+      minmax(0, 1fr);
+
+    gap: 20px;
+  }
+
+  .settings-directory {
+    padding: 16px;
+  }
+
+  .settings-panel {
+    padding: 20px;
+  }
+
+  .settings-form-grid {
+    gap: 16px;
+  }
+}
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 768px) {
+  .settings-page {
+    padding: 16px 16px 40px;
+
+    gap: 24px;
+  }
+
+  .settings-header h1 {
+    font-size: 24px;
+  }
+
+  .settings-header p {
+    font-size: 14px;
+  }
+
+  .settings-layout {
+    grid-template-columns: 1fr;
+
+    gap: 16px;
+  }
+
+  .settings-directory {
+    padding: 12px;
+
+    gap: 12px;
+  }
+
+  .settings-user-card {
+    padding: 12px;
+  }
+
+  .settings-tabs {
+    flex-direction: row;
+
+    overflow-x: auto;
+
+    gap: 6px;
+
+    scrollbar-width: none;
+  }
+
+  .settings-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .settings-tab {
+    width: auto;
+    min-width: max-content;
+
+    padding: 10px 14px;
+  }
+
+  .settings-tab span {
+    display: none;
+  }
+
+  .settings-logout-btn {
+    display: none;
+  }
+
+  .settings-panel {
+    padding: 16px;
+
+    gap: 20px;
+  }
+
+  .settings-panel-header {
+    flex-direction: column;
+
+    align-items: stretch;
+
+    gap: 14px;
+  }
+
+  .settings-panel-header > button {
+    width: 100%;
+  }
+
+  .settings-profile-avatar-row {
+    align-items: flex-start;
+
+    gap: 14px;
+  }
+
+  .settings-avatar-large {
+    width: 76px;
+    height: 76px;
+    min-width: 76px;
+
+    font-size: 22px;
+  }
+
+  .settings-form-grid {
+    grid-template-columns: 1fr;
+
+    gap: 16px;
+  }
+
+  .settings-field--full {
+    grid-column: auto;
+  }
+
+  .settings-bank-status {
+    grid-template-columns: 1fr;
+
+    gap: 12px;
+  }
+}
+
+/* =========================================================
+   SMALL MOBILE
+========================================================= */
+
+@media (max-width: 480px) {
+  .settings-profile-avatar-row {
+    flex-direction: column;
+  }
+
+  .settings-empty-card {
+    padding: 20px;
+  }
 }

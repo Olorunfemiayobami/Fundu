@@ -1,0 +1,641 @@
+/* =========================================================
+   MY CAMPAIGNS PAGE
+========================================================= */
+
+.campaigns-page {
+  width: 100%;
+  min-height: 100%;
+
+  padding: 32px;
+
+  background: #ffffff;
+}
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.campaigns-page__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 24px;
+
+  margin-bottom: 32px;
+}
+
+.campaigns-page__heading {
+  min-width: 0;
+}
+
+.campaigns-page__heading h1 {
+  margin: 0 0 6px;
+
+  color: #333333;
+
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.campaigns-page__heading p {
+  margin: 0;
+
+  color: #888888;
+
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.campaigns-page__create-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  height: 48px;
+
+  padding: 0 24px;
+
+  border-radius: 8px;
+
+  background: #1e807f;
+
+  color: #ffffff;
+
+  font-size: 14px;
+  font-weight: 500;
+
+  text-decoration: none;
+
+  white-space: nowrap;
+}
+
+.campaigns-page__create-button:hover {
+  background: #176c6b;
+}
+
+/* =========================================================
+   FILTERS
+========================================================= */
+
+.campaigns-page__filters {
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+
+  margin-bottom: 32px;
+}
+
+.campaigns-page__filter {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 6px;
+
+  min-height: 33px;
+
+  padding: 8px 16px;
+
+  border: 0;
+
+  border-radius: 999px;
+
+  background: #f5f5f5;
+
+  color: #666666;
+
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+
+  cursor: pointer;
+}
+
+.campaigns-page__filter span {
+  color: inherit;
+}
+
+.campaigns-page__filter--active {
+  background: #1e807f;
+
+  color: #ffffff;
+}
+
+/* =========================================================
+   SEARCH + COUNT
+========================================================= */
+
+.campaigns-page__tools {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 24px;
+
+  margin-bottom: 32px;
+}
+
+.campaigns-page__search {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  width: 220px;
+  height: 44px;
+
+  padding: 0 14px;
+
+  border: 1px solid #e6e6e6;
+
+  border-radius: 8px;
+
+  background: #ffffff;
+}
+
+.campaigns-page__search:focus-within {
+  border-color: #1e807f;
+}
+
+.campaigns-page__search-icon {
+  position: relative;
+
+  width: 16px;
+  height: 16px;
+
+  flex: 0 0 auto;
+
+  border: 1.5px solid #888888;
+
+  border-radius: 50%;
+}
+
+.campaigns-page__search-icon::after {
+  content: "";
+
+  position: absolute;
+
+  right: -4px;
+  bottom: -3px;
+
+  width: 6px;
+  height: 1.5px;
+
+  border-radius: 999px;
+
+  background: #888888;
+
+  transform: rotate(45deg);
+}
+
+.campaigns-page__search input {
+  width: 100%;
+  min-width: 0;
+
+  border: 0;
+  outline: 0;
+
+  background: transparent;
+
+  color: #333333;
+
+  font-family: inherit;
+  font-size: 14px;
+}
+
+.campaigns-page__search input::placeholder {
+  color: #aaaaaa;
+}
+
+.campaigns-page__search input::-webkit-search-cancel-button {
+  cursor: pointer;
+}
+
+.campaigns-page__count {
+  margin: 0;
+
+  color: #666666;
+
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* =========================================================
+   GRID
+========================================================= */
+
+.campaigns-page__grid {
+  display: grid;
+
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+
+  gap: 24px;
+
+  align-items: start;
+}
+
+.campaigns-page__grid .campaign-card {
+  max-width: none;
+}
+
+/* =========================================================
+   LOADING
+========================================================= */
+
+.campaigns-page__loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  gap: 12px;
+
+  min-height: 360px;
+
+  color: #888888;
+
+  font-size: 14px;
+}
+
+.campaigns-page__loading p {
+  margin: 0;
+}
+
+.campaigns-page__spinner {
+  width: 32px;
+  height: 32px;
+
+  border: 3px solid #e9f2f2;
+  border-top-color: #1e807f;
+
+  border-radius: 50%;
+
+  animation: campaigns-page-spin 0.8s linear infinite;
+}
+
+@keyframes campaigns-page-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* =========================================================
+   EMPTY / ERROR STATE
+========================================================= */
+
+.campaigns-page__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 360px;
+
+  padding: 40px 20px;
+
+  text-align: center;
+}
+
+.campaigns-page__empty h2 {
+  margin: 0 0 8px;
+
+  color: #333333;
+
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.campaigns-page__empty p {
+  max-width: 420px;
+
+  margin: 0;
+
+  color: #888888;
+
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.campaigns-page__empty-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 44px;
+
+  margin-top: 20px;
+  padding: 0 22px;
+
+  border: 0;
+
+  border-radius: 8px;
+
+  background: #1e807f;
+
+  color: #ffffff;
+
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+
+  text-decoration: none;
+
+  cursor: pointer;
+}
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 1150px) {
+  .campaigns-page__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* =========================================================
+   SMALL TABLET
+========================================================= */
+
+@media (max-width: 850px) {
+  .campaigns-page {
+    padding: 24px;
+  }
+
+  .campaigns-page__header {
+    margin-bottom: 28px;
+  }
+
+  .campaigns-page__filters {
+    margin-bottom: 28px;
+  }
+
+  .campaigns-page__tools {
+    margin-bottom: 28px;
+  }
+}
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 650px) {
+  .campaigns-page {
+    padding: 20px 16px 32px;
+  }
+
+  .campaigns-page__header {
+    flex-direction: column;
+
+    gap: 18px;
+
+    margin-bottom: 24px;
+  }
+
+  .campaigns-page__heading h1 {
+    font-size: 24px;
+  }
+
+  .campaigns-page__create-button {
+    width: 100%;
+  }
+
+  .campaigns-page__filters {
+    width: 100%;
+
+    overflow-x: auto;
+
+    margin-bottom: 24px;
+
+    padding-bottom: 2px;
+  }
+
+  .campaigns-page__filter {
+    flex: 0 0 auto;
+  }
+
+  .campaigns-page__tools {
+    flex-direction: column;
+    align-items: stretch;
+
+    gap: 12px;
+
+    margin-bottom: 24px;
+  }
+
+  .campaigns-page__search {
+    width: 100%;
+  }
+
+  .campaigns-page__count {
+    text-align: right;
+  }
+
+  .campaigns-page__grid {
+    grid-template-columns: 1fr;
+
+    gap: 20px;
+  }
+}
+
+/* =========================================================
+   DELETE CAMPAIGN MODAL
+========================================================= */
+
+.campaigns-delete-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 20px;
+
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.campaigns-delete-modal {
+  width: 100%;
+  max-width: 480px;
+
+  padding: 24px;
+
+  border-radius: 16px;
+  background: #ffffff;
+
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.12),
+    0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.campaigns-delete-modal__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.campaigns-delete-modal__header h2 {
+  margin: 0 0 8px;
+
+  color: #333333;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.campaigns-delete-modal__header p {
+  margin: 0;
+
+  color: #6b7280;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.campaigns-delete-modal__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+
+  background: transparent;
+  color: #6b7280;
+
+  font-family: inherit;
+  font-size: 24px;
+  line-height: 1;
+
+  cursor: pointer;
+}
+
+.campaigns-delete-modal__close:hover:not(:disabled) {
+  background: #f5f5f5;
+}
+
+.campaigns-delete-modal__warning {
+  margin-top: 24px;
+  padding: 16px;
+
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+
+  background: #fef2f2;
+}
+
+.campaigns-delete-modal__warning strong {
+  display: block;
+
+  margin-bottom: 6px;
+
+  color: #b42318;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.campaigns-delete-modal__warning p {
+  margin: 0;
+
+  color: #7f1d1d;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.campaigns-delete-modal__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+
+  margin-top: 24px;
+}
+
+.campaigns-delete-modal__cancel,
+.campaigns-delete-modal__confirm {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 110px;
+  height: 44px;
+
+  padding: 0 18px;
+
+  border-radius: 8px;
+
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+
+  cursor: pointer;
+}
+
+.campaigns-delete-modal__cancel {
+  border: 1px solid #d1d5db;
+
+  background: #ffffff;
+  color: #333333;
+}
+
+.campaigns-delete-modal__cancel:hover:not(:disabled) {
+  background: #f8fafc;
+}
+
+.campaigns-delete-modal__confirm {
+  border: 1px solid #dc2626;
+
+  background: #dc2626;
+  color: #ffffff;
+}
+
+.campaigns-delete-modal__confirm:hover:not(:disabled) {
+  border-color: #b91c1c;
+  background: #b91c1c;
+}
+
+.campaigns-delete-modal__cancel:disabled,
+.campaigns-delete-modal__confirm:disabled,
+.campaigns-delete-modal__close:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* =========================================================
+   DELETE MODAL MOBILE
+========================================================= */
+
+@media (max-width: 560px) {
+  .campaigns-delete-modal-overlay {
+    align-items: flex-end;
+    padding: 12px;
+  }
+
+  .campaigns-delete-modal {
+    max-width: none;
+    padding: 20px;
+    border-radius: 16px;
+  }
+
+  .campaigns-delete-modal__actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .campaigns-delete-modal__cancel,
+  .campaigns-delete-modal__confirm {
+    width: 100%;
+    min-width: 0;
+    padding: 0 12px;
+  }
+}
