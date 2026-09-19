@@ -1,0 +1,835 @@
+/* ============================================================================
+   Fundu — styles/auth.css
+   Signup · Sign in · Forgot password · Verify email · Reset password · Callback
+
+   The auth panel originally inherited a set of GLOBAL rules (body typography,
+   the element resets, the heading rules and their variable-font axes). Next has
+   no equivalent, so those are reproduced here scoped to .auth, at their exact
+   original values.
+
+   Specificity note: component rules below are written as `.auth .name` on
+   purpose. `.auth p{margin:0}` is (0,1,1) and would otherwise beat a bare
+   `.author{margin:20px 0}` at (0,1,0) and silently delete its margins.
+   ============================================================================ */
+
+/* ----------------------------------------------------------------------------
+   1. Design tokens
+   -------------------------------------------------------------------------- */
+:root {
+  color-scheme: light;
+
+  --display:
+    var(--font-bricolage), "Bricolage Grotesque", var(--font-urbanist),
+    "Urbanist", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --sans:
+    var(--font-urbanist), "Urbanist", "Segoe UI", system-ui, -apple-system,
+    "Helvetica Neue", Arial, sans-serif;
+
+  --ink: 2, 6, 13;
+  --ink-2: 24, 31, 42;
+  --surface: 255, 255, 255;
+  --surface-2: 247, 247, 248;
+  --line: 15, 23, 42;
+
+  --teal: 30, 128, 127;
+  --action: 23, 105, 106;
+  --action-hover: 18, 92, 90;
+  --action-press: 15, 82, 80;
+  --teal-deep: 18, 88, 88;
+  --mango: 249, 141, 44;
+  --grape: 107, 78, 168;
+  --berry: 196, 67, 122;
+  --lagoon: 31, 111, 156;
+  --moss: 78, 140, 63;
+
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-xl: 24px;
+  --r-pill: 999px;
+
+  --fs-body: 1.0625rem;
+  --fs-sm: 0.9375rem;
+}
+
+/* ----------------------------------------------------------------------------
+   2. The globals the panel used to inherit, at their original values
+   -------------------------------------------------------------------------- */
+.auth,
+.auth *,
+.auth *::before,
+.auth *::after {
+  box-sizing: border-box;
+}
+
+.auth {
+  font-family: var(--sans);
+  font-size: var(--fs-body); /* 17px — was body's rule, not a clamp */
+  line-height: 1.55; /* was 1.55, not 1.6 */
+  color: rgb(var(--ink));
+  -webkit-font-smoothing: antialiased;
+}
+.auth p {
+  margin: 0;
+}
+.auth img,
+.auth svg {
+  max-width: 100%;
+  display: block;
+}
+.auth a {
+  color: inherit;
+  text-decoration: none;
+}
+.auth button {
+  font: inherit;
+  color: inherit;
+} /* full font shorthand, as original */
+.auth :focus-visible {
+  outline: 3px solid rgb(var(--mango));
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+.auth h1,
+.auth h2,
+.auth h3,
+.auth h4 {
+  font-family: var(--display);
+}
+.auth h1,
+.auth h2,
+.auth h3 {
+  margin: 0;
+  font-weight: 700;
+  letter-spacing: -0.022em;
+  line-height: 1.04;
+  text-wrap: balance;
+}
+.auth h1 {
+  font-weight: 700;
+  letter-spacing: -0.034em;
+  line-height: 1.03;
+  font-variation-settings:
+    "opsz" 96,
+    "wdth" 100;
+}
+.auth h2 {
+  font-variation-settings:
+    "opsz" 72,
+    "wdth" 100;
+}
+.auth h3 {
+  font-weight: 700;
+  letter-spacing: -0.014em;
+  line-height: 1.2;
+  font-variation-settings:
+    "opsz" 24,
+    "wdth" 100;
+}
+
+.auth .small {
+  font-size: var(--fs-sm);
+  color: rgb(var(--ink-2));
+  font-weight: 500;
+}
+
+/* ----------------------------------------------------------------------------
+   3. Buttons
+   -------------------------------------------------------------------------- */
+.auth .btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55em;
+  padding: 1.02em 1.7em;
+  border: none;
+  border-radius: 8px;
+  white-space: nowrap;
+  font-weight: 700;
+  font-size: var(--fs-sm);
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  overflow: hidden;
+  isolation: isolate;
+  text-decoration: none;
+  transition:
+    transform 0.28s cubic-bezier(0.2, 0.8, 0.25, 1),
+    box-shadow 0.28s ease;
+}
+.auth .btn span {
+  position: relative;
+  z-index: 2;
+}
+.auth .btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  transform: translateY(101%);
+  transition: transform 0.42s cubic-bezier(0.22, 0.9, 0.2, 1);
+}
+.auth .btn:hover::before,
+.auth .btn:focus-visible::before {
+  transform: translateY(0);
+}
+.auth .btn:active {
+  transform: translateY(1px);
+}
+.auth .btn--primary {
+  background: rgb(var(--action));
+  color: #fff;
+}
+.auth .btn--primary::before {
+  background: rgb(var(--action-hover));
+}
+.auth .btn--primary:active {
+  background: rgb(var(--action-press));
+}
+.auth .btn--ghost {
+  background: transparent;
+  color: rgb(var(--ink));
+  box-shadow: inset 0 0 0 1.5px rgba(var(--line), 0.22);
+}
+.auth .btn--ghost::before {
+  background: rgb(var(--mango));
+}
+.auth .btn--ghost:hover {
+  color: #1a1205;
+  box-shadow: inset 0 0 0 1.5px rgba(var(--mango), 0);
+}
+
+/* ----------------------------------------------------------------------------
+   4. Shell
+
+   BACKGROUND CONTAINER for the looping video:
+     .authbg            full-bleed wrapper
+     .authbg__video     <video src="/auth-background.mp4">
+     .authbg__fallback  colour field behind the video, shows while it buffers
+     .authbg__scrim     dark gradient on top; it is what keeps the white form
+                        and the white quotes readable over any footage
+   -------------------------------------------------------------------------- */
+.auth-layout {
+  display: block;
+}
+
+.auth {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(12px, 3vw, 32px);
+}
+.auth.is-open {
+  display: flex;
+}
+body.auth-locked {
+  overflow: hidden;
+}
+
+.auth.auth-route {
+  position: relative;
+  inset: auto;
+  z-index: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+  width: 100%;
+}
+
+.authbg {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: rgb(var(--teal-deep));
+}
+.authbg__video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.authbg__fallback {
+  position: absolute;
+  inset: -20%;
+  z-index: -1;
+  background:
+    radial-gradient(
+      38% 46% at 22% 28%,
+      rgba(var(--mango), 0.5),
+      transparent 62%
+    ),
+    radial-gradient(
+      42% 44% at 78% 26%,
+      rgba(var(--berry), 0.4),
+      transparent 64%
+    ),
+    radial-gradient(
+      48% 50% at 62% 82%,
+      rgba(var(--lagoon), 0.45),
+      transparent 66%
+    ),
+    radial-gradient(
+      52% 54% at 26% 78%,
+      rgba(var(--moss), 0.38),
+      transparent 68%
+    ),
+    linear-gradient(150deg, rgb(var(--teal)), rgb(var(--teal-deep)));
+  animation: authdrift 26s ease-in-out infinite alternate;
+}
+@keyframes authdrift {
+  from {
+    transform: scale(1) translate3d(0, 0, 0);
+  }
+  to {
+    transform: scale(1.14) translate3d(2%, -2%, 0);
+  }
+}
+.authbg__scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    rgba(6, 32, 32, 0.88),
+    rgba(6, 32, 32, 0.62) 52%,
+    rgba(6, 32, 32, 0.8)
+  );
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+}
+
+.authpanel {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 1020px;
+  height: min(690px, calc(100vh - clamp(24px, 6vw, 64px)));
+  height: min(690px, calc(100dvh - clamp(24px, 6vw, 64px)));
+  display: grid;
+  grid-template-columns: minmax(0, 1.02fr) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  border-radius: clamp(20px, 2.4vw, 30px);
+  overflow: hidden;
+  background: rgb(var(--surface));
+  box-shadow: 0 40px 90px -40px rgba(0, 0, 0, 0.6);
+  transform: translateY(14px) scale(0.985);
+  opacity: 0;
+  transition:
+    transform 0.5s cubic-bezier(0.2, 0.8, 0.25, 1),
+    opacity 0.4s ease;
+}
+.auth.is-open .authpanel {
+  transform: none;
+  opacity: 1;
+}
+
+/* ----------------------------------------------------------------------------
+   5. Left: testimonials
+
+   The quote's indent comes from the browser's default <figure> and
+   <blockquote> margins (1em 40px). The original never reset them, so they are
+   part of the design. Do not add `.quote{margin:0}` or `blockquote{margin:0}`.
+   -------------------------------------------------------------------------- */
+.authside {
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+  padding: clamp(26px, 3vw, 42px);
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  color: #fff;
+  background:
+    linear-gradient(162deg, rgba(7, 41, 41, 0.94), rgba(3, 22, 23, 0.97)),
+    linear-gradient(162deg, rgba(var(--teal), 0.4), rgba(0, 0, 0, 0.2));
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  backdrop-filter: blur(16px) saturate(1.2);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+.authside::after {
+  content: "";
+  position: absolute;
+  inset: auto -30% -45% -30%;
+  height: 70%;
+  pointer-events: none;
+  background: radial-gradient(
+    50% 60% at 50% 100%,
+    rgba(var(--teal), 0.42),
+    transparent 70%
+  );
+}
+.authside > * {
+  position: relative;
+  z-index: 1;
+}
+
+.authside__logo {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  text-decoration: none;
+}
+.authside__logo svg {
+  height: 19px;
+  width: auto;
+}
+.authside__logo img {
+  height: 19px;
+  width: auto;
+  display: block;
+}
+
+.authside__stage {
+  position: relative;
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  min-height: clamp(230px, 26vw, 290px);
+}
+.quote {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 18px;
+  opacity: 0;
+  transform: translateY(14px);
+  pointer-events: none;
+  transition:
+    opacity 0.6s ease,
+    transform 0.6s cubic-bezier(0.2, 0.8, 0.25, 1);
+}
+.quote.is-live {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+.quote__mark {
+  font-family: var(--display);
+  font-size: 2.6rem;
+  line-height: 0.6;
+  color: rgb(var(--mango));
+  height: 20px;
+}
+.auth .quote p {
+  font-family: var(--display);
+  font-size: clamp(1.12rem, 1.62vw, 1.42rem);
+  font-weight: 500;
+  line-height: 1.38;
+  letter-spacing: -0.018em;
+  color: #fff;
+}
+.quote__who {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.quote__badge {
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.18);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.28);
+}
+.quote__name {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+.quote__role {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.78);
+  font-weight: 500;
+}
+
+.authdots {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+.auth .authdots button {
+  width: 22px;
+  height: 4px;
+  border-radius: 99px;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.32);
+  transition:
+    background-color 0.3s ease,
+    width 0.3s ease;
+}
+.auth .authdots button[aria-current="true"] {
+  background: rgb(var(--mango));
+  width: 34px;
+}
+
+/* ----------------------------------------------------------------------------
+   6. Right: the form column
+   -------------------------------------------------------------------------- */
+.authform {
+  position: relative;
+  min-height: 0;
+  background: rgb(var(--surface));
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+.authform__inner {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(24px, 3vw, 42px);
+}
+.auth .authclose {
+  position: absolute;
+  z-index: 4;
+  top: 14px;
+  right: 14px;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid rgba(var(--line), 0.12);
+  background: rgb(var(--surface));
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  color: rgb(var(--ink));
+  padding: 0;
+  transition:
+    background-color 0.25s ease,
+    transform 0.25s ease;
+}
+.auth .authclose:hover {
+  background: rgba(var(--line), 0.07);
+  transform: rotate(90deg);
+}
+
+.authview {
+  display: none;
+}
+.authview.is-active {
+  display: block;
+}
+.auth .authview h2 {
+  font-size: clamp(1.5rem, 2.3vw, 1.95rem);
+  margin-bottom: 8px;
+}
+.auth .authview > .small {
+  margin-bottom: 22px;
+  max-width: 40ch;
+}
+
+.auth .gbtn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 11px;
+  padding: 0.92em 1.2em;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 1.5px solid rgba(var(--line), 0.16);
+  background: rgb(var(--surface));
+  font-weight: 700;
+  font-size: 0.97rem;
+  color: rgb(var(--ink));
+  transition:
+    background-color 0.25s ease,
+    border-color 0.25s ease,
+    transform 0.25s ease;
+}
+.auth .gbtn:hover {
+  background: rgba(var(--line), 0.04);
+  border-color: rgba(var(--line), 0.28);
+  transform: translateY(-1px);
+}
+.auth .gbtn:disabled {
+  opacity: 0.62;
+  pointer-events: none;
+}
+.auth .gbtn span {
+  display: inline-flex;
+  align-items: center;
+}
+.auth .gbtn svg {
+  width: 19px;
+  height: 19px;
+  flex: 0 0 auto;
+}
+
+.auth .author {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 20px 0;
+  color: rgb(var(--ink-2));
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.auth .author::before,
+.auth .author::after {
+  content: "";
+  flex: 1 1 auto;
+  height: 1px;
+  background: rgba(var(--line), 0.12);
+}
+
+.field {
+  margin-bottom: 15px;
+}
+.auth .field label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 700;
+  margin-bottom: 7px;
+  color: rgb(var(--ink));
+}
+.field__wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.auth .field input {
+  width: 100%;
+  font: inherit;
+  font-size: 0.99rem;
+  font-weight: 500;
+  color: rgb(var(--ink));
+  padding: 0.88em 1em;
+  border-radius: 8px;
+  background: rgb(var(--surface-2));
+  border: 1.5px solid rgba(var(--line), 0.12);
+  transition:
+    border-color 0.25s ease,
+    background-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+.auth .field input::placeholder {
+  color: rgb(var(--ink-2));
+  opacity: 0.62;
+  font-weight: 450;
+}
+.auth .field input:focus {
+  outline: none;
+  background: rgb(var(--surface));
+  border-color: rgb(var(--teal));
+  box-shadow: 0 0 0 4px rgba(var(--teal), 0.13);
+}
+.auth .field input[aria-invalid="true"] {
+  border-color: rgb(var(--berry));
+  background: rgba(var(--berry), 0.05);
+}
+.auth .field__peek {
+  position: absolute;
+  right: 6px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 0.5em 0.7em;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: rgb(var(--teal));
+  border-radius: 8px;
+}
+.auth .field__peek:hover {
+  background: rgba(var(--teal), 0.1);
+}
+.auth .field__err {
+  display: none;
+  margin-top: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: rgb(var(--berry));
+}
+.auth .field__err.is-shown {
+  display: block;
+}
+.auth .field__hint {
+  margin-top: 6px;
+  font-size: 0.8rem;
+  color: rgb(var(--ink-2));
+  font-weight: 500;
+}
+
+.authrow {
+  display: flex;
+  justify-content: flex-end;
+  margin: -4px 0 18px;
+}
+.auth .authlink {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: rgb(var(--teal));
+  text-decoration: none;
+}
+.auth .authlink:hover {
+  text-decoration: underline;
+}
+.auth .authsubmit {
+  width: 100%;
+  justify-content: center;
+  margin-top: 4px;
+}
+.auth .authsubmit[disabled],
+.auth .authsubmit:disabled {
+  opacity: 0.62;
+  pointer-events: none;
+}
+.auth .authswap {
+  margin-top: 20px;
+  font-size: 0.92rem;
+  color: rgb(var(--ink-2));
+  font-weight: 500;
+  text-align: center;
+}
+.auth .authterms {
+  margin-top: 16px;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: rgb(var(--ink-2));
+  font-weight: 450;
+}
+
+/* ----------------------------------------------------------------------------
+   7. Confirmation screens — verify email, reset complete
+   -------------------------------------------------------------------------- */
+.authdone {
+  text-align: center;
+  padding: 10px 0;
+}
+.authdone__tick {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  margin: 0 auto 18px;
+  display: grid;
+  place-items: center;
+  background: rgba(var(--teal), 0.12);
+  color: rgb(var(--teal));
+}
+.auth .authdone h2 {
+  margin-bottom: 8px;
+}
+.auth .authdone > .small {
+  max-width: 38ch;
+  margin-inline: auto;
+}
+.auth .authdone .authsubmit {
+  margin-top: 22px;
+}
+.auth .authdone .authswap {
+  margin-top: 18px;
+}
+
+.auth .authnote {
+  margin-top: 20px;
+  padding: 13px 16px;
+  border-radius: 8px;
+  background: rgba(var(--mango), 0.13);
+  border: 1px solid rgba(var(--mango), 0.3);
+  font-size: 0.83rem;
+  line-height: 1.5;
+  color: rgb(var(--ink));
+  font-weight: 500;
+}
+.auth .authnote strong {
+  font-weight: 700;
+}
+.auth .authdone .authnote {
+  text-align: left;
+}
+
+.auth .auth-server-error {
+  margin: 0 0 18px;
+  padding: 12px 15px;
+  border-radius: 8px;
+  background: rgba(var(--berry), 0.09);
+  border: 1px solid rgba(var(--berry), 0.3);
+  color: rgb(var(--berry));
+  font-size: 0.86rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+/* ----------------------------------------------------------------------------
+   8. Auth callback — loading and error only
+   -------------------------------------------------------------------------- */
+.auth-route > div:not(.authbg):not(.authpanel) p {
+  font-size: 1.05rem;
+  letter-spacing: -0.01em;
+}
+.auth-route > div:not(.authbg):not(.authpanel) button {
+  font-weight: 700;
+  font-size: var(--fs-sm);
+  padding: 0.9em 1.6em;
+  border-radius: 8px;
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
+  background: transparent;
+  color: #fff;
+  transition:
+    background-color 0.25s ease,
+    border-color 0.25s ease;
+}
+.auth-route > div:not(.authbg):not(.authpanel) button:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.7);
+}
+
+/* ----------------------------------------------------------------------------
+   9. Responsive
+   -------------------------------------------------------------------------- */
+@media (max-width: 880px) {
+  .authpanel {
+    grid-template-columns: 1fr;
+    max-width: 460px;
+    height: min(660px, calc(100vh - 24px));
+    height: min(660px, calc(100dvh - 24px));
+  }
+  .authside {
+    display: none;
+  }
+  .authform__inner {
+    padding-top: clamp(34px, 8vw, 48px);
+  }
+}
+@media (max-height: 700px) {
+  .authside__stage {
+    min-height: 140px;
+  }
+  .authpanel {
+    height: calc(100vh - 24px);
+    height: calc(100dvh - 24px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .authbg__fallback {
+    animation: none;
+  }
+  .authpanel,
+  .quote {
+    transition: none;
+  }
+  .auth .btn,
+  .auth .gbtn,
+  .auth .authclose,
+  .auth .authdots button {
+    transition: none;
+  }
+}

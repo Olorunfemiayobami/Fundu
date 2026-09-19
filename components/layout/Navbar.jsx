@@ -1,135 +1,26 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import "../../styles/navbar.css";
-
-/* ─────────────────────────── Icons ─────────────────────────── */
-
-const HamburgerIcon = () => (
-  <svg
-    width="30"
-    height="20"
-    viewBox="0 0 30 20"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path
-      fillRule="evenodd"
-      clipRule="evenodd"
-      d="M29.167 1.25C29.167 1.582 29.035 1.9 28.8 2.134C28.566 2.368 28.248 2.5 27.917 2.5H1.25C0.918 2.5 0.6 2.368 0.366 2.134C0.132 1.9 0 1.582 0 1.25C0 0.918 0.132 0.6 0.366 0.366C0.6 0.132 0.918 0 1.25 0H27.917C28.248 0 28.566 0.132 28.8 0.366C29.035 0.6 29.167 0.918 29.167 1.25ZM29.167 9.583C29.167 9.915 29.035 10.233 28.8 10.467C28.566 10.702 28.248 10.833 27.917 10.833H1.25C0.918 10.833 0.6 10.702 0.366 10.467C0.132 10.233 0 9.915 0 9.583C0 9.252 0.132 8.934 0.366 8.7C0.6 8.465 0.918 8.333 1.25 8.333H27.917C28.248 8.333 28.566 8.465 28.8 8.7C29.035 8.934 29.167 9.252 29.167 9.583ZM29.167 17.917C29.167 18.248 29.035 18.566 28.8 18.8C28.566 19.035 28.248 19.167 27.917 19.167H1.25C0.918 19.167 0.6 19.035 0.366 18.8C0.132 18.566 0 18.248 0 17.917C0 17.585 0.132 17.267 0.366 17.033C0.6 16.798 0.918 16.667 1.25 16.667H27.917C28.248 16.667 28.566 16.798 28.8 17.033C29.035 17.267 29.167 17.585 29.167 17.917Z"
-      fill="black"
-    />
-  </svg>
-);
-
-const CloseIcon = () => (
-  <svg
-    width="22"
-    height="22"
-    viewBox="0 0 22 22"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path
-      d="M1 21L11 11M11 11L21 1M11 11L1 1M11 11L21 21"
-      stroke="#333333"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
-
-const ArrowDownIcon = ({ isOpen = false }) => (
-  <svg
-    width="14"
-    height="8"
-    viewBox="0 0 14 8"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-    className={`dropdown-icon ${isOpen ? "open" : ""}`}
-  >
-    <path
-      d="M0.293 0.293C0.48 0.105 0.735 0 1 0C1.265 0 1.519 0.105 1.707 0.293L6.657 5.243L11.607 0.293C11.795 0.111 12.048 0.01 12.31 0.012C12.572 0.014 12.823 0.12 13.009 0.305C13.194 0.49 13.299 0.741 13.302 1.003C13.304 1.266 13.203 1.518 13.021 1.707L7.364 7.364C7.176 7.551 6.922 7.657 6.657 7.657C6.392 7.657 6.137 7.551 5.95 7.364L0.293 1.707C0.105 1.519 0 1.265 0 1C0 0.735 0.105 0.48 0.293 0.293Z"
-      fill="#888888"
-    />
-  </svg>
-);
-
-const BellIcon = () => (
-  <svg
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="#667085"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-    <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-  </svg>
-);
-
-const LogoutIcon = () => (
-  <svg
-    width="20"
-    height="20"
-    viewBox="0 0 20 20"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path
-      d="M7.414 6.299C7.672 3.299 9.214 2.074 12.589 2.074H12.697C16.422 2.074 17.914 3.566 17.914 7.291V12.724C17.914 16.449 16.422 17.941 12.697 17.941H12.589C9.239 17.941 7.697 16.733 7.422 13.783"
-      stroke="#FF383C"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path
-      d="M12.499 10H3.016"
-      stroke="#FF383C"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path
-      d="M4.878 7.209L2.086 10.001L4.878 12.792"
-      stroke="#FF383C"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
-
-/* ─────────────────────────── Navigation ─────────────────────────── */
 
 const NAV_ITEMS = [
-  { label: "Dashboard", href: "/dashboard" },
-  { label: "Explore", href: "/explore" },
-  { label: "Campaigns", href: "/campaigns" },
-  { label: "Settings", href: "/settings" },
+  { label: "About us", href: "/about" },
+  { label: "How it works", href: "/how-it-works" },
+  { label: "Explore", href: "/webexplore" },
 ];
-
-/* ─────────────────────────── Navbar ─────────────────────────── */
 
 export default function Navbar() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [isOpen, setIsOpen] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
-  const dropdownRef = useRef(null);
   const pathname = usePathname();
 
-  /* ── Authentication ── */
-
+  /* ---------------------------------------------------------
+     SUPABASE AUTH
+     --------------------------------------------------------- */
   useEffect(() => {
     const getSession = async () => {
       const {
@@ -142,337 +33,123 @@ export default function Navbar() {
 
     getSession();
 
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setUser(session?.user ?? null);
-      },
-    );
-
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
 
     return () => {
-      authListener.subscription.unsubscribe();
-      document.removeEventListener("mousedown", handleClickOutside);
+      subscription.unsubscribe();
     };
   }, []);
 
-  /* ── Close mobile menu when route changes ── */
-
+  /* ---------------------------------------------------------
+     CLOSE MOBILE MENU WHEN ROUTE CHANGES
+     --------------------------------------------------------- */
   useEffect(() => {
-    setMobileMenuOpen(false);
-    setIsOpen(false);
+    setMobileOpen(false);
   }, [pathname]);
 
-  /* ── Lock body scroll while mobile menu is open ── */
+  const isActive = (href) =>
+    pathname === href || pathname.startsWith(`${href}/`);
 
-  useEffect(() => {
-    if (mobileMenuOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
+  /*
+    Logged out:
+    Start a fundraiser -> Signup
 
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [mobileMenuOpen]);
-
-  /* ── Escape closes mobile menu ── */
-
-  useEffect(() => {
-    const handleKeyDown = (event) => {
-      if (event.key === "Escape") {
-        setMobileMenuOpen(false);
-      }
-    };
-
-    document.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, []);
-
-  /* ── Logout ── */
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    setIsOpen(false);
-    setMobileMenuOpen(false);
-  };
-
-  /* ── Active navigation ── */
-
-  const isActive = (path) => {
-    if (path === "/") {
-      return pathname === "/";
-    }
-
-    return pathname === path || pathname.startsWith(`${path}/`);
-  };
-
-  /* ── Mobile navigation ── */
-
-  const handleMobileNavigation = () => {
-    setMobileMenuOpen(false);
-  };
-
-  /* ── Initials fallback ── */
-
-  const initials =
-    user?.user_metadata?.full_name
-      ?.split(" ")
-      .map((name) => name[0])
-      .join("")
-      .slice(0, 2)
-      .toUpperCase() || "U";
-
-  if (loading) {
-    return (
-      <header className="navbar-wrapper">
-        <nav className="navbar">
-          <div className="navbar-loading"></div>
-        </nav>
-      </header>
-    );
-  }
+    Logged in:
+    Start a fundraiser -> Create Campaign
+  */
+  const fundraiserHref = user ? "/create-campaign" : "/signup";
 
   return (
-    <header className="navbar-wrapper">
-      <nav className="navbar" role="navigation" aria-label="Main navigation">
-        {/* ═════════════════════ DESKTOP ═════════════════════ */}
-
-        <div className="navbar-desktop">
-          <div className="nav-left-group">
-            <Link href="/" className="logo-container" aria-label="Fundu Home">
-              <Image
-                src="/logo.svg"
-                alt="Fundu Logo"
-                width={56}
-                height={16}
-                priority
+    <header
+      className="topbar"
+      id="topbar"
+      data-open={mobileOpen ? "true" : "false"}
+    >
+      <div className="wrap topbar__in">
+        {/* ---------------------------------------------------
+            CLAUDE FUNDU BRAND
+            --------------------------------------------------- */}
+        <Link className="brand" href="/" aria-label="Fundu home">
+          <svg
+            className="brandmark"
+            role="img"
+            aria-label="Fundu"
+            viewBox="0 0 64 64"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <g clipPath="url(#clip0_1958_17998)">
+              <path
+                d="M44.8 0H19.2C8.59613 0 0 8.59613 0 19.2V44.8C0 55.4039 8.59613 64 19.2 64H44.8C55.4039 64 64 55.4039 64 44.8V19.2C64 8.59613 55.4039 0 44.8 0Z"
+                fill="#1E807F"
               />
-            </Link>
 
-            <div className="nav-links">
-              {NAV_ITEMS.map((item) => (
-                <Link
-                  key={item.label}
-                  href={item.href}
-                  className={`nav-link ${isActive(item.href) ? "active" : ""}`}
-                >
-                  {item.label}
-                </Link>
-              ))}
-            </div>
-          </div>
+              <path
+                d="M4 39.1992V25.1992H12.3V27.9592H6.76V30.3192H11.34V33.0792H6.76V39.1992H4ZM12.8383 35.5392V29.1992H15.5983V34.7792C15.5983 35.1326 15.6816 35.4526 15.8483 35.7392C16.0216 36.0192 16.2516 36.2426 16.5383 36.4092C16.825 36.5759 17.1383 36.6592 17.4783 36.6592C17.825 36.6592 18.1416 36.5759 18.4283 36.4092C18.715 36.2426 18.9416 36.0192 19.1083 35.7392C19.275 35.4526 19.3583 35.1326 19.3583 34.7792V29.1992H22.1183L22.1283 39.1992H19.3683L19.3583 38.4392C19.025 38.7592 18.6316 39.0092 18.1783 39.1892C17.7316 39.3692 17.2583 39.4592 16.7583 39.4592C16.0383 39.4592 15.3816 39.2826 14.7883 38.9292C14.195 38.5759 13.7216 38.1059 13.3683 37.5192C13.015 36.9259 12.8383 36.2659 12.8383 35.5392ZM33.4267 32.8392V39.1992H30.6667V33.5992C30.6667 33.2459 30.5801 32.9292 30.4067 32.6492C30.2401 32.3626 30.0134 32.1359 29.7267 31.9692C29.4467 31.8026 29.1334 31.7192 28.7867 31.7192C28.4401 31.7192 28.1234 31.8026 27.8367 31.9692C27.5501 32.1359 27.3234 32.3626 27.1567 32.6492C26.9901 32.9292 26.9067 33.2459 26.9067 33.5992V39.1992H24.1467L24.1367 29.1992H26.8967L26.9067 29.9392C27.2401 29.6192 27.6301 29.3692 28.0767 29.1892C28.5301 29.0092 29.0067 28.9192 29.5067 28.9192C30.2334 28.9192 30.8901 29.0959 31.4767 29.4492C32.0701 29.8026 32.5434 30.2759 32.8967 30.8692C33.2501 31.4559 33.4267 32.1126 33.4267 32.8392ZM42.5805 24.1992H45.3405V39.1992H42.5805V38.1392C42.2738 38.5259 41.8938 38.8426 41.4405 39.0892C40.9871 39.3359 40.4705 39.4592 39.8905 39.4592C39.1638 39.4592 38.4838 39.3226 37.8505 39.0492C37.2171 38.7759 36.6571 38.3992 36.1705 37.9192C35.6905 37.4326 35.3138 36.8726 35.0405 36.2392C34.7671 35.6059 34.6305 34.9259 34.6305 34.1992C34.6305 33.4726 34.7671 32.7926 35.0405 32.1592C35.3138 31.5259 35.6905 30.9692 36.1705 30.4892C36.6571 30.0026 37.2171 29.6226 37.8505 29.3492C38.4838 29.0759 39.1638 28.9392 39.8905 28.9392C40.4705 28.9392 40.9871 29.0626 41.4405 29.3092C41.8938 29.5492 42.2738 29.8659 42.5805 30.2592V24.1992ZM39.9305 36.8092C40.3838 36.8092 40.7938 36.6926 41.1605 36.4592C41.5271 36.2259 41.8171 35.9126 42.0305 35.5192C42.2438 35.1192 42.3505 34.6792 42.3505 34.1992C42.3505 33.7126 42.2438 33.2726 42.0305 32.8792C41.8171 32.4859 41.5271 32.1726 41.1605 31.9392C40.7938 31.7059 40.3838 31.5892 39.9305 31.5892C39.4705 31.5892 39.0538 31.7059 38.6805 31.9392C38.3071 32.1726 38.0105 32.4892 37.7905 32.8892C37.5705 33.2826 37.4605 33.7192 37.4605 34.1992C37.4605 34.6792 37.5705 35.1192 37.7905 35.5192C38.0171 35.9126 38.3171 36.2259 38.6905 36.4592C39.0638 36.6926 39.4771 36.8092 39.9305 36.8092Z"
+                fill="white"
+              />
 
-          <div className="nav-right-group">
-            {user ? (
-              <>
-                <button
-                  className="icon-btn"
-                  type="button"
-                  aria-label="Notifications"
-                >
-                  <BellIcon />
-                </button>
+              <path
+                d="M53.66 39.4592C52.54 39.4592 51.5534 39.1859 50.7 38.6392C49.8534 38.0926 49.19 37.3592 48.71 36.4392C48.2366 35.5126 48 34.4859 48 33.3592V25.1992H50.76V33.3592C50.76 33.9659 50.8734 34.5226 51.1 35.0292C51.3266 35.5359 51.6566 35.9426 52.09 36.2492C52.5234 36.5492 53.0466 36.6992 53.66 36.6992C54.28 36.6992 54.8034 36.5492 55.23 36.2492C55.6634 35.9492 55.99 35.5459 56.21 35.0392C56.43 34.5326 56.54 33.9726 56.54 33.3592V25.1992H59.3V33.3592C59.3 34.2059 59.1634 34.9992 58.89 35.7392C58.6234 36.4726 58.24 37.1192 57.74 37.6792C57.24 38.2392 56.6434 38.6759 55.95 38.9892C55.2634 39.3026 54.5 39.4592 53.66 39.4592Z"
+                fill="#F98D2C"
+              />
+            </g>
 
-                <Link href="/create-campaign" className="nav-btn-primary">
-                  Create Campaign
-                </Link>
+            <defs>
+              <clipPath id="clip0_1958_17998">
+                <rect width="64" height="64" rx="19.2" fill="white" />
+              </clipPath>
+            </defs>
+          </svg>
 
-                <div className="avatar-dropdown-wrapper" ref={dropdownRef}>
-                  <button
-                    type="button"
-                    className="avatar-trigger"
-                    onClick={() => setIsOpen((previous) => !previous)}
-                    aria-expanded={isOpen}
-                    aria-label="Open profile menu"
-                  >
-                    <div className="user-avatar">
-                      {user.user_metadata?.avatar_url ? (
-                        <img
-                          src={user.user_metadata.avatar_url}
-                          alt="Profile"
-                          className="user-avatar-image"
-                          key={user.user_metadata.avatar_url}
-                        />
-                      ) : (
-                        <span>{initials}</span>
-                      )}
-                    </div>
+          <span className="brand__word">fundu</span>
+        </Link>
 
-                    <ArrowDownIcon isOpen={isOpen} />
-                  </button>
+        {/* ---------------------------------------------------
+            MOBILE MENU
+            React controls this instead of Claude's DOM script.
+            --------------------------------------------------- */}
+        <button
+          className="topbar__toggle"
+          id="navToggle"
+          type="button"
+          aria-label={mobileOpen ? "Close menu" : "Menu"}
+          aria-expanded={mobileOpen}
+          onClick={() => setMobileOpen((current) => !current)}
+        >
+          <i />
+          <i />
+        </button>
 
-                  {isOpen && (
-                    <div className="dropdown-menu">
-                      <Link href="/settings" onClick={() => setIsOpen(false)}>
-                        My Profile
-                      </Link>
-
-                      <Link href="/settings" onClick={() => setIsOpen(false)}>
-                        Account Settings
-                      </Link>
-
-                      <hr className="dropdown-divider" />
-
-                      <button
-                        onClick={handleLogout}
-                        className="logout-btn"
-                        type="button"
-                      >
-                        Log out
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </>
-            ) : (
-              <>
-                <Link href="/signup" className="nav-btn-primary">
-                  Sign Up
-                </Link>
-
-                <Link href="/signin" className="nav-login-link">
-                  Login
-                </Link>
-              </>
-            )}
-          </div>
-        </div>
-
-        {/* ═════════════════════ MOBILE ═════════════════════ */}
-
-        <div className="navbar-mobile">
-          <div className="navbar-mobile-bar">
+        {/* ---------------------------------------------------
+            NAVIGATION
+            --------------------------------------------------- */}
+        <nav className="topbar__links" id="navLinks" aria-label="Main">
+          {NAV_ITEMS.map((item) => (
             <Link
-              href="/"
-              className="mobile-logo-container"
-              aria-label="Fundu Home"
+              key={item.href}
+              href={item.href}
+              aria-current={isActive(item.href) ? "page" : undefined}
             >
-              <Image
-                src="/logo.svg"
-                alt="Fundu Logo"
-                width={64}
-                height={64}
-                priority
-              />
+              {item.label}
             </Link>
+          ))}
 
-            <button
-              type="button"
-              className="navbar-hamburger"
-              aria-label={
-                mobileMenuOpen
-                  ? "Close navigation menu"
-                  : "Open navigation menu"
-              }
-              aria-expanded={mobileMenuOpen}
-              onClick={() => setMobileMenuOpen((previous) => !previous)}
+          {!loading && (
+            <Link
+              className="btn btn--primary topbar__cta"
+              href={fundraiserHref}
             >
-              {mobileMenuOpen ? <CloseIcon /> : <HamburgerIcon />}
-            </button>
-          </div>
-
-          <div className={`navbar-mobile-menu ${mobileMenuOpen ? "open" : ""}`}>
-            <div className="navbar-mobile-menu-inner">
-              <div className="mobile-nav-links">
-                {NAV_ITEMS.map((item) => (
-                  <Link
-                    key={item.label}
-                    href={item.href}
-                    className={`mobile-nav-link ${
-                      isActive(item.href) ? "active" : ""
-                    }`}
-                    onClick={handleMobileNavigation}
-                  >
-                    <span>{item.label}</span>
-                  </Link>
-                ))}
-              </div>
-
-              <div className="mobile-menu-divider"></div>
-
-              {user ? (
-                <>
-                  <Link
-                    href="/create-campaign"
-                    className="mobile-create-btn"
-                    onClick={handleMobileNavigation}
-                  >
-                    Create Campaign
-                  </Link>
-
-                  <div className="mobile-profile-section">
-                    <Link
-                      href="/settings"
-                      className="mobile-profile"
-                      onClick={handleMobileNavigation}
-                    >
-                      <div className="user-avatar mobile-avatar">
-                        {user.user_metadata?.avatar_url ? (
-                          <img
-                            src={user.user_metadata.avatar_url}
-                            alt="Profile"
-                            className="user-avatar-image"
-                          />
-                        ) : (
-                          <span>{initials}</span>
-                        )}
-                      </div>
-
-                      <div className="mobile-profile-info">
-                        <span className="mobile-profile-name">
-                          {user.user_metadata?.full_name || "My Profile"}
-                        </span>
-
-                        <span className="mobile-profile-label">
-                          View profile
-                        </span>
-                      </div>
-                    </Link>
-
-                    <button
-                      type="button"
-                      className="mobile-logout-btn"
-                      onClick={handleLogout}
-                      aria-label="Log out"
-                    >
-                      <LogoutIcon />
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <div className="mobile-auth-actions">
-                  <Link
-                    href="/signup"
-                    className="mobile-signup-btn"
-                    onClick={handleMobileNavigation}
-                  >
-                    Sign Up
-                  </Link>
-
-                  <Link
-                    href="/signin"
-                    className="mobile-login-btn"
-                    onClick={handleMobileNavigation}
-                  >
-                    Login
-                  </Link>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </nav>
+              <span>Start a fundraiser</span>
+            </Link>
+          )}
+        </nav>
+      </div>
     </header>
   );
 }
