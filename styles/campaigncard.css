@@ -46,7 +46,7 @@
   color: #fff;
   padding: 4px 12px;
   border-radius: 6px;
-  font-family: Urbanist, sans-serif;
+  font-family: var(--font-body);
   font-size: 12px;
   font-weight: 600;
   z-index: 2;
@@ -66,12 +66,18 @@
 
 .campaign-title {
   color: #333;
-  font-family: Urbanist, sans-serif;
-  font-size: 18px;
+  font-family: var(--font-body);
+  font-size: 16px;
   font-weight: 700;
   line-height: 130%;
   margin: 0;
   align-self: stretch;
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* ================================
@@ -93,14 +99,14 @@
 
 .raised-value {
   color: #333;
-  font-family: Urbanist, sans-serif;
+  font-family: var(--font-body);
   font-size: 24px;
   font-weight: 700;
 }
 
 .goal-text {
   color: #888;
-  font-family: Urbanist, sans-serif;
+  font-family: var(--font-body);
   font-size: 14px;
   font-weight: 500;
 }
@@ -144,7 +150,7 @@
 
 .stat-label {
   color: #888;
-  font-family: Urbanist, sans-serif;
+  font-family: var(--font-body);
   font-size: 12px;
   font-weight: 500;
 }
@@ -179,7 +185,7 @@
   align-items: center;
   gap: 6px;
   color: #888;
-  font-family: Urbanist, sans-serif;
+  font-family: var(--font-body);
   font-size: 12px;
 }
 
@@ -231,7 +237,7 @@
   gap: 8px;
   flex: 1;
   border-radius: 8px;
-  font-family: Urbanist, sans-serif;
+  font-family: var(--font-body);
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;

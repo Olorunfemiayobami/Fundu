@@ -45,7 +45,7 @@
   border-radius: 8px;
   background: #069f43;
   color: #ffffff;
-  font-family: "Urbanist", sans-serif;
+  font-family: var(--font-body);
   font-size: 12px;
   font-weight: 600;
 }
@@ -69,16 +69,22 @@
 
 .campaign-title {
   color: #333;
-  font-family: "Urbanist", sans-serif;
+  font-family: var(--font-body);
   font-size: 16px;
   font-weight: 600;
   line-height: 130%; /* 20.8px */
   margin: 0;
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .campaign-author {
   color: #333;
-  font-family: "Urbanist", sans-serif;
+  font-family: var(--font-body);
   font-size: 12px;
   font-weight: 400;
   line-height: 130%; /* 15.6px */
@@ -95,7 +101,7 @@
 
 .amount-value {
   color: #333;
-  font-family: "Urbanist", sans-serif;
+  font-family: var(--font-body);
   font-size: 20px;
   font-weight: 700;
   line-height: 110%;
@@ -111,7 +117,7 @@
 
 .to-be-raised-text {
   color: #888;
-  font-family: "Urbanist", sans-serif;
+  font-family: var(--font-body);
   font-size: 14px;
   font-weight: 400;
   line-height: 130%; /* 18.2px */

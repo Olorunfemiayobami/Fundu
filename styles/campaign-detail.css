@@ -35,7 +35,7 @@
 .campaign-detail-state__card {
   width: min(100%, 500px);
 
-  padding: 32px;
+  padding: 16px;
 
   border: 1px solid #d1d1d1;
   border-radius: 16px;
@@ -193,7 +193,7 @@
 .campaign-detail-header-card {
   width: 100%;
 
-  padding: 24px;
+  padding: 16px;
 
   border: 1px solid #d1d1d1;
   border-radius: 16px;
@@ -228,7 +228,7 @@
 
   color: #1b2022;
 
-  font-size: 28px;
+  font-size: 24px;
   line-height: 1.2;
   font-weight: 700;
 }
@@ -448,7 +448,7 @@
 }
 
 .campaign-detail-card {
-  padding: 24px;
+  padding: 16px;
 
   display: flex;
   flex-direction: column;
@@ -456,7 +456,7 @@
 }
 
 .campaign-detail-side-card {
-  padding: 24px;
+  padding: 16px;
 
   display: flex;
   flex-direction: column;
@@ -514,7 +514,7 @@
 .campaign-progress-amount strong {
   color: #1b2022;
 
-  font-size: 36px;
+  font-size: 28px;
   line-height: normal;
   font-weight: 700;
 }
@@ -616,7 +616,7 @@
 .campaign-update-card {
   width: 100%;
 
-  padding: 20px;
+  padding: 16px;
 
   border: 1px solid #e0e0e0;
   border-radius: 12px;
@@ -692,8 +692,7 @@
 .campaign-story-content {
   width: 100%;
 
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  display: block;
 
   gap: 16px 12px;
 }
@@ -788,7 +787,7 @@
 .campaign-detail-empty {
   width: 100%;
 
-  padding: 24px;
+  padding: 16px;
 
   border: 1px solid #e6e6e6;
   border-radius: 12px;
@@ -1013,7 +1012,7 @@
 .campaign-supporter-cta {
   width: 100%;
 
-  padding: 24px;
+  padding: 16px;
 
   border: 1px solid #fed7aa;
   border-radius: 16px;
@@ -1067,7 +1066,7 @@
   width: min(100%, 520px);
   max-height: calc(100vh - 48px);
 
-  padding: 24px;
+  padding: 16px;
 
   overflow-y: auto;
 
@@ -1303,7 +1302,7 @@
   }
 
   .campaign-detail-header-card {
-    padding: 20px;
+    padding: 16px;
     gap: 24px;
   }
 
@@ -1334,7 +1333,7 @@
   }
 
   .campaign-progress-amount strong {
-    font-size: 32px;
+    font-size: 28px;
   }
 
   .campaign-story-image {
@@ -1586,7 +1585,7 @@
   }
 
   .campaign-update-card {
-    padding: 12px;
+    padding: 16px;
 
     gap: 10px;
 
@@ -1613,13 +1612,7 @@
 
   /* STORY */
 
-  .campaign-story-content {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-
-    gap: 8px;
-  }
-
-  .campaign-story-content > p {
+.campaign-story-content > p {
     font-size: 14px;
   }
 
@@ -1741,7 +1734,7 @@
   /* CTA */
 
   .campaign-supporter-cta {
-    padding: 20px;
+    padding: 16px;
   }
 
   .campaign-supporter-cta h3 {
@@ -1776,7 +1769,7 @@
     width: 100%;
     max-height: calc(100vh - 32px);
 
-    padding: 20px;
+    padding: 16px;
 
     border-radius: 20px 20px 12px 12px;
   }
@@ -2165,7 +2158,7 @@
 }
 
 .campaign-update-modal__header {
-  padding: 24px 24px 20px;
+  padding: 16px;
 
   display: flex;
   align-items: flex-start;
@@ -2641,7 +2634,7 @@
   }
 
   .campaign-update-modal__header {
-    padding: 20px 16px 16px;
+    padding: 16px;
   }
 
   .campaign-update-modal__header h2 {

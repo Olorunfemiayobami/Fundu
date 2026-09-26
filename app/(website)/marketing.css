@@ -15,12 +15,8 @@
 
   /* Bricolage Grotesque carries every headline and figure.
      Urbanist carries everything you read at length. */
-  --display:
-    "Bricolage Grotesque", "Urbanist", "Segoe UI", system-ui, -apple-system,
-    sans-serif;
-  --sans:
-    "Urbanist", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial,
-    sans-serif;
+  --display: var(--font-body);
+  --sans: var(--font-body);
 
   --ink: 2, 6, 13;
   --ink-2: 24, 31, 42;
@@ -60,13 +56,13 @@
   --r-xl: 24px;
   --r-pill: 999px;
 
-  --fs-display: clamp(2.45rem, 5.5vw, 4.15rem);
+  --fs-display: clamp(2rem, 4vw, 3rem);
 
-  --fs-h2: clamp(1.95rem, 3.36vw, 2.82rem);
+  --fs-h2: clamp(1.5rem, 3vw, 2rem);
 
   --fs-h3: clamp(1.15rem, 1.5vw, 1.4rem);
 
-  --fs-lead: 1.125rem; /* 18px */
+  --fs-lead: 1rem; /* 16px */
 
   --fs-body: 1rem; /* 16px */
 
@@ -91,6 +87,7 @@ body {
   margin: 0;
 }
 .marketing-shell {
+  --display: var(--font-bricolage), var(--font-body);
   margin: 0;
   font-family: var(--sans);
   font-size: var(--fs-body);
@@ -188,7 +185,7 @@ button {
   font-weight: 750;
   letter-spacing: -0.035em;
   line-height: 1.02;
-  font-size: clamp(2.2rem, 5.4vw, 4.4rem);
+  font-size: clamp(2rem, 4vw, 3rem);
   max-width: 16ch;
   font-variation-settings:
     "opsz" 96,
@@ -2274,22 +2271,22 @@ h2[data-mo] {
   color: #fff;
 }
 
-h1,
-h2,
-h3,
-h4 {
+.marketing-shell h1,
+.marketing-shell h2,
+.marketing-shell h3,
+.marketing-shell h4 {
   font-family: var(--display);
 }
-h1,
-h2,
-h3 {
+.marketing-shell h1,
+.marketing-shell h2,
+.marketing-shell h3 {
   margin: 0;
   font-weight: 700;
   letter-spacing: -0.022em;
   line-height: 1.04;
   text-wrap: balance;
 }
-h1 {
+.marketing-shell h1 {
   font-size: var(--fs-display);
   font-weight: 700;
   letter-spacing: -0.034em;
@@ -2298,13 +2295,13 @@ h1 {
     "opsz" 96,
     "wdth" 100;
 }
-h2 {
+.marketing-shell h2 {
   font-size: var(--fs-h2);
   font-variation-settings:
     "opsz" 72,
     "wdth" 100;
 }
-h3 {
+.marketing-shell h3 {
   font-size: var(--fs-h3);
   font-weight: 700;
   letter-spacing: -0.014em;
@@ -2903,7 +2900,7 @@ p {
   font-weight: 750;
   letter-spacing: -0.038em;
   line-height: 1.02;
-  font-size: clamp(2.1rem, 5.4vw, 4.2rem);
+  font-size: clamp(2rem, 4vw, 3rem);
   font-variation-settings:
     "opsz" 96,
     "wdth" 100;

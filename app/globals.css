@@ -29,6 +29,9 @@
   --page-max-width: 1600px;
   --page-padding-x: 80px;
   --page-padding-top: 40px;
+  --font-body: var(--font-urbanist), "Urbanist", sans-serif;
+  --sans: var(--font-body);
+  --display: var(--font-body);
 }
 
 /* RESET & BASE STYLES - PRESERVED */
@@ -44,6 +47,9 @@ body {
 }
 
 body {
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.5;
   margin: 0;
   padding: 0;
   color: var(--text-main);
@@ -144,5 +150,10 @@ img {
 }
 
 .font-urbanist {
-  font-family: "Urbanist", sans-serif;
+  font-family: var(--font-body);
+}
+
+/* Form controls use the same loaded font as the rest of the application. */
+input, select, textarea {
+  font: inherit;
 }

@@ -99,6 +99,12 @@
   font-size: 16px;
   font-weight: 600;
   line-height: 1.3;
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .campaign-card__amount {
@@ -317,10 +323,16 @@
 
 .campaign-card__title--public {
   color: #333333;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
   line-height: normal;
   text-decoration: none;
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .campaign-card__creator {

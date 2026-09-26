@@ -21,7 +21,7 @@
 }
 
 .stat-item label {
-  font-family: "Urbanist", sans-serif;
+  font-family: var(--font-body);
   font-size: 12px;
   font-weight: 600; /* SemiBold */
   color: #888888;
@@ -31,8 +31,8 @@
 }
 
 .stat-item h2 {
-  font-family: "Urbanist", sans-serif;
-  font-size: 24px;
+  font-family: var(--font-body);
+  font-size: 20px;
   font-weight: 800; /* Extra Bold for the numbers */
   margin: 0;
   line-height: 1;

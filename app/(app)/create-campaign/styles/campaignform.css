@@ -20,7 +20,7 @@ button,
 input,
 select,
 textarea {
-  font-family: "Urbanist", sans-serif;
+  font-family: var(--font-body);
 }
 
 .create-campaign-page {
@@ -61,7 +61,7 @@ textarea {
 .create-campaign-heading h1 {
   margin: 0;
   color: #0a0a0a;
-  font-size: 30px;
+  font-size: 24px;
   line-height: 1.2;
   font-weight: 700;
 }
@@ -189,7 +189,7 @@ textarea {
 .form-main-title {
   margin: 0 0 4px;
   color: #0a0a0a;
-  font-size: 26px;
+  font-size: 24px;
   line-height: 1.2;
   font-weight: 700;
 }
@@ -1058,7 +1058,7 @@ textarea {
 .preview-title-text {
   margin: 0 0 8px;
   color: #333;
-  font-size: 30px;
+  font-size: 24px;
   line-height: 1.25;
   font-weight: 700;
   overflow-wrap: anywhere;
@@ -1073,7 +1073,7 @@ textarea {
 .preview-amount-text {
   margin: 0;
   color: #333;
-  font-size: 34px;
+  font-size: 28px;
   line-height: 1.1;
   font-weight: 700;
   white-space: nowrap;
@@ -1473,7 +1473,7 @@ textarea {
 .hosting-total-amount {
   display: block;
   color: #1e807f;
-  font-size: 30px;
+  font-size: 28px;
   line-height: 1.2;
   font-weight: 800;
 }
@@ -1792,7 +1792,7 @@ textarea {
   }
 
   .create-campaign-heading h1 {
-    font-size: 28px;
+    font-size: 24px;
   }
 
   .form-main-title {
@@ -1800,11 +1800,11 @@ textarea {
   }
 
   .preview-title-text {
-    font-size: 28px;
+    font-size: 24px;
   }
 
   .preview-amount-text {
-    font-size: 30px;
+    font-size: 28px;
   }
 
   .cover-crop-modal {
@@ -2031,11 +2031,11 @@ textarea {
   }
 
   .preview-title-text {
-    font-size: 25px;
+    font-size: 24px;
   }
 
   .preview-amount-text {
-    font-size: 29px;
+    font-size: 28px;
   }
 
   .preview-media-row {
@@ -2354,7 +2354,7 @@ textarea {
   }
 
   .preview-amount-text {
-    font-size: 26px;
+    font-size: 28px;
   }
 
   /* =====================================================
