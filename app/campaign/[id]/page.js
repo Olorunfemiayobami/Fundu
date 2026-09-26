@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import CampaignStorageImage from "@/components/campaigns/CampaignStorageImage";
 import "./campaign-public.css";
 
 export default function PublicCampaignPage() {
@@ -19,6 +20,9 @@ export default function PublicCampaignPage() {
   const [category, setCategory] = useState(null);
   const [bankAccount, setBankAccount] = useState(null);
 
+  const [campaignUpdates, setCampaignUpdates] = useState([]);
+  const [updatesError, setUpdatesError] = useState("");
+
   const [comments, setComments] = useState([]);
   const [commentUsers, setCommentUsers] = useState({});
   const [commentText, setCommentText] = useState("");
@@ -28,9 +32,7 @@ export default function PublicCampaignPage() {
   const [loadError, setLoadError] = useState("");
   const [copyMessage, setCopyMessage] = useState("");
 
-  /* ======================================================
-     CHECK WHETHER VIEWER IS LOGGED IN
-  ====================================================== */
+  /* CHECK WHETHER VIEWER IS LOGGED IN */
 
   useEffect(() => {
     let mounted = true;
@@ -61,9 +63,7 @@ export default function PublicCampaignPage() {
     };
   }, []);
 
-  /* ======================================================
-     LOAD CAMPAIGN
-  ====================================================== */
+  /* LOAD CAMPAIGN */
 
   useEffect(() => {
     if (!campaignId) return;
@@ -74,13 +74,15 @@ export default function PublicCampaignPage() {
   async function loadCampaignPage() {
     setLoading(true);
     setLoadError("");
+    setCampaignUpdates([]);
+    setUpdatesError("");
 
     try {
       const { data: campaignRow, error: campaignError } = await supabase
         .from("campaigns")
         .select("*")
         .eq("id", campaignId)
-        .eq("status", "active")
+        .in("status", ["active", "ended"])
         .maybeSingle();
 
       if (campaignError) {
@@ -89,7 +91,7 @@ export default function PublicCampaignPage() {
 
       if (!campaignRow) {
         setLoadError(
-          "This campaign could not be found or is not currently active.",
+          "This campaign could not be found or is not publicly available.",
         );
         return;
       }
@@ -134,14 +136,14 @@ export default function PublicCampaignPage() {
         .from("campaign_bank_accounts")
         .select(
           `
-              id,
-              campaign_id,
-              user_id,
-              account_holder_name,
-              account_number,
-              bank_name,
-              is_active
-            `,
+            id,
+            campaign_id,
+            user_id,
+            account_holder_name,
+            account_number,
+            bank_name,
+            is_active
+          `,
         )
         .eq("campaign_id", campaignRow.id)
         .eq("is_active", true)
@@ -156,18 +158,36 @@ export default function PublicCampaignPage() {
 
       setBankAccount(bankRows?.[0] || null);
 
+      /* PUBLIC CAMPAIGN UPDATES */
+
+      const { data: updateRows, error: updateError } = await supabase
+        .from("campaign_updates")
+        .select("id, title, content, image_urls, is_final_update, created_at")
+        .eq("campaign_id", campaignRow.id)
+        .order("created_at", {
+          ascending: false,
+        });
+
+      if (updateError) {
+        setUpdatesError(
+          "We couldn't load campaign updates right now. Please refresh to try again.",
+        );
+      } else {
+        setCampaignUpdates(updateRows || []);
+      }
+
       /* COMMENTS */
 
       const { data: commentRows, error: commentsError } = await supabase
         .from("comments")
         .select(
           `
-              id,
-              campaign_id,
-              user_id,
-              content,
-              created_at
-            `,
+            id,
+            campaign_id,
+            user_id,
+            content,
+            created_at
+          `,
         )
         .eq("campaign_id", campaignRow.id)
         .order("created_at", {
@@ -218,9 +238,7 @@ export default function PublicCampaignPage() {
     }
   }
 
-  /* ======================================================
-     STORY
-  ====================================================== */
+  /* STORY */
 
   const storyBlocks = useMemo(() => {
     if (!campaign?.story_blocks) return [];
@@ -242,9 +260,7 @@ export default function PublicCampaignPage() {
     return [];
   }, [campaign]);
 
-  /* ======================================================
-     CALCULATED VALUES
-  ====================================================== */
+  /* CALCULATED VALUES */
 
   const organizerName =
     creator?.display_name || creator?.full_name || "Campaign Organizer";
@@ -268,17 +284,14 @@ export default function PublicCampaignPage() {
 
   const daysRemaining = getDaysRemaining(campaign?.end_date);
 
-  /*
-   * The Edit Campaign button is only shown when the
-   * signed-in user owns this campaign.
-   */
+  const isCampaignEnded =
+    campaign?.status === "ended" ||
+    (campaign?.end_date && new Date(campaign.end_date).getTime() <= Date.now());
 
   const isCampaignOwner =
     Boolean(viewer?.id) && viewer.id === campaign?.creator_id;
 
-  /* ======================================================
-     COPY
-  ====================================================== */
+  /* COPY */
 
   async function copyText(value, label = "Copied") {
     if (!value) return;
@@ -300,9 +313,7 @@ export default function PublicCampaignPage() {
     await copyText(window.location.href, "Campaign link copied");
   }
 
-  /* ======================================================
-     SHARE
-  ====================================================== */
+  /* SHARE */
 
   async function shareCampaign() {
     const url = window.location.href;
@@ -311,11 +322,9 @@ export default function PublicCampaignPage() {
       try {
         await navigator.share({
           title: campaign?.title || "Fundu campaign",
-
           text: campaign?.title
             ? `Support ${campaign.title} on Fundu`
             : "Support this campaign on Fundu",
-
           url,
         });
 
@@ -341,9 +350,7 @@ export default function PublicCampaignPage() {
 
     const links = {
       whatsapp: `https://wa.me/?text=${text}%20${url}`,
-
       facebook: `https://www.facebook.com/sharer/sharer.php?u=${url}`,
-
       x: `https://twitter.com/intent/tweet?text=${text}&url=${url}`,
     };
 
@@ -355,14 +362,11 @@ export default function PublicCampaignPage() {
     window.open(links[platform], "_blank", "noopener,noreferrer");
   }
 
-  /* ======================================================
-     COMMENTS
-  ====================================================== */
+  /* COMMENTS */
 
   async function postComment() {
     if (!viewer) {
       router.push(`/signin?redirect=/campaign/${campaignId}`);
-
       return;
     }
 
@@ -376,13 +380,9 @@ export default function PublicCampaignPage() {
 
     try {
       /*
-       * The database function handles the entire comment
-       * activity flow in one transaction:
-       *
-       * 1. Creates the comment.
-       * 2. Adds "Comment posted" to the commenter's history.
-       * 3. If somebody else owns the campaign, creates an
-       *    unread "New comment" notification for the owner.
+       * The database function creates the comment,
+       * records the commenter's activity, and notifies
+       * the campaign owner where applicable.
        */
 
       const { data, error } = await supabase.rpc("post_campaign_comment", {
@@ -398,43 +398,25 @@ export default function PublicCampaignPage() {
         throw new Error("The comment could not be created.");
       }
 
-      /*
-       * Supabase may return the composite comments row
-       * directly or as a one-item array depending on the
-       * generated client/runtime response.
-       */
-
       const newComment = Array.isArray(data) ? data[0] : data;
 
       if (!newComment?.id) {
         throw new Error("The new comment could not be loaded.");
       }
 
-      /*
-       * Show the new comment immediately without reloading
-       * the entire campaign page.
-       */
-
       setComments((current) => [...current, newComment]);
-
       setCommentText("");
-
-      /*
-       * Make sure we have the current commenter's profile
-       * available so their real name/initials appear beside
-       * the newly posted comment immediately.
-       */
 
       if (!commentUsers[viewer.id]) {
         const { data: profile, error: profileError } = await supabase
           .from("users")
           .select(
             `
-                id,
-                full_name,
-                display_name,
-                avatar_url
-              `,
+              id,
+              full_name,
+              display_name,
+              avatar_url
+            `,
           )
           .eq("id", viewer.id)
           .maybeSingle();
@@ -451,19 +433,6 @@ export default function PublicCampaignPage() {
         }
       }
 
-      /*
-       * The RPC created Activity records.
-       *
-       * If this viewer owns the campaign, their own
-       * "Comment posted" history has changed, so tell
-       * Fundu's Activity UI to refresh.
-       *
-       * If somebody else owns the campaign, the owner's
-       * unread notification is already safely stored in
-       * Supabase. Their sidebar will pick it up when their
-       * authenticated Fundu UI refreshes.
-       */
-
       if (typeof window !== "undefined" && isCampaignOwner) {
         window.dispatchEvent(new CustomEvent("fundu:activity-updated"));
       }
@@ -478,9 +447,7 @@ export default function PublicCampaignPage() {
     }
   }
 
-  /* ======================================================
-     LOADING
-  ====================================================== */
+  /* LOADING */
 
   if (!authChecked || loading) {
     return (
@@ -490,9 +457,7 @@ export default function PublicCampaignPage() {
     );
   }
 
-  /* ======================================================
-     ERROR
-  ====================================================== */
+  /* ERROR */
 
   if (loadError || !campaign) {
     return (
@@ -506,9 +471,7 @@ export default function PublicCampaignPage() {
     );
   }
 
-  /* ======================================================
-     PAGE
-  ====================================================== */
+  /* PAGE */
 
   return (
     <div className="public-campaign-page-shell">
@@ -533,7 +496,9 @@ export default function PublicCampaignPage() {
                   {category?.name || "Campaign"}
                 </span>
 
-                <span className="public-campaign-status">Active</span>
+                <span className="public-campaign-status">
+                  {isCampaignEnded ? "Campaign ended" : "Active"}
+                </span>
               </div>
 
               <div className="public-campaign-dates">
@@ -597,7 +562,7 @@ export default function PublicCampaignPage() {
 
           {coverImage ? (
             <div className="public-campaign-cover">
-              <img src={coverImage} alt={campaign.title} />
+              <CampaignStorageImage src={coverImage} alt={campaign.title} />
             </div>
           ) : (
             <div className="public-campaign-cover public-campaign-cover--empty">
@@ -615,8 +580,6 @@ export default function PublicCampaignPage() {
         {/* BODY */}
 
         <div className="public-campaign-columns">
-          {/* LEFT */}
-
           <div className="public-campaign-primary-column">
             <section className="public-campaign-card">
               <h2>About This Campaign</h2>
@@ -633,16 +596,77 @@ export default function PublicCampaignPage() {
               <div className="public-campaign-section-heading">
                 <h2>Campaign Updates</h2>
 
-                <span>0 updates</span>
+                {!updatesError && (
+                  <span>
+                    {campaignUpdates.length}{" "}
+                    {campaignUpdates.length === 1 ? "update" : "updates"}
+                  </span>
+                )}
               </div>
 
-              <div className="public-campaign-empty-state">
-                <strong>No updates yet</strong>
+              {updatesError ? (
+                <p role="status">{updatesError}</p>
+              ) : campaignUpdates.length > 0 ? (
+                <div className="public-campaign-updates">
+                  {campaignUpdates.map((update) => (
+                    <article className="public-campaign-update" key={update.id}>
+                      <div className="public-campaign-update-meta">
+                        <time dateTime={update.created_at}>
+                          {formatDate(update.created_at)}
+                        </time>
 
-                <p>
-                  The organizer has not posted any public campaign updates yet.
-                </p>
-              </div>
+                        {update.is_final_update && <span>Final update</span>}
+                      </div>
+
+                      <h3>{update.title}</h3>
+
+                      <p className="public-campaign-update-content">
+                        {update.content}
+                      </p>
+
+                      {Array.isArray(update.image_urls) &&
+                        update.image_urls.length > 0 && (
+                          <div className="public-campaign-update-images">
+                            {update.image_urls
+                              .filter(
+                                (url) =>
+                                  typeof url === "string" &&
+                                  /^https?:\/\//i.test(url),
+                              )
+                              .map((url, index) => (
+                                <a
+                                  key={`${url}-${index}`}
+                                  href={url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  aria-label={`Open ${
+                                    update.title || "campaign update"
+                                  } photo ${index + 1}`}
+                                >
+                                  <CampaignStorageImage
+                                    src={url}
+                                    alt={`${
+                                      update.title || "Campaign update"
+                                    } photo ${index + 1}`}
+                                    loading="lazy"
+                                  />
+                                </a>
+                              ))}
+                          </div>
+                        )}
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <div className="public-campaign-empty-state">
+                  <strong>No updates yet</strong>
+
+                  <p>
+                    The organizer has not posted any public campaign updates
+                    yet.
+                  </p>
+                </div>
+              )}
             </section>
 
             {/* COMMENTS */}
@@ -690,7 +714,9 @@ export default function PublicCampaignPage() {
               {/* COMMENT FORM */}
 
               <div className="public-campaign-comment-form">
-                {viewer ? (
+                {isCampaignEnded ? (
+                  <p>This campaign has ended, so comments are closed.</p>
+                ) : viewer ? (
                   <>
                     <textarea
                       value={commentText}
@@ -729,15 +755,19 @@ export default function PublicCampaignPage() {
 
             <section className="public-campaign-support-card">
               <div>
-                <h2>Support This Campaign</h2>
+                <h2>{isCampaignEnded ? "Campaign Ended" : "Support This Campaign"}</h2>
 
-                <p>
-                  Send your contribution directly to the organizer&apos;s bank
-                  account.
-                </p>
+                {isCampaignEnded ? (
+                  <p>This campaign has ended. Contributions are closed.</p>
+                ) : (
+                  <p>
+                    Send your contribution directly to the organizer&apos;s bank
+                    account.
+                  </p>
+                )}
               </div>
 
-              {bankAccount ? (
+              {!isCampaignEnded && (bankAccount ? (
                 <div className="public-campaign-bank-box">
                   <BankRow
                     label="BANK"
@@ -774,12 +804,14 @@ export default function PublicCampaignPage() {
                 <div className="public-campaign-bank-unavailable">
                   Bank details are not currently available.
                 </div>
-              )}
+              ))}
 
-              <small>
-                Your contribution goes directly to the campaign organizer. Fundu
-                does not receive or hold campaign funds.
-              </small>
+              {!isCampaignEnded && (
+                <small>
+                  Your contribution goes directly to the campaign organizer. Fundu
+                  does not receive or hold campaign funds.
+                </small>
+              )}
             </section>
 
             {/* PROGRESS */}
@@ -876,9 +908,7 @@ export default function PublicCampaignPage() {
   );
 }
 
-/* ======================================================
-   STORY COMPONENT
-====================================================== */
+/* STORY COMPONENT */
 
 function StoryBlocks({ blocks, fallbackText }) {
   if (!blocks || blocks.length === 0) {
@@ -892,10 +922,6 @@ function StoryBlocks({ blocks, fallbackText }) {
   return (
     <div className="public-campaign-story">
       {blocks.map((block) => {
-        /* =================================================
-           SECTION BLOCK
-        ================================================= */
-
         if (block.type === "section") {
           return (
             <div className="public-story-section" key={block.id}>
@@ -910,10 +936,6 @@ function StoryBlocks({ blocks, fallbackText }) {
           );
         }
 
-        /* =================================================
-           TEXT BLOCK
-        ================================================= */
-
         if (block.type === "text") {
           return block.content ? (
             <p className="public-story-text" key={block.id}>
@@ -922,12 +944,10 @@ function StoryBlocks({ blocks, fallbackText }) {
           ) : null;
         }
 
-        /* =================================================
-           IMAGE BLOCK
-
-           "media" is intentionally kept here so campaigns
-           created before the Image Block change still work.
-        ================================================= */
+        /*
+         * Retain support for older campaigns using
+         * the "media" block type.
+         */
 
         if (block.type === "image" || block.type === "media") {
           return (
@@ -937,10 +957,6 @@ function StoryBlocks({ blocks, fallbackText }) {
             />
           );
         }
-
-        /* =================================================
-           VIDEO BLOCK
-        ================================================= */
 
         if (block.type === "video") {
           return (
@@ -958,9 +974,7 @@ function StoryBlocks({ blocks, fallbackText }) {
   );
 }
 
-/* ======================================================
-   STORY IMAGES
-====================================================== */
+/* STORY IMAGES */
 
 function StoryImages({ images }) {
   if (!images?.length) {
@@ -971,16 +985,14 @@ function StoryImages({ images }) {
     <div className="public-story-media-grid">
       {images.map((url, index) => (
         <div className="public-story-media-item" key={`${url}-${index}`}>
-          <img src={url} alt={`Campaign story image ${index + 1}`} />
+          <CampaignStorageImage src={url} alt={`Campaign story image ${index + 1}`} />
         </div>
       ))}
     </div>
   );
 }
 
-/* ======================================================
-   STORY VIDEO
-====================================================== */
+/* STORY VIDEO */
 
 function StoryVideo({ url, blockId }) {
   const embedUrl = getVideoEmbedUrl(url);
@@ -1001,9 +1013,7 @@ function StoryVideo({ url, blockId }) {
   );
 }
 
-/* ======================================================
-   VIDEO URL HELPER
-====================================================== */
+/* VIDEO URL HELPER */
 
 function getVideoEmbedUrl(value) {
   if (!value) {
@@ -1015,19 +1025,11 @@ function getVideoEmbedUrl(value) {
 
     const hostname = url.hostname.replace(/^www\./, "").toLowerCase();
 
-    /* YouTube short link:
-       https://youtu.be/VIDEO_ID
-    */
-
     if (hostname === "youtu.be") {
       const videoId = url.pathname.split("/").filter(Boolean)[0];
 
       return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
     }
-
-    /* YouTube:
-       watch, Shorts, Live and Embed links
-    */
 
     if (hostname === "youtube.com" || hostname === "m.youtube.com") {
       if (url.pathname === "/watch") {
@@ -1049,11 +1051,6 @@ function getVideoEmbedUrl(value) {
       }
     }
 
-    /* Vimeo:
-       https://vimeo.com/123456789
-       https://player.vimeo.com/video/123456789
-    */
-
     if (hostname === "vimeo.com" || hostname === "player.vimeo.com") {
       const parts = url.pathname.split("/").filter(Boolean);
 
@@ -1073,9 +1070,7 @@ function getVideoEmbedUrl(value) {
   }
 }
 
-/* ======================================================
-   BANK ROW
-====================================================== */
+/* BANK ROW */
 
 function BankRow({ label, value, accent = false, onCopy }) {
   return (
@@ -1097,9 +1092,7 @@ function BankRow({ label, value, accent = false, onCopy }) {
   );
 }
 
-/* ======================================================
-   HELPERS
-====================================================== */
+/* HELPERS */
 
 function formatMoney(value) {
   return new Intl.NumberFormat("en-NG", {
@@ -1169,7 +1162,6 @@ function getDaysRemaining(endDate) {
   const today = new Date();
 
   end.setHours(23, 59, 59, 999);
-
   today.setHours(0, 0, 0, 0);
 
   if (Number.isNaN(end.getTime())) {

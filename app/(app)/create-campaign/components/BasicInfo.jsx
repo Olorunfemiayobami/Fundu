@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import CampaignStorageImage from "@/components/campaigns/CampaignStorageImage";
 
 const categories = [
   {
@@ -866,7 +867,7 @@ export default function BasicInfo({
   return (
     <>
       <div className="form-intro-section">
-        <h1 className="form-main-title">Let's start with the basics</h1>
+        <h1 className="form-main-title">Let&apos;s start with the basics</h1>
 
         <p className="form-sub-title">
           Tell us about your campaign in a few simple steps
@@ -1064,7 +1065,7 @@ export default function BasicInfo({
                 errors.coverImage ? "cover-image-preview--error" : ""
               }`}
             >
-              <img src={existingCoverImage} alt="Campaign cover preview" />
+              <CampaignStorageImage src={existingCoverImage} alt="Campaign cover preview" />
 
               <div className="cover-image-preview__overlay">
                 <button
@@ -1093,7 +1094,7 @@ export default function BasicInfo({
               <p className="upload-subtext">Recommended size: 1600 × 700px</p>
 
               <p className="upload-subtext">
-                You'll be able to reposition the image before using it.
+                You&apos;ll be able to reposition the image before using it.
               </p>
             </button>
           )}
@@ -1194,7 +1195,7 @@ export default function BasicInfo({
               onPointerCancel={handlePointerUp}
             >
               {displayPosition.width > 0 && displayPosition.height > 0 && (
-                <img
+                <CampaignStorageImage
                   src={sourceImage}
                   alt="Adjust campaign cover"
                   draggable="false"

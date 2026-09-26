@@ -380,6 +380,66 @@
   font-size: 12px;
 }
 
+.public-campaign-updates {
+  display: grid;
+  gap: 20px;
+}
+
+.public-campaign-update {
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid #e6e6e6;
+  border-radius: 12px;
+  overflow-wrap: anywhere;
+}
+
+.public-campaign-update h3 {
+  margin: 12px 0 8px;
+  color: #0f172a;
+}
+
+.public-campaign-update-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  color: #666;
+  font-size: 12px;
+}
+
+.public-campaign-update-meta span {
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #e9f2f2;
+  color: #1e807f;
+}
+
+.public-campaign-update-content {
+  margin: 0;
+  white-space: pre-wrap;
+  line-height: 1.6;
+}
+
+.public-campaign-update-images {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.public-campaign-update-images img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.public-campaign-update-images a:focus-visible {
+  outline: 2px solid #1e807f;
+  outline-offset: 3px;
+}
+
 .public-campaign-empty-state {
   padding: 20px;
   border: 1px solid #e6e6e6;

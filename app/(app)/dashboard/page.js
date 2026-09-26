@@ -744,7 +744,7 @@ function CreatorDashboard({
       const { error: uploadError } = await supabase.storage
         .from("campaign-images")
         .upload(filePath, file, {
-          cacheControl: "3600",
+          cacheControl: "60",
           upsert: false,
           contentType: file.type || "image/jpeg",
         });

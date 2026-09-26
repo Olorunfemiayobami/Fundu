@@ -4,6 +4,7 @@ import React, { useRef, useState } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { supabase } from "@/lib/supabase";
+import CampaignStorageImage from "@/components/campaigns/CampaignStorageImage";
 
 export default function SortableBlock({ block, removeBlock, updateBlockData }) {
   const [isExpanded, setIsExpanded] = useState(true);
@@ -105,7 +106,7 @@ export default function SortableBlock({ block, removeBlock, updateBlockData }) {
         const { error: uploadError } = await supabase.storage
           .from("campaign-images")
           .upload(filePath, file, {
-            cacheControl: "3600",
+            cacheControl: "60",
             upsert: false,
             contentType: file.type,
           });
@@ -516,7 +517,7 @@ export default function SortableBlock({ block, removeBlock, updateBlockData }) {
                 <div className="media-preview-grid">
                   {block.media.map((url, idx) => (
                     <div key={`${url}-${idx}`} className="media-preview-item">
-                      <img src={url} alt={`Campaign image ${idx + 1}`} />
+                      <CampaignStorageImage src={url} alt={`Campaign image ${idx + 1}`} />
 
                       <button
                         type="button"

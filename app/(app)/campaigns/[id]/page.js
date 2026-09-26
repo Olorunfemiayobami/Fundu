@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import CampaignStorageImage from "@/components/campaigns/CampaignStorageImage";
 import "@/styles/campaign-detail.css";
 
 export default function CampaignDetailPage() {
@@ -465,7 +466,7 @@ export default function CampaignDetailPage() {
       const { error: uploadError } = await supabase.storage
         .from("campaign-images")
         .upload(filePath, file, {
-          cacheControl: "3600",
+          cacheControl: "60",
           upsert: false,
           contentType: file.type || "image/jpeg",
         });
@@ -1483,7 +1484,7 @@ export default function CampaignDetailPage() {
           </div>
 
           <div className="campaign-detail-cover">
-            <img src={coverImage} alt={campaign.title} />
+            <CampaignStorageImage src={coverImage} alt={campaign.title} />
           </div>
         </section>
 
@@ -1605,7 +1606,7 @@ export default function CampaignDetailPage() {
                                   update.title || "Campaign update"
                                 } photo ${index + 1}`}
                               >
-                                <img
+                                <CampaignStorageImage
                                   src={url}
                                   alt={`${update.title || "Campaign update"} photo ${
                                     index + 1
@@ -1959,7 +1960,7 @@ export default function CampaignDetailPage() {
               ×
             </button>
 
-            <img
+            <CampaignStorageImage
               src={viewingUpdateImage}
               alt="Campaign update"
               className="campaign-update-lightbox__image"
@@ -2241,7 +2242,7 @@ export default function CampaignDetailPage() {
                         className="campaign-update-preview"
                         key={`existing-${imageUrl}-${index}`}
                       >
-                        <img
+                        <CampaignStorageImage
                           src={imageUrl}
                           alt={`Existing update photo ${index + 1}`}
                         />
@@ -2815,7 +2816,7 @@ function CreatorStoryImages({ images, campaignTitle }) {
     >
       {safeImages.map((url, index) => (
         <div className="campaign-story-image" key={`${url}-${index}`}>
-          <img
+          <CampaignStorageImage
             src={url}
             alt={`${campaignTitle || "Campaign"} story image ${index + 1}`}
           />

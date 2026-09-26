@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import CampaignStorageImage from "@/components/campaigns/CampaignStorageImage";
 import "@/styles/campaign-card.css";
 
 export default function CampaignCard({
@@ -141,7 +142,7 @@ export default function CampaignCard({
           href={`/campaign/${campaign.id}`}
           className="campaign-card__public-image-wrap"
         >
-          <img
+          <CampaignStorageImage
             src={coverImage}
             alt={campaign.title || "Campaign"}
             className="campaign-card__image"
@@ -226,7 +227,7 @@ export default function CampaignCard({
       } ${isInactive ? "campaign-card--inactive" : ""}`}
     >
       <div className="campaign-card__image-wrap">
-        <img
+        <CampaignStorageImage
           src={coverImage}
           alt={campaign.title || "Campaign"}
           className="campaign-card__image"

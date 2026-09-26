@@ -347,7 +347,7 @@ export default function SideNav() {
       setMobileOpen(false);
       setUnreadActivityCount(0);
 
-      router.replace("/signin");
+      router.replace("/");
       router.refresh();
     } finally {
       setLoggingOut(false);

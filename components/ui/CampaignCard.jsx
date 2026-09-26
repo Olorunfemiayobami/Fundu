@@ -1,6 +1,7 @@
 import React from "react";
 import { useRouter } from "next/navigation";
 import Badge from "./Badge";
+import CampaignStorageImage from "@/components/campaigns/CampaignStorageImage";
 import "../../styles/campaigncard.css";
 
 const CampaignCard = ({
@@ -30,7 +31,7 @@ const CampaignCard = ({
   return (
     <div className="campaign-card animate-fade-in">
       <div className="card-cover-wrapper">
-        <img
+        <CampaignStorageImage
           src={coverImage || "/images/placeholder.jpg"}
           alt={title}
           className="card-cover-image"

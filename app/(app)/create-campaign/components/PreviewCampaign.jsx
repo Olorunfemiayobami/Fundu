@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import CampaignStorageImage from "@/components/campaigns/CampaignStorageImage";
 
 import Badge from "@/components/ui/Badge";
 import CategoryBadge from "@/components/ui/CategoryBadge";
@@ -22,7 +23,7 @@ export default function PreviewCampaign({
       <div className="preview-media-row">
         {imageArray.map((url, idx) => (
           <div key={`${url}-${idx}`} className="preview-media-item">
-            <img src={url} alt={`Campaign image ${idx + 1}`} />
+            <CampaignStorageImage src={url} alt={`Campaign image ${idx + 1}`} />
           </div>
         ))}
       </div>
@@ -79,7 +80,7 @@ export default function PreviewCampaign({
 
         {coverImage && (
           <div className="preview-hero-container">
-            <img
+            <CampaignStorageImage
               src={coverImage}
               alt={
                 campaignData.title

@@ -254,8 +254,15 @@ export default function SettingsPage() {
             type="button"
             className="settings-logout-btn"
             onClick={async () => {
-              await supabase.auth.signOut();
-              router.push("/");
+              const { error } = await supabase.auth.signOut();
+
+              if (error) {
+                console.error("Logout error:", error);
+                return;
+              }
+
+              router.replace("/");
+              router.refresh();
             }}
           >
             Log out
