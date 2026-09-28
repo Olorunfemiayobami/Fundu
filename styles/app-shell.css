@@ -778,3 +778,391 @@
     font-size: 11px;
   }
 }
+/* =========================================================
+   DASHBOARD REDESIGN — STEP 6
+   Shared desktop, tablet and mobile navigation
+========================================================= */
+
+.app-sidebar,
+.app-mobile-header,
+.app-mobile-bottom-nav {
+  box-sizing: border-box;
+  font-family: var(--font-urbanist), "Urbanist", sans-serif;
+}
+
+.app-sidebar {
+  width: 232px;
+  min-width: 232px;
+  padding: 20px 16px;
+  gap: 16px;
+  background: #eff6f6;
+  z-index: 110;
+}
+
+.app-sidebar__logo {
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.app-sidebar__collapse {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+}
+
+.app-sidebar__profile {
+  min-height: 76px;
+  padding: 12px;
+  gap: 10px;
+  border: 1px solid #d2e4e4;
+  border-radius: 16px;
+  background: #ffffff;
+}
+
+.app-sidebar__profile-name {
+  color: #101828;
+  font-size: 14px;
+  line-height: 1.35;
+  font-weight: 700;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.app-sidebar__profile-meta {
+  color: #475467;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.app-sidebar__profile-chevron {
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+}
+
+.app-sidebar__nav {
+  gap: 8px;
+}
+
+.app-sidebar__nav-item,
+.app-sidebar__help {
+  box-sizing: border-box;
+  min-height: 40px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  color: #344054;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+}
+
+.app-sidebar__nav-icon,
+.app-sidebar__help-icon {
+  background-color: currentColor;
+}
+
+.app-sidebar__nav-item.active {
+  background: #d9eceb;
+  color: #0f4948;
+  font-weight: 700;
+}
+
+.app-sidebar__nav-item.active .app-sidebar__nav-icon {
+  background-color: currentColor;
+}
+
+.app-sidebar__create {
+  box-sizing: border-box;
+  min-height: 40px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 12px;
+  background: #1e807f;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 700;
+}
+
+.app-sidebar__create svg {
+  flex-shrink: 0;
+}
+
+.app-sidebar__profile-menu {
+  top: calc(100% + 8px);
+  border: 1px solid #d2e4e4;
+  border-radius: 12px;
+}
+
+.app-sidebar__profile-menu-item {
+  box-sizing: border-box;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  color: #344054;
+}
+
+/* Collapsed rail */
+
+.app-sidebar.app-sidebar--collapsed {
+  width: 72px;
+  min-width: 72px;
+  padding: 20px 14px;
+}
+
+.app-sidebar--collapsed .app-sidebar__top {
+  flex-direction: column;
+  gap: 12px;
+}
+
+.app-sidebar--collapsed .app-sidebar__logo {
+  display: inline-flex;
+}
+
+.app-sidebar--collapsed .app-sidebar__profile {
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.app-sidebar--collapsed .app-sidebar__avatar {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+}
+
+.app-sidebar--collapsed .app-sidebar__nav-item,
+.app-sidebar--collapsed .app-sidebar__help,
+.app-sidebar--collapsed .app-sidebar__create {
+  width: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  gap: 0;
+}
+
+.app-sidebar--collapsed .app-sidebar__create-label {
+  display: none;
+}
+
+.app-sidebar--collapsed .app-sidebar__profile-menu {
+  top: 0;
+  left: calc(100% + 10px);
+  width: 200px;
+}
+
+.app-mobile-bottom-nav {
+  display: none;
+}
+
+.app-sidebar a:focus-visible,
+.app-sidebar button:focus-visible,
+.app-mobile-header a:focus-visible,
+.app-mobile-header button:focus-visible,
+.app-mobile-bottom-nav a:focus-visible {
+  outline: 2px solid #f7901e;
+  outline-offset: 2px;
+}
+
+/* Restore tablet layout at exactly 768px.
+   Earlier CSS treated 768px as mobile. */
+
+@media (min-width: 768px) {
+  .app-shell {
+    display: flex;
+    background: #eff6f6;
+  }
+
+  .app-sidebar {
+    display: flex;
+  }
+
+  .app-mobile-header {
+    display: none;
+  }
+
+  .app-shell__content {
+    padding: 12px 12px 12px 0;
+  }
+
+  .app-shell__main {
+    min-height: calc(100vh - 24px);
+    border-radius: 20px;
+  }
+}
+
+/* Mobile */
+
+@media (max-width: 767px) {
+  .app-shell {
+    display: block;
+    background: #ffffff;
+  }
+
+  .app-sidebar {
+    display: none;
+  }
+
+  .app-mobile-header {
+    position: sticky;
+    top: 0;
+    z-index: 110;
+    width: 100%;
+    height: 64px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #ffffff;
+    border-bottom: 1px solid #e4eeee;
+  }
+
+  .app-mobile-profile {
+    position: relative;
+  }
+
+  .app-mobile-profile__button {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .app-mobile-profile__menu {
+    position: absolute;
+    top: calc(100% + 12px);
+    right: 0;
+    width: 200px;
+    max-width: calc(100vw - 32px);
+    padding: 4px;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #d2e4e4;
+    border-radius: 12px;
+    background: #ffffff;
+    box-shadow: 0 8px 24px rgb(16 24 40 / 12%);
+  }
+
+  .app-shell__content {
+    padding: 0;
+  }
+
+  .app-shell__main {
+    min-height: calc(100vh - 64px);
+    padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+    border-radius: 0;
+  }
+
+  .app-mobile-bottom-nav {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 110;
+    min-height: 72px;
+    padding: 8px 8px calc(8px + env(safe-area-inset-bottom, 0px));
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    align-items: center;
+    border-top: 1px solid #d2e4e4;
+    background: #ffffff;
+  }
+
+  .app-mobile-bottom-nav__item {
+    min-width: 0;
+    min-height: 56px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    border-radius: 10px;
+    color: #475467;
+    font-size: 11px;
+    line-height: 16px;
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .app-mobile-bottom-nav__item.active {
+    color: #0f4948;
+    font-weight: 700;
+  }
+
+  .app-mobile-bottom-nav__icon {
+    position: relative;
+    width: 44px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .app-mobile-bottom-nav__icon .app-sidebar__nav-icon {
+    width: 24px;
+    height: 24px;
+    min-width: 24px;
+  }
+
+  .app-mobile-bottom-nav__item--create {
+    color: #101828;
+  }
+
+  .app-mobile-bottom-nav__item--create .app-mobile-bottom-nav__icon {
+    height: 36px;
+    border-radius: 12px;
+    background: #1e807f;
+    color: #ffffff;
+  }
+
+  .app-mobile-bottom-nav .app-sidebar__activity-badge {
+    position: absolute;
+    top: -3px;
+    right: -3px;
+    min-width: 16px;
+    height: 16px;
+    margin: 0;
+    padding: 0 3px;
+    border: 2px solid #ffffff;
+    font-size: 9px;
+  }
+}
+/* Single-line profile text and collapsed sidebar emblem */
+
+.app-sidebar__profile-info {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.app-sidebar__profile-name,
+.app-sidebar__profile-meta {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.app-sidebar__profile > .app-sidebar__avatar,
+.app-sidebar__profile-chevron {
+  flex-shrink: 0;
+}
+
+.app-sidebar__emblem {
+  display: block;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  object-fit: contain;
+}

@@ -1,8 +1,10 @@
 "use client";
 
+import { FirstLoadSplash } from "@/components/feedback/LoadingScreen";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { legalAcceptanceRequest } from "@/lib/legalAcceptanceClient";
 import SideNav from "@/components/app-shell/SideNav";
 import "@/styles/app-shell.css";
 
@@ -11,6 +13,7 @@ export default function AppLayout({ children }) {
 
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
+  const [accessError, setAccessError] = useState("");
 
   useEffect(() => {
     let mounted = true;
@@ -35,8 +38,21 @@ export default function AppLayout({ children }) {
         return;
       }
 
-      setAuthenticated(true);
-      setCheckingAuth(false);
+      try {
+        const result = await legalAcceptanceRequest("GET");
+        if (!mounted) return;
+        if (!result.accepted) {
+          router.replace("/accept-terms");
+          return;
+        }
+        setAccessError("");
+        setAuthenticated(true);
+      } catch (cause) {
+        if (!mounted) return;
+        setAccessError(cause.message || "Could not check Terms acceptance.");
+      } finally {
+        if (mounted) setCheckingAuth(false);
+      }
     }
 
     checkSession();
@@ -52,7 +68,15 @@ export default function AppLayout({ children }) {
         return;
       }
 
-      setAuthenticated(true);
+      if (event === "SIGNED_IN") {
+        void legalAcceptanceRequest("GET").then((result) => {
+          if (!mounted) return;
+          if (!result.accepted) router.replace("/accept-terms");
+          else { setAccessError(""); setAuthenticated(true); }
+        }).catch((cause) => {
+          if (mounted) setAccessError(cause.message || "Could not check Terms acceptance.");
+        });
+      }
     });
 
     return () => {
@@ -63,15 +87,12 @@ export default function AppLayout({ children }) {
 
   if (checkingAuth) {
     return (
-      <div className="app-auth-loading">
-        <div className="app-auth-loading__spinner" />
-        <p>Loading your Fundu account...</p>
-      </div>
+      <FirstLoadSplash />
     );
   }
 
   if (!authenticated) {
-    return null;
+    return accessError ? <div role="alert" style={{ padding: 32 }}><p>{accessError}</p><button type="button" onClick={() => window.location.reload()}>Try again</button></div> : null;
   }
 
   return (

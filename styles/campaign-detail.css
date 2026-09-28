@@ -1,24 +1,1007 @@
+/* Final creator responsive order and keyboard access. */
+.campaign-detail-page
+  :where(a, button, input, textarea, summary, [tabindex]):focus-visible,
+.campaign-detail-modal :where(a, button, input, textarea):focus-visible,
+.campaign-update-modal :where(a, button, input, textarea):focus-visible,
+.campaign-update-lightbox :where(button):focus-visible {
+  outline: 2px solid #f28c28;
+  outline-offset: 2px;
+}
+@media (max-width: 767px) {
+  .campaign-detail-page .campaign-detail-columns {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .campaign-detail-page
+    .campaign-detail-columns
+    .campaign-detail-primary-column,
+  .campaign-detail-page .campaign-detail-columns .campaign-detail-sidebar {
+    display: contents;
+  }
+  .campaign-detail-columns .creator-progress {
+    order: 1;
+    width: 100%;
+  }
+  .campaign-detail-columns .creator-share {
+    order: 2;
+    width: 100%;
+  }
+  .campaign-detail-columns [aria-labelledby="creator-updates-title"] {
+    order: 3;
+    width: 100%;
+  }
+  .campaign-detail-columns [aria-labelledby="creator-comments-title"] {
+    order: 4;
+    width: 100%;
+  }
+  .campaign-detail-columns [aria-labelledby="creator-story-title"] {
+    order: 5;
+    width: 100%;
+  }
+  .campaign-detail-columns .creator-bank {
+    order: 6;
+    width: 100%;
+  }
+  .campaign-detail-columns [aria-labelledby="creator-info-title"] {
+    order: 7;
+    width: 100%;
+  }
+  .campaign-detail-columns [aria-labelledby="creator-activity-title"] {
+    order: 8;
+    width: 100%;
+  }
+  .campaign-detail-columns .creator-end,
+  .campaign-detail-columns .creator-ended-actions {
+    order: 9;
+    width: 100%;
+  }
+}
+/* Creator right rail. Existing main cards and forms are preserved. */
+.creator-rail-card {
+  min-width: 0;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border: 1px solid #d5e4e3;
+  border-radius: 16px;
+  background: #fff;
+}
+.creator-rail-card h2 {
+  margin: 0;
+  color: #101828;
+  font-family: inherit;
+  font-size: 16px;
+  line-height: 1.4;
+  font-weight: 700;
+}
+.creator-rail-card p {
+  margin: 0;
+  color: #475467;
+  font-size: 13px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.creator-rail-card__heading {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.creator-rail-card__heading a {
+  flex-shrink: 0;
+  color: #16615f;
+  font-size: 13px;
+  font-weight: 700;
+  text-underline-offset: 3px;
+}
+.creator-share {
+  border-color: transparent;
+  background: #e3f1f0;
+  scroll-margin-top: 80px;
+}
+.creator-share__link {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+.creator-share__link input {
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+  padding: 10px 12px;
+  border: 1px solid #d5e4e3;
+  border-radius: 12px;
+  background: #fff;
+  color: #344054;
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 20px;
+  text-overflow: ellipsis;
+}
+.creator-share__social {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.creator-share__social button {
+  min-width: 0;
+  min-height: 40px;
+  padding: 8px;
+  border: 1px solid #d5e4e3;
+  border-radius: 12px;
+  background: #fff;
+  color: #344054;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.creator-share button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.creator-bank {
+  border-color: #0f172a;
+  background: #0f172a;
+}
+.creator-bank h2,
+.creator-bank .creator-rail-card__heading a {
+  color: #e4eeed;
+}
+.creator-bank p {
+  color: #cbd5e1;
+}
+.creator-bank__number {
+  color: #fff;
+  font-size: 22px;
+  line-height: 1.4;
+  font-weight: 800;
+  letter-spacing: 1px;
+  overflow-wrap: anywhere;
+}
+.creator-bank__note {
+  padding-top: 12px;
+  border-top: 1px solid #344054;
+}
+.creator-rail-info {
+  margin: 0;
+}
+.creator-rail-info > div {
+  padding: 10px 0;
+  display: grid;
+  grid-template-columns: 80px minmax(0, 1fr);
+  gap: 12px;
+  border-top: 1px solid #e4eeed;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.creator-rail-info dt {
+  color: #475467;
+}
+.creator-rail-info dd {
+  margin: 0;
+  color: #101828;
+  text-align: right;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.creator-rail-activity {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.creator-rail-activity li {
+  padding: 10px 0;
+  border-top: 1px solid #e4eeed;
+}
+.creator-rail-activity p {
+  margin: 0 0 4px;
+  color: #344054;
+}
+.creator-rail-activity time {
+  color: #475467;
+  font-size: 12px;
+  line-height: 1.4;
+}
+.creator-end {
+  border-color: #fecdca;
+}
+.creator-end__button {
+  width: 100%;
+  border-color: #fecdca;
+  color: #b42318;
+}
+.creator-end__button:hover {
+  background: #fff4f2;
+}
+.creator-ended-actions > button {
+  width: 100%;
+}
+.creator-rail-card :where(a, button, input):focus-visible {
+  outline: 2px solid #f28c28;
+  outline-offset: 2px;
+}
+.creator-rail-announcement {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+@media (max-width: 767px) {
+  .creator-share__link input,
+  .creator-share__link button,
+  .creator-share__social button {
+    min-height: 44px;
+  }
+  .creator-rail-activity li:nth-child(n + 5) {
+    display: none;
+  }
+}
+/* Creator main-column cards — progress, updates, comments and story. */
+.creator-content-card {
+  min-width: 0;
+  border: 1px solid #d5e4e3;
+  border-radius: 16px;
+  background: #fff;
+}
+.creator-content-card__header {
+  min-width: 0;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid #e4eeed;
+}
+.creator-content-card h2 {
+  margin: 0;
+  color: #101828;
+  font-family: inherit;
+  font-size: 18px;
+  line-height: 1.35;
+  font-weight: 700;
+}
+.creator-content-card h2 > span {
+  color: #475467;
+  font-size: 14px;
+  font-weight: 600;
+}
+.creator-content-button {
+  min-height: 40px;
+  padding: 8px 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid #d5e4e3;
+  border-radius: 12px;
+  background: #fff;
+  color: #344054;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+.creator-content-button--teal {
+  border-color: #1e807f;
+  background: #1e807f;
+  color: #fff;
+}
+.creator-content-button--orange {
+  border-color: #f28c28;
+  background: #f28c28;
+  color: #101828;
+}
+.creator-content-link {
+  color: #16615f;
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 700;
+  text-underline-offset: 3px;
+}
+.creator-content-card :where(a, button, summary):focus-visible {
+  outline: 2px solid #f28c28;
+  outline-offset: 2px;
+}
+.creator-progress {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.creator-progress__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.creator-progress__top > div {
+  min-width: 0;
+}
+.creator-progress h2 {
+  margin-bottom: 6px;
+  color: #475467;
+  font-size: 14px;
+}
+.creator-progress__amount {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+}
+.creator-progress__amount strong {
+  color: #101828;
+  font-size: 32px;
+  line-height: 1.2;
+  font-weight: 800;
+  letter-spacing: -1px;
+  overflow-wrap: anywhere;
+}
+.creator-progress__amount span {
+  color: #475467;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.creator-progress__edit {
+  flex-shrink: 0;
+}
+.creator-progress__track {
+  height: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e4eeed;
+}
+.creator-progress__track > div {
+  height: 100%;
+  border-radius: inherit;
+  background: #1e807f;
+}
+.creator-progress__meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  color: #475467;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.creator-progress__meta strong {
+  color: #16615f;
+}
+.creator-progress__meta > span {
+  text-align: right;
+}
+.creator-progress__stats {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border: 1px solid #e4eeed;
+  border-radius: 12px;
+}
+.creator-progress__stats > div {
+  min-width: 0;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.creator-progress__stats > div + div {
+  border-left: 1px solid #e4eeed;
+}
+.creator-progress__stats dd {
+  margin: 0;
+  color: #101828;
+  font-size: 18px;
+  line-height: 1.3;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.creator-progress__stats dt {
+  color: #475467;
+  font-size: 12px;
+  line-height: 1.4;
+}
+.creator-progress__note {
+  padding: 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  border-radius: 12px;
+  background: #eff6f6;
+}
+.creator-progress__note img {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.creator-progress__note p {
+  margin: 0;
+  color: #475467;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.creator-content-empty {
+  padding: 16px;
+  color: #475467;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.creator-content-empty strong {
+  display: block;
+  margin-bottom: 4px;
+  color: #101828;
+}
+.creator-content-empty p {
+  margin: 0;
+}
+.creator-update,
+.creator-comment {
+  padding: 16px;
+}
+.creator-update + .creator-update,
+.creator-comment + .creator-comment {
+  border-top: 1px solid #e4eeed;
+}
+.creator-update h3 {
+  margin: 0 0 8px;
+  color: #101828;
+  font-size: 16px;
+  line-height: 1.4;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.creator-update > p,
+.creator-comment p {
+  margin: 0;
+  color: #344054;
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.creator-update__final {
+  display: inline-block;
+  margin-bottom: 8px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #fce3c8;
+  color: #9a4a06;
+  font-size: 12px;
+  font-weight: 700;
+}
+.creator-update__photos {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(4, 72px);
+  gap: 8px;
+}
+.creator-update__photos button {
+  width: 72px;
+  height: 72px;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid #e4eeed;
+  border-radius: 10px;
+  background: #eff6f6;
+  cursor: pointer;
+}
+.creator-update__photos img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.creator-update__footer {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: #475467;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.creator-update__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.creator-update__desktop-edit {
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: #fff;
+  color: #16615f;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.creator-update__menu {
+  position: relative;
+}
+.creator-update__menu summary {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  list-style: none;
+  border: 1px solid #d5e4e3;
+  border-radius: 10px;
+  color: #344054;
+  font-size: 24px;
+  cursor: pointer;
+}
+.creator-update__menu summary::-webkit-details-marker {
+  display: none;
+}
+.creator-update__menu > div {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 10;
+  min-width: 140px;
+  padding: 4px;
+  border: 1px solid #d5e4e3;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 6px 20px rgb(16 24 40 / 12%);
+}
+.creator-update__menu button {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 6px;
+  background: #fff;
+  color: #344054;
+  font-family: inherit;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+.creator-update__menu button:hover {
+  background: #eff6f6;
+}
+.creator-update__menu .creator-update__delete {
+  color: #b42318;
+}
+.creator-update__menu .creator-update__mobile-edit {
+  display: none;
+}
+.creator-comment__meta {
+  margin-bottom: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 13px;
+}
+.creator-comment__meta strong {
+  color: #101828;
+}
+.creator-comment__meta span {
+  color: #475467;
+  font-size: 12px;
+}
+.creator-story-content {
+  min-width: 0;
+  padding: 16px;
+}
+.creator-story-content .campaign-story-blocks,
+.creator-story-content .campaign-story-section,
+.creator-story-content .campaign-story-fallback {
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.creator-story-content .campaign-story-text,
+.creator-story-content p {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  color: #344054;
+  font-size: 14px;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.creator-story-content h3 {
+  margin: 0;
+  color: #101828;
+  font-size: 16px;
+  line-height: 1.4;
+  font-weight: 700;
+}
+.creator-story-content .campaign-story-images {
+  width: 100%;
+  max-width: none;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.creator-story-content .campaign-story-image {
+  width: 100%;
+  min-width: 0;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid #e4eeed;
+  border-radius: 14px;
+  background: #eff6f6;
+  cursor: pointer;
+}
+.creator-story-content .campaign-story-image img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+@media (min-width: 768px) and (max-width: 1279px) {
+  .creator-progress__top {
+    flex-wrap: wrap;
+  }
+}
+@media (max-width: 767px) {
+  .creator-content-card h2 {
+    font-size: 17px;
+  }
+  .creator-content-card__header {
+    flex-wrap: wrap;
+  }
+  .creator-content-button {
+    min-height: 44px;
+    font-size: 13px;
+  }
+  .creator-progress__top {
+    display: contents;
+  }
+  .creator-progress__edit {
+    order: 10;
+    width: 100%;
+  }
+  .creator-progress__amount strong {
+    font-size: 28px;
+  }
+  .creator-progress__amount span {
+    font-size: 13px;
+  }
+  .creator-progress__stats > div {
+    padding: 10px 8px;
+  }
+  .creator-progress__stats dd {
+    font-size: 16px;
+  }
+  .creator-progress__stats dt {
+    font-size: 11px;
+  }
+  .creator-update__photos {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .creator-update__photos button {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1;
+  }
+  .creator-update__desktop-edit {
+    display: none;
+  }
+  .creator-update__menu .creator-update__mobile-edit {
+    display: block;
+  }
+  .creator-update__menu summary {
+    width: 44px;
+    height: 44px;
+  }
+}
+/* Creator campaign layout and header. Other cards retain their current styles. */
+.campaign-detail-page {
+  width: 100%;
+  min-width: 0;
+  padding: 26px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  background: #ffffff;
+  color: #101828;
+  font-family: var(--font-urbanist), "Urbanist", sans-serif;
+}
+.campaign-detail-columns {
+  width: 100%;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 24px;
+  align-items: start;
+}
+.campaign-detail-primary-column,
+.campaign-detail-sidebar {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.creator-campaign-header {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 24px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #e4eeed;
+}
+.creator-campaign-header__cover {
+  width: 220px;
+  height: 132px;
+  overflow: hidden;
+  border-radius: 14px;
+  background: #f7f3ea;
+}
+.creator-campaign-header__cover img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.creator-campaign-header__missing-cover {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px dashed #e8b37d;
+  border-radius: 14px;
+  color: #9a4a06;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+  text-underline-offset: 3px;
+}
+.creator-campaign-header__missing-cover svg {
+  width: 24px;
+  height: 24px;
+}
+.creator-campaign-header__copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.creator-campaign-header__tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.creator-campaign-header__status,
+.creator-campaign-header__category {
+  padding: 5px 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #d5e4e3;
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 700;
+}
+.creator-campaign-header__status {
+  background: #eff6f6;
+  color: #475467;
+}
+.creator-campaign-header__status--live {
+  border-color: transparent;
+  background: #e3f1f0;
+  color: #16615f;
+}
+.creator-campaign-header__dot {
+  width: 7px;
+  height: 7px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: #1e807f;
+}
+.creator-campaign-header__category {
+  background: #ffffff;
+  color: #475467;
+}
+.creator-campaign-header__copy h1 {
+  margin: 0;
+  color: #101828;
+  font-family: inherit;
+  font-size: 26px;
+  line-height: 1.25;
+  font-weight: 700;
+  letter-spacing: -0.7px;
+  overflow-wrap: anywhere;
+}
+.creator-campaign-header__copy p {
+  margin: 0;
+  color: #475467;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.creator-campaign-header__actions {
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: center;
+  justify-content: end;
+  gap: 12px 8px;
+}
+.creator-campaign-header__button {
+  min-height: 40px;
+  padding: 10px 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid #d5e4e3;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #344054;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.creator-campaign-header__button svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+.creator-campaign-header__share {
+  grid-column: 2;
+  background: #1e807f;
+  border-color: #1e807f;
+  color: #ffffff;
+}
+.creator-campaign-header__share:hover {
+  background: #16615f;
+}
+.creator-campaign-header__edit:hover {
+  background: #eff6f6;
+}
+.creator-campaign-header__public {
+  grid-column: 1 / -1;
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #16615f;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.creator-campaign-header__public img {
+  width: 16px;
+  height: 16px;
+}
+.creator-campaign-header__edit-mobile {
+  display: none;
+}
+.creator-campaign-header :where(a, button):focus-visible {
+  outline: 2px solid #f28c28;
+  outline-offset: 2px;
+}
+@media (min-width: 768px) and (max-width: 1279px) {
+  .campaign-detail-page {
+    padding: 24px;
+  }
+  .creator-campaign-header {
+    grid-template-columns: 220px minmax(0, 1fr);
+  }
+  .creator-campaign-header__cover {
+    grid-row: 1 / 3;
+  }
+  .creator-campaign-header__actions {
+    grid-column: 2;
+    justify-content: start;
+  }
+  .creator-campaign-header__public {
+    justify-self: start;
+  }
+}
+@media (min-width: 768px) and (max-width: 1023px) {
+  .campaign-detail-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 767px) {
+  .campaign-detail-page {
+    padding: 16px;
+    gap: 20px;
+  }
+  .campaign-detail-columns {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+  }
+  .creator-campaign-header {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+    padding-bottom: 20px;
+  }
+  .creator-campaign-header__cover {
+    width: 100%;
+    height: 190px;
+  }
+  .creator-campaign-header__copy {
+    gap: 8px;
+  }
+  .creator-campaign-header__copy h1 {
+    font-size: 22px;
+    letter-spacing: -0.4px;
+  }
+  .creator-campaign-header__copy p {
+    font-size: 13px;
+  }
+  .creator-campaign-header__actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    justify-content: stretch;
+    gap: 8px;
+  }
+  .creator-campaign-header__button {
+    min-height: 44px;
+    padding: 10px 12px;
+  }
+  .creator-campaign-header__share {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+  .creator-campaign-header__edit {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  .creator-campaign-header__public {
+    grid-column: 2;
+    grid-row: 2;
+    min-height: 44px;
+    padding: 10px 8px;
+    justify-self: stretch;
+    justify-content: center;
+    border: 1px solid #d5e4e3;
+    border-radius: 12px;
+    font-size: 13px;
+  }
+  .creator-campaign-header__edit-desktop {
+    display: none;
+  }
+  .creator-campaign-header__edit-mobile {
+    display: inline;
+  }
+}
+/* Existing progress, updates, story, rail and dialog styles — retained for the next steps. */
 /* =========================================================
    CAMPAIGN DETAIL PAGE
    Desktop Figma is the source of truth.
 ========================================================= */
-
-.campaign-detail-page {
-  width: 100%;
-  padding: 32px;
-
-  display: flex;
-  flex-direction: column;
-  gap: 32px;
-
-  background: #fcfdfd;
-  color: #333333;
-}
-
 /* =========================================================
    LOADING / ERROR
 ========================================================= */
-
 .campaign-detail-state {
   width: 100%;
   min-height: calc(100vh - 24px);
@@ -31,7 +1014,6 @@
 
   background: #fcfdfd;
 }
-
 .campaign-detail-state__card {
   width: min(100%, 500px);
 
@@ -49,7 +1031,6 @@
   align-items: flex-start;
   gap: 16px;
 }
-
 .campaign-detail-state__card h1 {
   margin: 0;
 
@@ -59,7 +1040,6 @@
   line-height: 1.3;
   font-weight: 700;
 }
-
 .campaign-detail-state__card p {
   margin: 0;
 
@@ -68,11 +1048,9 @@
   font-size: 14px;
   line-height: 1.4;
 }
-
 /* =========================================================
    BREADCRUMB
 ========================================================= */
-
 .campaign-detail-back {
   width: fit-content;
 
@@ -94,17 +1072,14 @@
 
   cursor: pointer;
 }
-
 .campaign-detail-back img {
   width: 16px;
   height: 16px;
   flex-shrink: 0;
 }
-
 /* =========================================================
    SHARED BUTTONS
 ========================================================= */
-
 .campaign-detail-primary-btn,
 .campaign-detail-outline-btn,
 .campaign-detail-danger-btn {
@@ -134,30 +1109,25 @@
     color 0.15s ease,
     opacity 0.15s ease;
 }
-
 .campaign-detail-primary-btn {
   border: 1px solid #1e807f;
 
   background: #1e807f;
   color: #ffffff;
 }
-
 .campaign-detail-primary-btn:hover {
   background: #1b7474;
   border-color: #1b7474;
 }
-
 .campaign-detail-outline-btn {
   border: 1px solid #1e807f;
 
   background: #ffffff;
   color: #1e807f;
 }
-
 .campaign-detail-outline-btn:hover {
   background: #eff6f6;
 }
-
 .campaign-detail-danger-btn {
   width: 100%;
 
@@ -166,118 +1136,27 @@
   background: #ffffff;
   color: #ff383c;
 }
-
 .campaign-detail-danger-btn:hover {
   background: #fff5f5;
 }
-
 .campaign-detail-primary-btn:disabled,
 .campaign-detail-outline-btn:disabled,
 .campaign-detail-danger-btn:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }
-
 .campaign-detail-full-btn {
   width: 100%;
 }
-
 .campaign-detail-small-action {
   flex-shrink: 0;
 }
-
 /* =========================================================
    HEADER CARD
 ========================================================= */
-
-.campaign-detail-header-card {
-  width: 100%;
-
-  padding: 16px;
-
-  border: 1px solid #d1d1d1;
-  border-radius: 16px;
-
-  background: #ffffff;
-
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.07);
-
-  display: flex;
-  flex-direction: column;
-  gap: 40px;
-}
-
-.campaign-detail-header-meta {
-  width: 100%;
-
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.campaign-detail-title-row {
-  width: 100%;
-
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.campaign-detail-title-row h1 {
-  margin: 0;
-
-  color: #1b2022;
-
-  font-size: 24px;
-  line-height: 1.2;
-  font-weight: 700;
-}
-
-.campaign-detail-title-row p {
-  margin: 0;
-
-  color: #888888;
-
-  font-size: 14px;
-  line-height: normal;
-  font-weight: 500;
-}
-
 /* =========================================================
    HEADER BADGES
 ========================================================= */
-
-.campaign-detail-badges-row {
-  width: 100%;
-
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-.campaign-detail-badges {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.campaign-detail-category {
-  padding: 6px 10px;
-
-  border: 1px solid #e5e7eb;
-  border-radius: 999px;
-
-  background: #f3f6f6;
-  color: #374151;
-
-  font-size: 12px;
-  line-height: 16px;
-  font-weight: 500;
-}
-
 .campaign-detail-status {
   padding: 4px 8px;
 
@@ -289,152 +1168,24 @@
 
   white-space: nowrap;
 }
-
-.campaign-detail-status--active {
-  background: #069f43;
-  color: #f5f5f5;
-}
-
-.campaign-detail-status--draft {
-  background: #e6e6e6;
-  color: #6b7280;
-}
-
-.campaign-detail-status--pending {
-  background: #fef3c7;
-  color: #92400e;
-}
-
-.campaign-detail-status--paused {
-  background: #fff7ed;
-  color: #b45309;
-}
-
-.campaign-detail-status--ended {
-  background: #f2f2f2;
-  color: #888888;
-}
-
-.campaign-detail-dates {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-
-  color: #888888;
-
-  font-size: 14px;
-  line-height: normal;
-  font-weight: 400;
-}
-
 .campaign-detail-divider {
   width: 100%;
   height: 1px;
 
   background: #e6e6e6;
 }
-
 /* =========================================================
    HEADER ACTIONS
 ========================================================= */
-
-.campaign-detail-header-actions {
-  width: 100%;
-
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  gap: 20px;
-}
-
-.campaign-detail-header-buttons {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.campaign-detail-public-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-
-  color: #1e807f;
-
-  text-decoration: none;
-
-  font-size: 14px;
-  line-height: normal;
-  font-weight: 600;
-}
-
-.campaign-detail-public-link img {
-  width: 16px;
-  height: 16px;
-}
-
 /* =========================================================
    COVER IMAGE
 ========================================================= */
-
-.campaign-detail-cover {
-  width: 100%;
-  height: 438px;
-
-  overflow: hidden;
-
-  border-radius: 16px;
-
-  background: #f2f2f2;
-}
-
-.campaign-detail-cover img {
-  width: 100%;
-  height: 100%;
-
-  display: block;
-
-  object-fit: cover;
-}
-
 /* =========================================================
    MAIN DESKTOP COLUMNS
 ========================================================= */
-
-.campaign-detail-columns {
-  width: 100%;
-
-  display: grid;
-
-  grid-template-columns:
-    minmax(0, 1fr)
-    380px;
-
-  gap: 32px;
-
-  align-items: start;
-}
-
-.campaign-detail-primary-column {
-  min-width: 0;
-
-  display: flex;
-  flex-direction: column;
-  gap: 32px;
-}
-
-.campaign-detail-sidebar {
-  min-width: 0;
-
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
 /* =========================================================
    STANDARD CARDS
 ========================================================= */
-
 .campaign-detail-card,
 .campaign-detail-side-card {
   width: 100%;
@@ -446,7 +1197,6 @@
 
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
 }
-
 .campaign-detail-card {
   padding: 16px;
 
@@ -454,7 +1204,6 @@
   flex-direction: column;
   gap: 24px;
 }
-
 .campaign-detail-side-card {
   padding: 16px;
 
@@ -462,11 +1211,9 @@
   flex-direction: column;
   gap: 20px;
 }
-
 .campaign-progress-card {
   gap: 16px;
 }
-
 .campaign-detail-card h2 {
   margin: 0;
 
@@ -476,7 +1223,6 @@
   line-height: 1.3;
   font-weight: 600;
 }
-
 .campaign-detail-side-card h3 {
   margin: 0;
 
@@ -486,7 +1232,6 @@
   line-height: normal;
   font-weight: 600;
 }
-
 .campaign-detail-section-header {
   width: 100%;
 
@@ -496,11 +1241,9 @@
 
   gap: 20px;
 }
-
 /* =========================================================
    FUNDRAISING PROGRESS
 ========================================================= */
-
 .campaign-progress-amount {
   width: 100%;
 
@@ -510,7 +1253,6 @@
 
   flex-wrap: wrap;
 }
-
 .campaign-progress-amount strong {
   color: #1b2022;
 
@@ -518,7 +1260,6 @@
   line-height: normal;
   font-weight: 700;
 }
-
 .campaign-progress-amount span {
   color: #888888;
 
@@ -526,7 +1267,6 @@
   line-height: normal;
   font-weight: 500;
 }
-
 .campaign-progress-meta {
   width: 100%;
 
@@ -536,7 +1276,6 @@
 
   gap: 16px;
 }
-
 .campaign-progress-meta strong {
   color: #333333;
 
@@ -544,11 +1283,9 @@
   line-height: normal;
   font-weight: 700;
 }
-
 .campaign-progress-meta strong:last-child {
   color: #1e807f;
 }
-
 .campaign-progress-track {
   width: 100%;
   height: 8px;
@@ -559,7 +1296,6 @@
 
   background: #e9f2f2;
 }
-
 .campaign-progress-fill {
   height: 100%;
 
@@ -569,7 +1305,6 @@
 
   transition: width 0.25s ease;
 }
-
 .campaign-progress-note {
   width: 100%;
 
@@ -583,14 +1318,12 @@
   align-items: center;
   gap: 12px;
 }
-
 .campaign-progress-note img {
   width: 20px;
   height: 20px;
 
   flex-shrink: 0;
 }
-
 .campaign-progress-note p {
   margin: 0;
 
@@ -600,11 +1333,9 @@
   line-height: 1.4;
   font-weight: 400;
 }
-
 /* =========================================================
    CAMPAIGN UPDATES
 ========================================================= */
-
 .campaign-updates-list {
   width: 100%;
 
@@ -612,7 +1343,6 @@
   flex-direction: column;
   gap: 16px;
 }
-
 .campaign-update-card {
   width: 100%;
 
@@ -627,7 +1357,6 @@
   flex-direction: column;
   gap: 12px;
 }
-
 .campaign-update-card h3 {
   margin: 0;
 
@@ -637,7 +1366,6 @@
   line-height: 1.3;
   font-weight: 600;
 }
-
 .campaign-update-card > p {
   margin: 0;
 
@@ -647,7 +1375,6 @@
   line-height: 1.4;
   font-weight: 400;
 }
-
 .campaign-update-footer {
   width: 100%;
 
@@ -657,7 +1384,6 @@
 
   gap: 16px;
 }
-
 .campaign-update-footer span {
   color: #888888;
 
@@ -665,7 +1391,6 @@
   line-height: normal;
   font-weight: 400;
 }
-
 .campaign-update-footer button {
   padding: 5px 24px;
 
@@ -679,16 +1404,13 @@
   line-height: 1.3;
   font-weight: 600;
 }
-
 .campaign-update-footer button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
-
 /* =========================================================
    STORY
 ========================================================= */
-
 .campaign-story-content {
   width: 100%;
 
@@ -696,7 +1418,6 @@
 
   gap: 16px 12px;
 }
-
 .campaign-story-content > p {
   grid-column: 1 / -1;
 
@@ -708,7 +1429,6 @@
   line-height: 1.5;
   font-weight: 400;
 }
-
 .campaign-story-image {
   width: 100%;
   height: 130px;
@@ -719,7 +1439,6 @@
 
   background: #f2f2f2;
 }
-
 .campaign-story-image img {
   width: 100%;
   height: 100%;
@@ -728,11 +1447,9 @@
 
   object-fit: cover;
 }
-
 /* =========================================================
    ACTIVITY
 ========================================================= */
-
 .campaign-activity-list {
   width: 100%;
 
@@ -740,7 +1457,6 @@
   flex-direction: column;
   gap: 20px;
 }
-
 .campaign-activity-row {
   width: 100%;
 
@@ -750,7 +1466,6 @@
 
   gap: 20px;
 }
-
 .campaign-activity-row p {
   min-width: 0;
 
@@ -766,7 +1481,6 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-
 .campaign-activity-row span {
   width: 100px;
   flex-shrink: 0;
@@ -779,11 +1493,9 @@
 
   text-align: right;
 }
-
 /* =========================================================
    EMPTY CARD CONTENT
 ========================================================= */
-
 .campaign-detail-empty {
   width: 100%;
 
@@ -800,7 +1512,6 @@
 
   text-align: center;
 }
-
 .campaign-detail-empty strong {
   color: #333333;
 
@@ -808,7 +1519,6 @@
   line-height: 1.3;
   font-weight: 600;
 }
-
 .campaign-detail-empty p {
   margin: 0;
 
@@ -817,11 +1527,9 @@
   font-size: 12px;
   line-height: 1.4;
 }
-
 /* =========================================================
    STATUS SIDEBAR
 ========================================================= */
-
 .campaign-status-heading {
   width: 100%;
 
@@ -831,7 +1539,6 @@
 
   gap: 16px;
 }
-
 .campaign-status-description {
   width: 100%;
 
@@ -839,7 +1546,6 @@
   flex-direction: column;
   gap: 8px;
 }
-
 .campaign-status-description p {
   margin: 0;
 
@@ -848,18 +1554,15 @@
   font-size: 14px;
   line-height: normal;
 }
-
 .campaign-status-description span {
   color: #888888;
 
   font-size: 14px;
   line-height: normal;
 }
-
 /* =========================================================
    CAMPAIGN INFO
 ========================================================= */
-
 .campaign-info-list {
   width: 100%;
 
@@ -867,7 +1570,6 @@
   flex-direction: column;
   gap: 12px;
 }
-
 .campaign-info-row {
   width: 100%;
 
@@ -880,11 +1582,9 @@
   font-size: 14px;
   line-height: normal;
 }
-
 .campaign-info-row span {
   color: #888888;
 }
-
 .campaign-info-row strong {
   max-width: 65%;
 
@@ -895,11 +1595,9 @@
   text-align: right;
   overflow-wrap: anywhere;
 }
-
 /* =========================================================
    BANK ACCOUNT
 ========================================================= */
-
 .campaign-bank-heading {
   width: 100%;
 
@@ -907,7 +1605,6 @@
   align-items: center;
   gap: 12px;
 }
-
 .campaign-bank-icon {
   width: 34px;
   height: 34px;
@@ -922,16 +1619,13 @@
   align-items: center;
   justify-content: center;
 }
-
 .campaign-bank-icon img {
   width: 18px;
   height: 18px;
 }
-
 .campaign-bank-heading h3 {
   font-weight: 700;
 }
-
 .campaign-bank-description {
   margin: 0;
 
@@ -940,7 +1634,6 @@
   font-size: 14px;
   line-height: 1.4;
 }
-
 .campaign-bank-details {
   width: 100%;
 
@@ -953,7 +1646,6 @@
   display: flex;
   flex-direction: column;
 }
-
 .campaign-bank-field {
   width: 100%;
 
@@ -966,14 +1658,12 @@
   flex-direction: column;
   gap: 2px;
 }
-
 .campaign-bank-field--last {
   padding-bottom: 0;
   margin-bottom: 0;
 
   border-bottom: 0;
 }
-
 .campaign-bank-field span {
   color: #888888;
 
@@ -983,7 +1673,6 @@
 
   text-transform: uppercase;
 }
-
 .campaign-bank-field strong {
   color: #1b2022;
 
@@ -993,22 +1682,18 @@
 
   overflow-wrap: anywhere;
 }
-
 .campaign-bank-field__highlight {
   color: #1e807f !important;
 
   font-size: 16px !important;
   font-weight: 800 !important;
 }
-
 .campaign-bank-empty {
   padding: 16px;
 }
-
 /* =========================================================
    SUPPORTERS CTA
 ========================================================= */
-
 .campaign-supporter-cta {
   width: 100%;
 
@@ -1023,7 +1708,6 @@
   flex-direction: column;
   gap: 16px;
 }
-
 .campaign-supporter-cta h3 {
   margin: 0 0 8px;
 
@@ -1033,7 +1717,6 @@
   line-height: normal;
   font-weight: 700;
 }
-
 .campaign-supporter-cta p {
   margin: 0;
 
@@ -1042,11 +1725,9 @@
   font-size: 14px;
   line-height: 1.4;
 }
-
 /* =========================================================
    MODAL
 ========================================================= */
-
 .campaign-detail-modal-overlay {
   position: fixed;
   inset: 0;
@@ -1061,7 +1742,6 @@
   align-items: center;
   justify-content: center;
 }
-
 .campaign-detail-modal {
   width: min(100%, 520px);
   max-height: calc(100vh - 48px);
@@ -1080,7 +1760,6 @@
   flex-direction: column;
   gap: 24px;
 }
-
 .campaign-detail-modal-header {
   width: 100%;
 
@@ -1090,7 +1769,6 @@
 
   gap: 16px;
 }
-
 .campaign-detail-modal-header h2 {
   margin: 0 0 4px;
 
@@ -1100,7 +1778,6 @@
   line-height: 1.3;
   font-weight: 700;
 }
-
 .campaign-detail-modal-header p {
   margin: 0;
 
@@ -1109,7 +1786,6 @@
   font-size: 14px;
   line-height: 1.4;
 }
-
 .campaign-detail-modal-close {
   width: 32px;
   height: 32px;
@@ -1129,7 +1805,6 @@
 
   cursor: pointer;
 }
-
 .campaign-detail-modal-current {
   width: 100%;
 
@@ -1145,39 +1820,33 @@
 
   gap: 16px;
 }
-
 .campaign-detail-modal-current span {
   color: #6b7280;
 
   font-size: 14px;
 }
-
 .campaign-detail-modal-current strong {
   color: #1b2022;
 
   font-size: 20px;
   font-weight: 700;
 }
-
 .campaign-detail-modal form {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
-
 .campaign-detail-field {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
-
 .campaign-detail-field > span {
   color: #333333;
 
   font-size: 14px;
   font-weight: 600;
 }
-
 .campaign-detail-field input {
   width: 100%;
   min-height: 48px;
@@ -1195,13 +1864,11 @@
 
   outline: none;
 }
-
 .campaign-detail-field input:focus {
   border-color: #1e807f;
 
   box-shadow: 0 0 0 2px rgba(30, 128, 127, 0.1);
 }
-
 .campaign-detail-field-help {
   margin: -8px 0 0;
 
@@ -1210,7 +1877,6 @@
   font-size: 12px;
   line-height: 1.4;
 }
-
 .campaign-detail-modal-preview {
   width: 100%;
 
@@ -1224,7 +1890,6 @@
 
   gap: 12px;
 }
-
 .campaign-detail-modal-preview > div {
   min-width: 0;
 
@@ -1232,13 +1897,11 @@
   flex-direction: column;
   gap: 4px;
 }
-
 .campaign-detail-modal-preview span {
   color: #888888;
 
   font-size: 12px;
 }
-
 .campaign-detail-modal-preview strong {
   color: #1b2022;
 
@@ -1247,7 +1910,6 @@
 
   overflow-wrap: anywhere;
 }
-
 .campaign-detail-modal-note {
   padding: 12px;
 
@@ -1259,29 +1921,16 @@
   font-size: 12px;
   line-height: 1.4;
 }
-
 .campaign-detail-modal-actions {
   display: flex;
   justify-content: flex-end;
 
   gap: 12px;
 }
-
 /* =========================================================
    LARGE / NORMAL DESKTOP
    1200px+
 ========================================================= */
-
-@media (min-width: 1200px) {
-  .campaign-detail-columns {
-    grid-template-columns:
-      minmax(0, 1fr)
-      380px;
-
-    gap: 32px;
-  }
-}
-
 /* =========================================================
    TABLET / SMALL DESKTOP
    769px - 1199px
@@ -1294,39 +1943,7 @@
    reflow the right sidebar into a responsive
    card grid.
 ========================================================= */
-
 @media (min-width: 769px) and (max-width: 1199px) {
-  .campaign-detail-page {
-    padding: 24px;
-    gap: 24px;
-  }
-
-  .campaign-detail-header-card {
-    padding: 16px;
-    gap: 24px;
-  }
-
-  .campaign-detail-cover {
-    height: 340px;
-  }
-
-  .campaign-detail-columns {
-    grid-template-columns: 1fr;
-    gap: 24px;
-  }
-
-  .campaign-detail-primary-column {
-    gap: 24px;
-  }
-
-  .campaign-detail-sidebar {
-    display: grid;
-
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-
-    gap: 20px;
-  }
-
   .campaign-detail-side-card,
   .campaign-supporter-cta {
     min-width: 0;
@@ -1340,26 +1957,9 @@
     height: 150px;
   }
 }
-
 /* =========================================================
    NARROW TABLET
 ========================================================= */
-
-@media (min-width: 769px) and (max-width: 920px) {
-  .campaign-detail-sidebar {
-    grid-template-columns: 1fr;
-  }
-
-  .campaign-detail-cover {
-    height: 300px;
-  }
-
-  .campaign-detail-header-actions {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-}
-
 /* =========================================================
    MOBILE
    <= 768px
@@ -1368,16 +1968,7 @@
    Nothing from desktop is removed.
    The same complete page simply stacks.
 ========================================================= */
-
 @media (max-width: 768px) {
-  .campaign-detail-page {
-    padding: 16px 16px 100px;
-
-    gap: 20px;
-
-    background: #ffffff;
-  }
-
   /* BREADCRUMB */
 
   .campaign-detail-back {
@@ -1386,113 +1977,11 @@
 
   /* HEADER */
 
-  .campaign-detail-header-card {
-    padding: 16px;
-
-    gap: 20px;
-
-    border-radius: 16px;
-  }
-
-  .campaign-detail-title-row {
-    gap: 6px;
-  }
-
-  .campaign-detail-title-row h1 {
-    font-size: 22px;
-    line-height: 1.3;
-  }
-
-  .campaign-detail-title-row p {
-    font-size: 13px;
-  }
-
-  .campaign-detail-badges-row {
-    align-items: flex-start;
-
-    flex-direction: column;
-
-    gap: 12px;
-  }
-
-  .campaign-detail-badges {
-    gap: 8px;
-  }
-
-  .campaign-detail-category {
-    padding: 4px 10px;
-  }
-
-  .campaign-detail-dates {
-    width: 100%;
-
-    gap: 4px;
-
-    flex-wrap: wrap;
-
-    font-size: 12px;
-  }
-
   /* ACTIONS */
-
-  .campaign-detail-header-actions {
-    flex-direction: column;
-
-    align-items: stretch;
-
-    gap: 12px;
-  }
-
-  .campaign-detail-header-buttons {
-    width: 100%;
-
-    flex-direction: column;
-
-    gap: 10px;
-  }
-
-  .campaign-detail-header-buttons > * {
-    width: 100%;
-  }
-
-  .campaign-detail-public-link {
-    width: fit-content;
-
-    font-size: 13px;
-  }
-
-  .campaign-detail-public-link img {
-    width: 14px;
-    height: 14px;
-  }
 
   /* COVER REMAINS ON MOBILE */
 
-  .campaign-detail-cover {
-    height: 240px;
-
-    border-radius: 12px;
-  }
-
   /* ALL CONTENT STACKS */
-
-  .campaign-detail-columns {
-    grid-template-columns: 1fr;
-
-    gap: 20px;
-  }
-
-  .campaign-detail-primary-column {
-    gap: 20px;
-  }
-
-  .campaign-detail-sidebar {
-    display: flex;
-
-    flex-direction: column;
-
-    gap: 20px;
-  }
 
   /* CARDS */
 
@@ -1612,7 +2101,7 @@
 
   /* STORY */
 
-.campaign-story-content > p {
+  .campaign-story-content > p {
     font-size: 14px;
   }
 
@@ -1795,16 +2284,10 @@
     flex: 1;
   }
 }
-
 /* =========================================================
    SMALL MOBILE
 ========================================================= */
-
 @media (max-width: 480px) {
-  .campaign-detail-cover {
-    height: 210px;
-  }
-
   .campaign-detail-section-header {
     align-items: flex-start;
   }
@@ -1829,11 +2312,9 @@
     width: 100%;
   }
 }
-
 /* =========================================================
    INACTIVE CAMPAIGN ACTIONS
 ========================================================= */
-
 .campaign-detail-inactive-actions {
   width: 100%;
 
@@ -1841,15 +2322,12 @@
   flex-direction: column;
   gap: 12px;
 }
-
 /* =========================================================
    RESTART CAMPAIGN MODAL
 ========================================================= */
-
 .campaign-detail-action-modal {
   gap: 20px;
 }
-
 .campaign-detail-restart-message {
   width: 100%;
 
@@ -1863,14 +2341,12 @@
   flex-direction: column;
   gap: 6px;
 }
-
 .campaign-detail-restart-message strong {
   color: #1b2022;
 
   font-size: 15px;
   font-weight: 700;
 }
-
 .campaign-detail-restart-message p {
   margin: 0;
 
@@ -1879,11 +2355,9 @@
   font-size: 14px;
   line-height: 1.5;
 }
-
 /* =========================================================
    DELETE CAMPAIGN MODAL
 ========================================================= */
-
 .campaign-detail-delete-warning {
   width: 100%;
 
@@ -1898,14 +2372,12 @@
   flex-direction: column;
   gap: 6px;
 }
-
 .campaign-detail-delete-warning strong {
   color: #b91c1c;
 
   font-size: 15px;
   font-weight: 700;
 }
-
 .campaign-detail-delete-warning p {
   margin: 0;
 
@@ -1914,7 +2386,6 @@
   font-size: 14px;
   line-height: 1.5;
 }
-
 .campaign-detail-delete-confirm-btn {
   min-height: 48px;
 
@@ -1936,12 +2407,10 @@
 
   cursor: pointer;
 }
-
 .campaign-detail-delete-confirm-btn:hover {
   background: #e52f33;
   border-color: #e52f33;
 }
-
 @media (max-width: 768px) {
   .campaign-detail-delete-confirm-btn {
     min-height: 48px;
@@ -1954,25 +2423,21 @@
 /* =========================================================
    FULL CAMPAIGN STORY
 ========================================================= */
-
 .campaign-story-content {
   width: 100%;
 }
-
 .campaign-story-blocks {
   width: 100%;
   display: flex;
   flex-direction: column;
   gap: 28px;
 }
-
 .campaign-story-section {
   width: 100%;
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
-
 .campaign-story-section h3 {
   margin: 0;
   color: #0f172a;
@@ -1980,7 +2445,6 @@
   font-weight: 700;
   line-height: 1.35;
 }
-
 .campaign-story-section p,
 .campaign-story-text,
 .campaign-story-fallback p {
@@ -1991,41 +2455,33 @@
   line-height: 1.7;
   white-space: pre-wrap;
 }
-
 .campaign-story-fallback {
   display: flex;
   flex-direction: column;
   gap: 14px;
 }
-
 /* IMAGES */
-
 .campaign-story-images {
   width: 100%;
   display: grid;
   gap: 12px;
 }
-
 .campaign-story-images--1 {
   grid-template-columns: 1fr;
 }
-
 .campaign-story-images--2 {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
-
 .campaign-story-images--3,
 .campaign-story-images--4 {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
-
 .campaign-story-image {
   width: 100%;
   overflow: hidden;
   border-radius: 12px;
   background: #f7f7f8;
 }
-
 .campaign-story-image img {
   width: 100%;
   height: 100%;
@@ -2033,9 +2489,7 @@
   display: block;
   object-fit: cover;
 }
-
 /* VIDEO */
-
 .campaign-story-video {
   position: relative;
   width: 100%;
@@ -2044,16 +2498,13 @@
   border-radius: 12px;
   background: #0f172a;
 }
-
 .campaign-story-video iframe {
   width: 100%;
   height: 100%;
   display: block;
   border: 0;
 }
-
 /* MOBILE */
-
 @media (max-width: 768px) {
   .campaign-story-blocks {
     gap: 22px;
@@ -2087,11 +2538,9 @@
 /* =========================================================
    CAMPAIGN STORY LAYOUT FIX
 ========================================================= */
-
 .campaign-story-content {
   width: 100%;
 }
-
 .campaign-story-blocks {
   width: 100%;
   display: flex;
@@ -2099,33 +2548,27 @@
   align-items: stretch;
   gap: 32px;
 }
-
 .campaign-story-section {
   width: 100%;
   max-width: none;
 }
-
 .campaign-story-section h3 {
   width: 100%;
   max-width: 720px;
 }
-
 .campaign-story-section p,
 .campaign-story-text,
 .campaign-story-fallback {
   width: 100%;
   max-width: 720px;
 }
-
 .campaign-story-images {
   width: 100%;
   max-width: 100%;
 }
-
 /* =========================================================
    POST CAMPAIGN UPDATE MODAL
 ========================================================= */
-
 .campaign-update-modal-overlay {
   position: fixed;
   inset: 0;
@@ -2141,7 +2584,6 @@
 
   overflow-y: auto;
 }
-
 .campaign-update-modal {
   width: min(100%, 552px);
   max-height: calc(100dvh - 48px);
@@ -2156,7 +2598,6 @@
 
   overflow-y: auto;
 }
-
 .campaign-update-modal__header {
   padding: 16px;
 
@@ -2167,7 +2608,6 @@
 
   border-bottom: 1px solid #e5e7eb;
 }
-
 .campaign-update-modal__header > div {
   min-width: 0;
 
@@ -2175,7 +2615,6 @@
   flex-direction: column;
   gap: 6px;
 }
-
 .campaign-update-modal__header h2 {
   margin: 0;
 
@@ -2185,7 +2624,6 @@
   line-height: 1.3;
   font-weight: 700;
 }
-
 .campaign-update-modal__header p {
   margin: 0;
 
@@ -2194,7 +2632,6 @@
   font-size: 14px;
   line-height: 1.5;
 }
-
 .campaign-update-modal__close {
   width: 36px;
   height: 36px;
@@ -2215,11 +2652,9 @@
 
   cursor: pointer;
 }
-
 .campaign-update-modal__close:hover {
   background: #f7f7f8;
 }
-
 .campaign-update-modal__form {
   padding: 24px;
 
@@ -2227,7 +2662,6 @@
   flex-direction: column;
   gap: 20px;
 }
-
 .campaign-update-modal__field {
   width: 100%;
 
@@ -2235,7 +2669,6 @@
   flex-direction: column;
   gap: 8px;
 }
-
 .campaign-update-modal__field > span,
 .campaign-update-modal__photos-heading > div > span {
   color: #1b2022;
@@ -2244,7 +2677,6 @@
   line-height: 1.4;
   font-weight: 600;
 }
-
 .campaign-update-modal__field input,
 .campaign-update-modal__field textarea {
   width: 100%;
@@ -2267,20 +2699,17 @@
     border-color 0.15s ease,
     box-shadow 0.15s ease;
 }
-
 .campaign-update-modal__field textarea {
   min-height: 140px;
 
   resize: vertical;
 }
-
 .campaign-update-modal__field input:focus,
 .campaign-update-modal__field textarea:focus {
   border-color: #1e807f;
 
   box-shadow: 0 0 0 3px rgba(30, 128, 127, 0.1);
 }
-
 .campaign-update-modal__field small {
   align-self: flex-end;
 
@@ -2288,9 +2717,7 @@
 
   font-size: 12px;
 }
-
 /* PHOTOS */
-
 .campaign-update-modal__photos {
   width: 100%;
 
@@ -2298,20 +2725,17 @@
   flex-direction: column;
   gap: 12px;
 }
-
 .campaign-update-modal__photos-heading {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
 }
-
 .campaign-update-modal__photos-heading > div {
   display: flex;
   flex-direction: column;
   gap: 3px;
 }
-
 .campaign-update-modal__photos-heading p {
   margin: 0;
 
@@ -2320,14 +2744,12 @@
   font-size: 12px;
   line-height: 1.4;
 }
-
 .campaign-update-modal__photos-heading > span {
   color: #667085;
 
   font-size: 12px;
   font-weight: 600;
 }
-
 .campaign-update-upload {
   width: 100%;
   min-height: 112px;
@@ -2355,13 +2777,11 @@
     border-color 0.15s ease,
     background-color 0.15s ease;
 }
-
 .campaign-update-upload:hover {
   border-color: #1e807f;
 
   background: #f8fafa;
 }
-
 .campaign-update-upload__icon {
   width: 36px;
   height: 36px;
@@ -2377,20 +2797,16 @@
   background: #eff6f6;
   color: #1e807f;
 }
-
 .campaign-update-upload strong {
   color: #1b2022;
 
   font-size: 13px;
   font-weight: 600;
 }
-
 .campaign-update-upload > span:last-child {
   font-size: 12px;
 }
-
 /* PHOTO PREVIEWS */
-
 .campaign-update-preview-grid {
   width: 100%;
 
@@ -2399,7 +2815,6 @@
 
   gap: 10px;
 }
-
 .campaign-update-preview {
   position: relative;
 
@@ -2412,7 +2827,6 @@
 
   background: #f2f2f2;
 }
-
 .campaign-update-preview img {
   width: 100%;
   height: 100%;
@@ -2421,7 +2835,6 @@
 
   object-fit: cover;
 }
-
 .campaign-update-preview button {
   position: absolute;
   top: 6px;
@@ -2448,9 +2861,7 @@
 
   cursor: pointer;
 }
-
 /* FINAL UPDATE */
-
 .campaign-update-final-note {
   padding: 14px;
 
@@ -2463,13 +2874,11 @@
   flex-direction: column;
   gap: 4px;
 }
-
 .campaign-update-final-note strong {
   color: #92400e;
 
   font-size: 13px;
 }
-
 .campaign-update-final-note p {
   margin: 0;
 
@@ -2478,9 +2887,7 @@
   font-size: 12px;
   line-height: 1.5;
 }
-
 /* ERROR */
-
 .campaign-update-modal__error {
   margin: 0;
 
@@ -2494,9 +2901,7 @@
   font-size: 13px;
   line-height: 1.45;
 }
-
 /* ACTIONS */
-
 .campaign-update-modal__actions {
   padding-top: 4px;
 
@@ -2504,7 +2909,6 @@
   grid-template-columns: 1fr 1fr;
   gap: 12px;
 }
-
 .campaign-update-modal__cancel,
 .campaign-update-modal__publish {
   min-height: 48px;
@@ -2519,49 +2923,41 @@
 
   cursor: pointer;
 }
-
 .campaign-update-modal__cancel {
   border: 1px solid #1e807f;
 
   background: #ffffff;
   color: #1e807f;
 }
-
 .campaign-update-modal__publish {
   border: 1px solid #1e807f;
 
   background: #1e807f;
   color: #ffffff;
 }
-
 .campaign-update-modal__publish:hover:not(:disabled) {
   background: #1b7474;
 }
-
 .campaign-update-modal button:disabled {
   opacity: 0.6;
 
   cursor: not-allowed;
 }
-
 /* =========================================================
    PUBLISHED UPDATE CARDS
 ========================================================= */
-
 .campaign-update-card__header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
 }
-
 .campaign-update-card__header > div {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 8px;
 }
-
 .campaign-update-final-badge {
   padding: 4px 8px;
 
@@ -2573,7 +2969,6 @@
   font-size: 11px;
   font-weight: 700;
 }
-
 .campaign-update-images {
   width: 100%;
 
@@ -2581,20 +2976,16 @@
 
   gap: 10px;
 }
-
 .campaign-update-images--1 {
   grid-template-columns: 1fr;
 }
-
 .campaign-update-images--2 {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
-
 .campaign-update-images--3,
 .campaign-update-images--4 {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
-
 .campaign-update-image {
   width: 100%;
   height: 180px;
@@ -2605,7 +2996,6 @@
 
   background: #f2f2f2;
 }
-
 .campaign-update-image img {
   width: 100%;
   height: 100%;
@@ -2614,11 +3004,9 @@
 
   object-fit: cover;
 }
-
 /* =========================================================
    MOBILE POST UPDATE
 ========================================================= */
-
 @media (max-width: 600px) {
   .campaign-update-modal-overlay {
     padding: 0;
@@ -2673,7 +3061,6 @@
 /* =========================================================
    LIVE CAMPAIGN COUNTDOWN
 ========================================================= */
-
 .campaign-countdown {
   width: 100%;
   padding: 16px;
@@ -2685,7 +3072,6 @@
   flex-direction: column;
   gap: 12px;
 }
-
 .campaign-countdown__label {
   color: #1e807f;
   font-size: 11px;
@@ -2694,7 +3080,6 @@
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
-
 .campaign-countdown__units {
   width: 100%;
 
@@ -2702,7 +3087,6 @@
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
 }
-
 .campaign-countdown__unit {
   min-width: 0;
   padding: 10px 6px;
@@ -2717,7 +3101,6 @@
 
   text-align: center;
 }
-
 .campaign-countdown__unit strong {
   color: #1b2022;
   font-size: 20px;
@@ -2725,21 +3108,18 @@
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
-
 .campaign-countdown__unit span {
   color: #888888;
   font-size: 10px;
   line-height: normal;
   font-weight: 600;
 }
-
 .campaign-countdown__end-date {
   margin: 0;
   color: #64748b;
   font-size: 12px;
   line-height: 1.4;
 }
-
 @media (max-width: 768px) {
   .campaign-countdown {
     padding: 14px;
@@ -2753,7 +3133,6 @@
     font-size: 18px;
   }
 }
-
 @media (max-width: 380px) {
   .campaign-countdown__units {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2762,12 +3141,10 @@
 /* =========================================================
    CAMPAIGN UPDATE THUMBNAILS + IMAGE LIGHTBOX
 ========================================================= */
-
 /*
  * Published update photos are intentionally small.
  * Clicking a photo opens the full image in the lightbox.
  */
-
 .campaign-update-images,
 .campaign-update-images--1,
 .campaign-update-images--2,
@@ -2782,7 +3159,6 @@
 
   gap: 8px;
 }
-
 .campaign-update-image {
   width: 80px;
   height: 80px;
@@ -2804,7 +3180,6 @@
     opacity 0.15s ease,
     transform 0.15s ease;
 }
-
 .campaign-update-image:hover {
   border-color: #1e807f;
 
@@ -2812,12 +3187,10 @@
 
   transform: translateY(-1px);
 }
-
 .campaign-update-image:focus-visible {
   outline: 2px solid #1e807f;
   outline-offset: 2px;
 }
-
 .campaign-update-image img {
   width: 100%;
   height: 100%;
@@ -2826,11 +3199,9 @@
 
   object-fit: cover;
 }
-
 /* =========================================================
    UPDATE IMAGE LIGHTBOX
 ========================================================= */
-
 .campaign-update-lightbox {
   position: fixed;
   inset: 0;
@@ -2847,7 +3218,6 @@
 
   cursor: zoom-out;
 }
-
 .campaign-update-lightbox__content {
   position: relative;
 
@@ -2861,7 +3231,6 @@
 
   cursor: default;
 }
-
 .campaign-update-lightbox__image {
   display: block;
 
@@ -2879,7 +3248,6 @@
 
   box-shadow: 0 24px 70px rgba(0, 0, 0, 0.3);
 }
-
 .campaign-update-lightbox__close {
   position: absolute;
 
@@ -2911,15 +3279,12 @@
 
   transition: background-color 0.15s ease;
 }
-
 .campaign-update-lightbox__close:hover {
   background: #0f172a;
 }
-
 /* =========================================================
    MOBILE
 ========================================================= */
-
 @media (max-width: 600px) {
   .campaign-update-images,
   .campaign-update-images--1,

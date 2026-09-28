@@ -184,6 +184,7 @@ export default function SigninPage() {
   };
 
   const handleGoogleSignin = async () => {
+    sessionStorage.removeItem("fundu-google-signup-consent");
     setGoogleLoading(true);
 
     setErrors((current) => ({

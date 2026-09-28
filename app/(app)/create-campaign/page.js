@@ -1,21 +1,30 @@
 "use client";
 
+import LoadingScreen from "@/components/feedback/LoadingScreen";
 import React, { Suspense, useEffect, useRef, useState } from "react";
 
 import { useRouter, useSearchParams } from "next/navigation";
 
 import BasicInfo from "./components/BasicInfo";
+import ExploreDraftPreview from "./components/ExploreDraftPreview";
+import useCreatorProfile from "./components/useCreatorProfile";
+import CreateCampaignLayout from "./components/CreateCampaignLayout";
+import ActionDialog from "@/components/feedback/ActionDialog";
+import CampaignStorageImage from "@/components/campaigns/CampaignStorageImage";
 import Story from "./components/Story";
 import PreviewCampaign from "./components/PreviewCampaign";
 import PublishCampaign from "./components/PublishCampaign";
 
 import { saveCampaign } from "@/lib/saveCampaign";
 import { supabase } from "@/lib/supabase";
+import { legalAcceptanceRequest } from "@/lib/legalAcceptanceClient";
 
 import "./styles/campaignform.css";
+import "./styles/create-layout.css";
 
 function CreateCampaignContent() {
   const router = useRouter();
+  const creatorProfile = useCreatorProfile();
   const searchParams = useSearchParams();
 
   const editId = searchParams.get("campaign") || searchParams.get("id");
@@ -24,6 +33,7 @@ function CreateCampaignContent() {
     searchParams.get("restart") === "true" && Boolean(editId);
 
   const [step, setStep] = useState(1);
+  const [isStoryUploading, setIsStoryUploading] = useState(false);
 
   const [campaignId, setCampaignId] = useState(editId || null);
 
@@ -34,6 +44,12 @@ function CreateCampaignContent() {
   const loadingExistingRef = useRef(Boolean(editId));
 
   const saveInProgressRef = useRef(false);
+  const publishInProgressRef = useRef(false);
+  const [publishing, setPublishing] = useState(false);
+  const discardInProgressRef = useRef(false);
+  const [isDiscarding, setIsDiscarding] = useState(false);
+  const [discardOpen, setDiscardOpen] = useState(false);
+  const [discardError, setDiscardError] = useState("");
 
   /*
    * Keep track of the campaign's database status.
@@ -80,11 +96,17 @@ function CreateCampaignContent() {
 
   const [saveStatus, setSaveStatus] = useState("idle");
 
+  useEffect(() => {
+    if (saveStatus !== "pending" && saveStatus !== "error") return;
+    const warn = event => { event.preventDefault(); event.returnValue = ""; };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [saveStatus]);
+
   const [isLoading, setIsLoading] = useState(Boolean(editId));
 
-  const [isPublished, setIsPublished] = useState(false);
-
-  const [campaignLink, setCampaignLink] = useState("");
+  const [publishError, setPublishError] = useState("");
+  const [coverUploadFailed, setCoverUploadFailed] = useState(false);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -459,6 +481,10 @@ function CreateCampaignContent() {
 
         if (isRestarting) {
           setStep(1);
+        } else if (
+          new URLSearchParams(window.location.search).get("preview") === "true"
+        ) {
+          setStep(3);
         }
       } catch (error) {
         console.error("Error loading campaign for edit:", error);
@@ -493,7 +519,7 @@ function CreateCampaignContent() {
   ) => {
     const { silent = false } = options;
 
-    if (saveInProgressRef.current) {
+    if (discardInProgressRef.current || saveInProgressRef.current) {
       return false;
     }
 
@@ -579,8 +605,10 @@ function CreateCampaignContent() {
 
       if (!result.success) {
         setSaveStatus("error");
+        setCoverUploadFailed(result.failedStage === "cover");
+        if (isFinalPublish) setPublishError("Couldn't publish. It's still a draft, and nothing is lost.");
 
-        if (!silent) {
+        if (!silent && !isFinalPublish) {
           alert("Save failed: " + result.error);
         }
 
@@ -652,19 +680,15 @@ function CreateCampaignContent() {
         }));
       }
 
-      if (typeof window !== "undefined") {
-        setCampaignLink(
-          `${window.location.origin}/campaign/${result.campaignId}`,
-        );
-      }
-
       setSaveStatus("saved");
+      setCoverUploadFailed(false);
 
       return true;
     } catch (error) {
       console.error("Unexpected error saving campaign:", error);
 
       setSaveStatus("error");
+      if (isFinalPublish) setPublishError("Couldn't publish. It's still a draft, and nothing is lost.");
 
       return false;
     } finally {
@@ -681,7 +705,7 @@ function CreateCampaignContent() {
    */
 
   useEffect(() => {
-    if (isLoading || loadingExistingRef.current) {
+    if (discardInProgressRef.current || isLoading || loadingExistingRef.current) {
       return;
     }
 
@@ -702,6 +726,8 @@ function CreateCampaignContent() {
     if (autosaveTimerRef.current) {
       clearTimeout(autosaveTimerRef.current);
     }
+
+    setSaveStatus("pending");
 
     autosaveTimerRef.current = setTimeout(() => {
       if (saveInProgressRef.current) {
@@ -727,6 +753,7 @@ function CreateCampaignContent() {
    */
 
   const handleSaveAndExit = async () => {
+    if (discardInProgressRef.current) return;
     if (autosaveTimerRef.current) {
       clearTimeout(autosaveTimerRef.current);
 
@@ -750,7 +777,32 @@ function CreateCampaignContent() {
    * =========================================================
    */
 
+  const handleDiscardDraft = async () => {
+    if (discardInProgressRef.current || (existingStatusRef.current && existingStatusRef.current !== "draft")) return;
+    setDiscardError("");
+    setDiscardOpen(true);
+  };
+
+  const confirmDiscardDraft = async () => {
+    if (discardInProgressRef.current) return;
+    discardInProgressRef.current=true; setIsDiscarding(true); setDiscardError("");
+    clearTimeout(autosaveTimerRef.current); autosaveTimerRef.current=null;
+    try {
+      while(saveInProgressRef.current) await new Promise(resolve=>setTimeout(resolve,100));
+      const id=campaignIdRef.current;
+      if(id) {
+        const {data:{user},error:authError}=await supabase.auth.getUser();
+        if(authError || !user) throw new Error("Sign in again to discard your draft.");
+        const {data,error}=await supabase.from("campaigns").delete().eq("id",id).eq("creator_id",user.id).eq("status","draft").select("id").maybeSingle();
+        if(error) throw error;
+        if(!data) throw new Error("This draft could not be deleted. It may already be published.");
+      }
+      router.push("/campaigns");
+    } catch(error) {console.error("Could not discard draft:",error);setDiscardError("That didn't work. Nothing has changed yet. Try again."); discardInProgressRef.current=false; setIsDiscarding(false);}
+  };
+
   const handleCancel = () => {
+    if ((saveStatus === "pending" || saveStatus === "error") && !window.confirm("Your latest changes aren't saved yet. Leave this page?")) return;
     if (isRestarting && editId) {
       router.push(`/campaigns/${editId}`);
 
@@ -767,6 +819,11 @@ function CreateCampaignContent() {
    */
 
   const handlePublish = async (payoutDetails) => {
+    if (publishInProgressRef.current) return;
+    publishInProgressRef.current = true;
+    setPublishing(true);
+    setPublishError("");
+    try {
     if (autosaveTimerRef.current) {
       clearTimeout(autosaveTimerRef.current);
 
@@ -803,6 +860,23 @@ function CreateCampaignContent() {
 
         return;
       }
+    }
+
+    // Give every publication a campaign-specific acceptance record before the
+    // draft can become active. A brand-new campaign needs a draft ID first.
+    if (!campaignIdRef.current && !editId) {
+      const draftSaved = await handleSaveProcess(formData, blocks, null, false);
+      if (!draftSaved) return;
+    }
+    try {
+      await legalAcceptanceRequest("POST", {
+        context: "campaign_publish",
+        campaignId: campaignIdRef.current || editId,
+      });
+    } catch (error) {
+      console.error("Could not record Terms acceptance:", error);
+      setPublishError("Couldn't publish. It's still a draft, and nothing is lost.");
+      return;
     }
 
     /*
@@ -1142,7 +1216,11 @@ function CreateCampaignContent() {
 
       draftActivityCreatedRef.current = true;
 
-      setIsPublished(true);
+      router.replace(`/campaigns/${savedCampaignId}/published`);
+    }
+    } finally {
+      publishInProgressRef.current = false;
+      setPublishing(false);
     }
   };
 
@@ -1211,241 +1289,7 @@ function CreateCampaignContent() {
 
   if (isLoading) {
     return (
-      <div
-        className="create-campaign-page"
-        style={{
-          justifyContent: "center",
-
-          alignItems: "center",
-
-          minHeight: "70vh",
-        }}
-      >
-        <div className="spinner" />
-
-        <p
-          style={{
-            marginTop: "12px",
-          }}
-        >
-          Loading your campaign...
-        </p>
-      </div>
-    );
-  }
-
-  /*
-   * =========================================================
-   * SUCCESS SCREEN
-   * =========================================================
-   */
-
-  if (isPublished) {
-    return (
-      <div
-        className="create-campaign-page"
-        style={{
-          justifyContent: "center",
-
-          alignItems: "center",
-
-          minHeight: "80vh",
-        }}
-      >
-        <div
-          className="success-card-container"
-          style={{
-            backgroundColor: "#fff",
-
-            padding: "40px",
-
-            borderRadius: "24px",
-
-            boxShadow: "0px 10px 30px rgba(0,0,0,0.05)",
-
-            textAlign: "center",
-
-            maxWidth: "420px",
-
-            width: "90%",
-
-            border: "1px solid #F0F0F0",
-          }}
-        >
-          <div
-            className="success-icon-circle"
-            style={{
-              width: "80px",
-
-              height: "80px",
-
-              backgroundColor: "#1B827F",
-
-              borderRadius: "50%",
-
-              display: "flex",
-
-              alignItems: "center",
-
-              justifyContent: "center",
-
-              margin: "0 auto 24px",
-            }}
-          >
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M5 13L9 17L19 7"
-                stroke="white"
-                strokeWidth="3"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </div>
-
-          <h2
-            style={{
-              fontSize: "24px",
-
-              fontWeight: "700",
-
-              color: "#0A0A0A",
-
-              marginBottom: "8px",
-            }}
-          >
-            {isRestarting
-              ? "Your campaign is live again! 🥳"
-              : "Your campaign is live! 🥳"}
-          </h2>
-
-          <p
-            style={{
-              color: "#666",
-
-              marginBottom: "32px",
-
-              lineHeight: "1.5",
-            }}
-          >
-            {isRestarting
-              ? "Your campaign has been restarted successfully with its new end date."
-              : "Congratulations! Your campaign has been published successfully."}
-          </p>
-
-          <button
-            type="button"
-            onClick={() => {
-              window.location.href = campaignLink;
-            }}
-            style={{
-              width: "100%",
-
-              height: "48px",
-
-              backgroundColor: "#1B827F",
-
-              color: "#fff",
-
-              borderRadius: "8px",
-
-              border: "none",
-
-              fontWeight: "600",
-
-              fontSize: "16px",
-
-              cursor: "pointer",
-
-              marginBottom: "16px",
-            }}
-          >
-            View Campaign
-          </button>
-
-          <div
-            style={{
-              display: "flex",
-
-              gap: "12px",
-            }}
-          >
-            <button
-              type="button"
-              onClick={async () => {
-                try {
-                  await navigator.clipboard.writeText(campaignLink);
-
-                  alert("Link copied!");
-                } catch (error) {
-                  console.error("Could not copy link:", error);
-                }
-              }}
-              style={{
-                flex: 1,
-
-                height: "48px",
-
-                borderRadius: "8px",
-
-                border: "1px solid #E0E0E0",
-
-                backgroundColor: "#fff",
-
-                fontWeight: "500",
-
-                cursor: "pointer",
-              }}
-            >
-              Copy Link
-            </button>
-
-            <button
-              type="button"
-              onClick={async () => {
-                if (navigator.share) {
-                  try {
-                    await navigator.share({
-                      title: formData.title || "Fundu Campaign",
-
-                      url: campaignLink,
-                    });
-                  } catch (error) {
-                    if (error?.name !== "AbortError") {
-                      console.error("Could not share campaign:", error);
-                    }
-                  }
-                } else {
-                  try {
-                    await navigator.clipboard.writeText(campaignLink);
-
-                    alert("Campaign link copied!");
-                  } catch (error) {
-                    console.error("Could not copy campaign link:", error);
-                  }
-                }
-              }}
-              style={{
-                flex: 1,
-
-                height: "48px",
-
-                borderRadius: "8px",
-
-                border: "1px solid #E0E0E0",
-
-                backgroundColor: "#fff",
-
-                fontWeight: "500",
-
-                cursor: "pointer",
-              }}
-            >
-              Share
-            </button>
-          </div>
-        </div>
-      </div>
+      <LoadingScreen variant="list" label="Loading your campaign" />
     );
   }
 
@@ -1456,128 +1300,44 @@ function CreateCampaignContent() {
    */
 
   return (
-    <div className="create-campaign-page">
-      <div className="create-campaign-header">
-        <button
-          type="button"
-          className="create-page-back"
-          onClick={() => {
-            if (isRestarting && editId) {
-              router.push(`/campaigns/${editId}`);
-
-              return;
-            }
-
-            router.push("/campaigns");
-          }}
-        >
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 20 20"
-            fill="none"
-            aria-hidden="true"
-          >
-            <path
-              d="M15.8333 10H4.16663"
-              stroke="currentColor"
-              strokeWidth="1.6"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-
-            <path
-              d="M9.99996 15.8333L4.16663 10L9.99996 4.16667"
-              stroke="currentColor"
-              strokeWidth="1.6"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-
-          <span>Back to Campaigns</span>
-        </button>
-
-        <div className="create-campaign-heading">
-          <h1>
-            {isRestarting
-              ? "Restart Campaign"
-              : editId
-                ? "Edit Campaign"
-                : "Create Campaign"}
-          </h1>
-
-          <p>
-            {isRestarting
-              ? "Review your campaign and choose a new end date to restart it."
-              : editId
-                ? "Update your campaign details and story."
-                : "Set up your campaign and tell people what you need support for."}
-          </p>
-        </div>
-
-        {saveStatus !== "idle" && (
-          <div className={`autosave-status autosave-status--${saveStatus}`}>
-            {saveStatus === "saving" && "Saving..."}
-
-            {saveStatus === "saved" && "Saved"}
-
-            {saveStatus === "error" && "Couldn’t save"}
-          </div>
-        )}
-      </div>
-
-      <div className="create-campaign-content-card">
-        <div className="campaign-inner-container">
-          {/* PROGRESS */}
-
-          <div className="progress-container-main">
-            {steps.map((item, index) => (
-              <React.Fragment key={item.id}>
-                <div className="step-wrapper">
-                  <div
-                    className={`step-circle ${
-                      step >= item.id ? "active" : "inactive"
-                    }`}
-                  >
-                    {item.id}
-                  </div>
-
-                  <span
-                    className={`step-label-bottom ${
-                      step >= item.id ? "active" : "inactive"
-                    }`}
-                  >
-                    {item.label}
-                  </span>
-                </div>
-
-                {index < steps.length - 1 && (
-                  <div className="step-connector-line" />
-                )}
-              </React.Fragment>
-            ))}
-          </div>
-
-          {/* BASIC INFO */}
-
-          {step === 1 && (
+    <CreateCampaignLayout
+      isUploading={isStoryUploading}
+      storyBlocks={blocks}
+      sidebarPreview={step === 1 ? <ExploreDraftPreview formData={formData} creatorProfile={creatorProfile} /> : null}
+      step={step}
+      saveStatus={saveStatus}
+      isSaving={isSaving}
+      editId={editId}
+      isRestarting={isRestarting}
+      isDraft={existingStatusRef.current !== "active"}
+      onSaveAndExit={handleSaveAndExit}
+      onRetry={() => handleSaveProcess(formData, blocks, null, false, { silent: true })}
+      onStepChange={setStep}
+      onBack={handleCancel}
+    >
+      {step === 1 && (
             <BasicInfo
+              profileName={creatorProfile.name}
               formData={formData}
               setFormData={setFormData}
               onNext={nextStep}
               onSaveDraft={handleSaveProcess}
               onSaveAndExit={handleSaveAndExit}
               onCancel={handleCancel}
-              isSaving={isSaving}
+              onDiscardDraft={handleDiscardDraft}
+              coverUploadFailed={coverUploadFailed}
+              onCoverChanged={() => setCoverUploadFailed(false)}
+              onRetryCover={() => handleSaveProcess(formData, blocks, null, false, { silent: true })}
+              isDraft={!existingStatusRef.current || existingStatusRef.current === "draft"}
+              discardError={discardError}
+              isSaving={isSaving || isDiscarding}
               isRestarting={isRestarting}
             />
           )}
 
-          {/* STORY */}
-
-          {step === 2 && (
+      {step === 2 && (
             <Story
+              onUploadingChange={setIsStoryUploading}
               formData={formData}
               setFormData={setFormData}
               blocks={blocks}
@@ -1591,11 +1351,12 @@ function CreateCampaignContent() {
             />
           )}
 
-          {/* PREVIEW */}
-
-          {step === 3 && (
+      {step === 3 && (
             <div className="preview-step-wrapper">
               <PreviewCampaign
+                campaignId={campaignId}
+                creatorProfile={creatorProfile}
+                onEditStep={setStep}
                 campaignData={formData}
                 blocks={blocks}
                 onNext={nextStep}
@@ -1606,34 +1367,31 @@ function CreateCampaignContent() {
             </div>
           )}
 
-          {/* PUBLISH */}
-
-          {step === 4 && (
+      {step === 4 && (
             <PublishCampaign
+              onEditStep={setStep}
               onBack={prevStep}
               onPublish={handlePublish}
               onSaveAndExit={handleSaveAndExit}
-              isSaving={isSaving}
+              isSaving={isSaving || publishing}
+              publishError={publishError}
               duration={formData.duration}
               campaignId={campaignId}
               campaignData={formData}
               setCampaignData={setFormData}
             />
           )}
-        </div>
-      </div>
-    </div>
+      <ActionDialog open={discardOpen} onClose={() => setDiscardOpen(false)} busy={isDiscarding} error={discardError} title="Discard this draft?" description="This unpublished draft will be deleted. You can't get it back." icon="trash" tone="danger" safeLabel="Keep draft" actionLabel="Discard draft" busyLabel="Discarding…" onAction={confirmDiscardDraft}>
+        <div className="action-dialog-campaign">{getCurrentCampaignImage(formData) && <CampaignStorageImage src={getCurrentCampaignImage(formData)} alt="" />}<div><small>Campaign</small><strong>{formData.title || "Untitled campaign"}</strong></div></div>
+      </ActionDialog>
+    </CreateCampaignLayout>
   );
 }
 
 export default function CreateCampaign() {
   return (
     <Suspense
-      fallback={
-        <div className="create-campaign-page">
-          <div className="spinner" />
-        </div>
-      }
+      fallback={<LoadingScreen variant="list" label="Loading your campaign" />}
     >
       <CreateCampaignContent />
     </Suspense>

@@ -1,11 +1,14 @@
 "use client";
 
+import LoadingScreen, { NotFoundScreen } from "@/components/feedback/LoadingScreen";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import CampaignStorageImage from "@/components/campaigns/CampaignStorageImage";
+import ActionDialog from "@/components/feedback/ActionDialog";
 import "@/styles/campaign-detail.css";
+import Badge from "@/components/ui/Badge";
 
 export default function CampaignDetailPage() {
   const params = useParams();
@@ -14,11 +17,30 @@ export default function CampaignDetailPage() {
   const campaignId = params?.id;
 
   const [campaign, setCampaign] = useState(null);
+  const [failedHeaderCover, setFailedHeaderCover] = useState(null);
   const [creator, setCreator] = useState(null);
   const [category, setCategory] = useState(null);
   const [bankAccount, setBankAccount] = useState(null);
   const [activity, setActivity] = useState([]);
   const [campaignUpdates, setCampaignUpdates] = useState([]);
+  const [publicShareUrl, setPublicShareUrl] = useState("");
+  const [shareCopied, setShareCopied] = useState(false);
+  const [shareCopyError, setShareCopyError] = useState("");
+  const shareCopyTimerRef = useRef(null);
+
+  useEffect(() => {
+    setPublicShareUrl(
+      campaignId ? `${window.location.origin}/campaign/${campaignId}` : "",
+    );
+    setShareCopied(false);
+    setShareCopyError("");
+    return () => window.clearTimeout(shareCopyTimerRef.current);
+  }, [campaignId]);
+  const [campaignComments, setCampaignComments] = useState([]);
+  const [commentAuthors, setCommentAuthors] = useState({});
+  const [commentsLoadError, setCommentsLoadError] = useState(false);
+  const [campaignMetrics, setCampaignMetrics] = useState(null);
+  const [metricsLoadError, setMetricsLoadError] = useState(false);
 
   const [loading, setLoading] = useState(true);
   const [pageError, setPageError] = useState("");
@@ -27,11 +49,14 @@ export default function CampaignDetailPage() {
   const [newAmountRaised, setNewAmountRaised] = useState("");
   const [savingAmount, setSavingAmount] = useState(false);
   const [endingCampaign, setEndingCampaign] = useState(false);
+  const [showEndDialog, setShowEndDialog] = useState(false);
+  const [endError, setEndError] = useState("");
   const [countdownNow, setCountdownNow] = useState(null);
 
   const [showRestartModal, setShowRestartModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deletingCampaign, setDeletingCampaign] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
 
   /* =========================================================
      POST UPDATE
@@ -48,6 +73,87 @@ export default function CampaignDetailPage() {
   const [updateError, setUpdateError] = useState("");
 
   const updateFileInputRef = useRef(null);
+  const modalActionsRef = useRef(null);
+  modalActionsRef.current = {
+    busy: savingAmount || postingUpdate || deletingCampaign,
+    close() {
+      if (viewingUpdateImage) setViewingUpdateImage(null);
+      else if (showPostUpdateModal) closePostUpdateModal();
+      else if (showAmountModal) setShowAmountModal(false);
+      else if (showRestartModal) setShowRestartModal(false);
+      else if (showDeleteModal) setShowDeleteModal(false);
+    },
+  };
+
+  useEffect(() => {
+    if (
+      !(
+        viewingUpdateImage ||
+        showPostUpdateModal ||
+        showAmountModal ||
+        showRestartModal ||
+        showDeleteModal
+      )
+    )
+      return;
+    const trigger = document.activeElement;
+    const dialog = document.querySelector(
+      ".campaign-update-lightbox__content, .campaign-update-modal, .campaign-detail-modal",
+    );
+    if (!dialog) return;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    function focusable() {
+      return [
+        ...dialog.querySelectorAll(
+          'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), textarea:not([disabled]), select:not([disabled]), [tabindex="0"]',
+        ),
+      ].filter((element) => element.getClientRects().length > 0);
+    }
+    (focusable()[0] || dialog).focus();
+    function onKey(event) {
+      if (event.key === "Escape" && !modalActionsRef.current.busy) {
+        event.preventDefault();
+        modalActionsRef.current.close();
+      }
+      if (event.key !== "Tab") return;
+      const controls = focusable();
+      if (!controls.length) {
+        event.preventDefault();
+        dialog.focus();
+        return;
+      }
+      const first = controls[0],
+        last = controls[controls.length - 1];
+      if (
+        event.shiftKey &&
+        (document.activeElement === first ||
+          !dialog.contains(document.activeElement))
+      ) {
+        event.preventDefault();
+        last.focus();
+      } else if (
+        !event.shiftKey &&
+        (document.activeElement === last ||
+          !dialog.contains(document.activeElement))
+      ) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = originalOverflow;
+      if (trigger?.isConnected) trigger.focus();
+    };
+  }, [
+    viewingUpdateImage,
+    showPostUpdateModal,
+    showAmountModal,
+    showRestartModal,
+    showDeleteModal,
+  ]);
 
   useEffect(() => {
     if (campaignId) {
@@ -67,7 +173,7 @@ export default function CampaignDetailPage() {
 
     updateCountdown();
 
-    const intervalId = window.setInterval(updateCountdown, 1000);
+    const intervalId = window.setInterval(updateCountdown, 60000);
 
     return () => {
       window.clearInterval(intervalId);
@@ -251,18 +357,33 @@ export default function CampaignDetailPage() {
           ascending: false,
         });
 
+      const commentsPromise = supabase
+        .from("comments")
+        .select("id, campaign_id, user_id, content, created_at")
+        .eq("campaign_id", campaignRow.id)
+        .order("created_at", { ascending: false });
+      const metricsPromise = supabase
+        .from("campaign_metrics")
+        .select("campaign_id, donation_clicks")
+        .eq("campaign_id", campaignRow.id)
+        .maybeSingle();
+
       const [
         creatorResult,
         categoryResult,
         bankResult,
         activityResult,
         updatesResult,
+        commentsResult,
+        metricsResult,
       ] = await Promise.all([
         creatorPromise,
         categoryPromise,
         bankPromise,
         activityPromise,
         updatesPromise,
+        commentsPromise,
+        metricsPromise,
       ]);
 
       if (creatorResult.error) {
@@ -290,6 +411,38 @@ export default function CampaignDetailPage() {
       setBankAccount(bankResult.data?.[0] || null);
       setActivity(activityResult.data || []);
       setCampaignUpdates(updatesResult.data || []);
+      setCommentsLoadError(Boolean(commentsResult.error));
+      setCampaignComments(
+        commentsResult.error ? [] : commentsResult.data || [],
+      );
+      setMetricsLoadError(Boolean(metricsResult.error));
+      setCampaignMetrics(
+        metricsResult.error ? null : metricsResult.data || null,
+      );
+      if (commentsResult.error)
+        console.error("Campaign comments load error:", commentsResult.error);
+      if (metricsResult.error)
+        console.error("Campaign metrics load error:", metricsResult.error);
+      const authorIds = [
+        ...new Set(
+          (commentsResult.data || []).map((row) => row.user_id).filter(Boolean),
+        ),
+      ];
+      if (authorIds.length) {
+        const { data: authors, error: authorsError } = await supabase
+          .from("users")
+          .select("id, display_name, full_name")
+          .in("id", authorIds);
+        if (authorsError)
+          console.error("Comment authors load error:", authorsError);
+        setCommentAuthors(
+          Object.fromEntries(
+            (authors || []).map((author) => [author.id, author]),
+          ),
+        );
+      } else {
+        setCommentAuthors({});
+      }
     } catch (error) {
       console.error("Campaign detail load error:", error);
 
@@ -320,7 +473,12 @@ export default function CampaignDetailPage() {
 
   const daysRemaining = calculateDaysRemaining(campaign?.end_date);
 
-  const countdown = getCampaignCountdown(campaign?.end_date, countdownNow);
+  const liveStart = new Date(
+    campaign?.start_date || campaign?.created_at || Date.now(),
+  ).getTime();
+  const daysLive = Number.isFinite(liveStart)
+    ? Math.max(0, Math.floor((Date.now() - liveStart) / 86400000))
+    : 0;
 
   const isExpired = campaignHasExpired(campaign);
 
@@ -1154,14 +1312,8 @@ export default function CampaignDetailPage() {
   ========================================================= */
 
   async function handleEndCampaignEarly() {
-    const confirmed = window.confirm(
-      "Are you sure you want to end this campaign early? Supporters will no longer be encouraged to contribute.",
-    );
-
-    if (!confirmed) {
-      return;
-    }
-
+    if (endingCampaign) return;
+    setEndError("");
     setEndingCampaign(true);
 
     try {
@@ -1184,7 +1336,7 @@ export default function CampaignDetailPage() {
 
       const endedAt = new Date().toISOString();
 
-      const { error } = await supabase
+      const { data: endedRow, error } = await supabase
         .from("campaigns")
         .update({
           status: "ended",
@@ -1192,11 +1344,15 @@ export default function CampaignDetailPage() {
           updated_at: endedAt,
         })
         .eq("id", campaign.id)
-        .eq("creator_id", user.id);
+        .eq("creator_id", user.id)
+        .eq("status", "active")
+        .select("id")
+        .maybeSingle();
 
       if (error) {
         throw error;
       }
+      if (!endedRow) throw new Error("Campaign could not be ended.");
 
       /*
        * Ending the campaign is an organizer action.
@@ -1225,10 +1381,10 @@ export default function CampaignDetailPage() {
       }
 
       await loadCampaign();
+      setShowEndDialog(false);
     } catch (error) {
       console.error("End campaign error:", error);
-
-      alert(error?.message || "Unable to end the campaign.");
+      setEndError("That didn't work. Nothing has changed yet. Try again.");
     } finally {
       setEndingCampaign(false);
     }
@@ -1253,6 +1409,7 @@ export default function CampaignDetailPage() {
   ========================================================= */
 
   function handleDeleteCampaign() {
+    setDeleteError("");
     setShowDeleteModal(true);
   }
 
@@ -1300,15 +1457,13 @@ export default function CampaignDetailPage() {
       }
 
       setShowDeleteModal(false);
+      window.sessionStorage.setItem("fundu-campaign-deleted", "1");
 
       router.replace("/campaigns");
       router.refresh();
     } catch (error) {
       console.error("Delete campaign error:", error);
-
-      alert(
-        error?.message || "Unable to delete this campaign. Please try again.",
-      );
+      setDeleteError("That didn't work. Nothing has changed yet. Try again.");
     } finally {
       setDeletingCampaign(false);
     }
@@ -1318,32 +1473,47 @@ export default function CampaignDetailPage() {
      SHARE
   ========================================================= */
 
-  async function handleShareCampaign() {
-    const url = `${window.location.origin}/campaign/${campaign.id}`;
+  function handleShareCampaign() {
+    const shareCard = document.getElementById("creator-campaign-share");
+    shareCard?.scrollIntoView({
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? "auto"
+        : "smooth",
+      block: "center",
+    });
+    shareCard?.focus({ preventScroll: true });
+  }
 
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: campaign.title,
-          text: `View ${campaign.title} on Fundu`,
-          url,
-        });
-
-        return;
-      } catch (error) {
-        if (error?.name === "AbortError") {
-          return;
-        }
-      }
-    }
-
+  async function copyPublicCampaignLink() {
+    if (!publicShareUrl) return;
+    setShareCopyError("");
     try {
-      await navigator.clipboard.writeText(url);
-
-      alert("Campaign link copied.");
+      await navigator.clipboard.writeText(publicShareUrl);
+      setShareCopied(true);
+      window.clearTimeout(shareCopyTimerRef.current);
+      shareCopyTimerRef.current = window.setTimeout(
+        () => setShareCopied(false),
+        2500,
+      );
     } catch {
-      window.prompt("Copy this campaign link:", url);
+      setShareCopyError("Copy the campaign link from the field above.");
+      window.prompt("Copy this campaign link:", publicShareUrl);
     }
+  }
+
+  function sharePublicCampaignTo(platform) {
+    if (!publicShareUrl || !campaign) return;
+    const url = encodeURIComponent(publicShareUrl);
+    const text = encodeURIComponent(
+      `View ${campaign.title || "this campaign"} on Fundu`,
+    );
+    const links = {
+      whatsapp: `https://wa.me/?text=${text}%20${url}`,
+      x: `https://twitter.com/intent/tweet?text=${text}&url=${url}`,
+      facebook: `https://www.facebook.com/sharer/sharer.php?u=${url}`,
+    };
+    if (links[platform])
+      window.open(links[platform], "_blank", "noopener,noreferrer");
   }
 
   /* =========================================================
@@ -1352,12 +1522,12 @@ export default function CampaignDetailPage() {
 
   if (loading) {
     return (
-      <div className="campaign-detail-state">
-        <div className="campaign-detail-state__card">
-          <p>Loading campaign...</p>
-        </div>
-      </div>
+      <LoadingScreen variant="detail" label="Loading campaign" />
     );
+  }
+
+  if (pageError === "Campaign not found.") {
+    return <NotFoundScreen homeHref="/dashboard" exploreHref="/explore" />;
   }
 
   if (pageError || !campaign) {
@@ -1377,10 +1547,7 @@ export default function CampaignDetailPage() {
   }
 
   const coverImage =
-    campaign.cover_image ||
-    campaign.image_url ||
-    campaign.preview_image ||
-    "/images/dashboard/campaign-cover.png";
+    campaign.cover_image || campaign.image_url || campaign.preview_image || "";
 
   const statusLabel = getCampaignStatusLabel(displayStatus);
 
@@ -1401,90 +1568,120 @@ export default function CampaignDetailPage() {
           <span>Back to Campaigns</span>
         </button>
 
-        {/* CAMPAIGN HEADER */}
+        {/* CAMPAIGN HEADER — STEP 1 */}
 
-        <section className="campaign-detail-header-card">
-          <div className="campaign-detail-header-meta">
-            <div className="campaign-detail-title-row">
-              <h1>{campaign.title}</h1>
-
-              <p>Organized by {organizerName}</p>
-            </div>
-
-            <div className="campaign-detail-badges-row">
-              <div className="campaign-detail-badges">
-                <span className="campaign-detail-category">
-                  {category?.name || "Uncategorized"}
-                </span>
-
-                <span
-                  className={`campaign-detail-status campaign-detail-status--${displayStatus}`}
-                >
-                  {statusLabel}
-                </span>
-              </div>
-
-              <div className="campaign-detail-dates">
-                <span>
-                  {campaign.status === "draft"
-                    ? `Created ${formatShortDate(campaign.created_at)}`
-                    : `Published ${formatShortDate(
-                        campaign.start_date || campaign.created_at,
-                      )}`}
-                </span>
-
-                {campaign.end_date && (
-                  <>
-                    <span>·</span>
-
-                    <span>
-                      {isInactive ? "Ended" : "Ends"}{" "}
-                      {formatShortDate(campaign.end_date)}
-                    </span>
-                  </>
-                )}
-              </div>
-            </div>
-
-            <div className="campaign-detail-divider" />
-
-            <div className="campaign-detail-header-actions">
-              <div className="campaign-detail-header-buttons">
-                {!isInactive && (
-                  <Link
-                    href={`/create-campaign?campaign=${campaign.id}`}
-                    className="campaign-detail-primary-btn"
-                  >
-                    Edit Campaign
-                  </Link>
-                )}
-
-                <button
-                  type="button"
-                  className={
-                    isInactive
-                      ? "campaign-detail-primary-btn"
-                      : "campaign-detail-outline-btn"
-                  }
-                  onClick={handleShareCampaign}
-                >
-                  Share Campaign
-                </button>
-              </div>
-
+        <section
+          className="creator-campaign-header"
+          aria-labelledby="creator-campaign-title"
+        >
+          <div className="creator-campaign-header__cover">
+            {coverImage && failedHeaderCover !== coverImage ? (
+              <CampaignStorageImage
+                src={coverImage}
+                alt={`${campaign.title || "Campaign"} cover`}
+                onError={() => setFailedHeaderCover(coverImage)}
+              />
+            ) : (
               <Link
-                href={`/campaign/${campaign.id}`}
-                className="campaign-detail-public-link"
+                href={`/create-campaign?campaign=${campaign.id}`}
+                className="creator-campaign-header__missing-cover"
               >
-                <span>View Public Campaign</span>
-
-                <img src="/images/campaign-detail/external-link.svg" alt="" />
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  aria-hidden="true"
+                >
+                  <rect x="3" y="3" width="18" height="18" rx="2" />
+                  <circle cx="8" cy="8" r="1.5" />
+                  <path d="m21 15-5-5L5 21" />
+                </svg>
+                <span>Add a cover image</span>
               </Link>
-            </div>
+            )}
           </div>
 
-          <div className="campaign-detail-cover">
-            <CampaignStorageImage src={coverImage} alt={campaign.title} />
+          <div className="creator-campaign-header__copy">
+            <div className="creator-campaign-header__tags">
+              <Badge status={isActive ? "Active" : statusLabel} />
+              <span className="creator-campaign-header__category">
+                {category?.name || "Uncategorized"}
+              </span>
+            </div>
+
+            <h1 id="creator-campaign-title">
+              {campaign.title || "Untitled campaign"}
+            </h1>
+            <p>Organized by {organizerName}.</p>
+            <p>
+              {campaign.status === "draft" ? "Created: " : "Published: "}
+              {formatShortDate(
+                campaign.status === "draft"
+                  ? campaign.created_at
+                  : campaign.start_date || campaign.created_at,
+              )}
+              .{" "}
+              {campaign.end_date
+                ? `${isInactive ? "Ended" : "Ends"}: ${formatShortDate(campaign.end_date)}.`
+                : "No end date."}
+            </p>
+          </div>
+
+          <div className="creator-campaign-header__actions">
+            {!isInactive && (
+              <Link
+                href={`/create-campaign?campaign=${campaign.id}`}
+                className="creator-campaign-header__button creator-campaign-header__edit"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="m15 5 4 4M4 20l4-1L20 7a2.8 2.8 0 0 0-4-4L4 15l-1 5ZM12 20h9" />
+                </svg>
+                <span className="creator-campaign-header__edit-desktop">
+                  Edit campaign
+                </span>
+                <span className="creator-campaign-header__edit-mobile">
+                  Edit
+                </span>
+              </Link>
+            )}
+
+            <button
+              type="button"
+              className="creator-campaign-header__button creator-campaign-header__share"
+              onClick={handleShareCampaign}
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                aria-hidden="true"
+              >
+                <circle cx="18" cy="5" r="3" />
+                <circle cx="6" cy="12" r="3" />
+                <circle cx="18" cy="19" r="3" />
+                <path d="m8.6 10.5 6.8-4M8.6 13.5l6.8 4" />
+              </svg>
+              Share campaign
+            </button>
+
+            <Link
+              href={`/campaign/${campaign.id}`}
+              className="creator-campaign-header__public"
+            >
+              View public page
+              <img src="/images/campaign-detail/external-link.svg" alt="" />
+            </Link>
           </div>
         </section>
 
@@ -1492,150 +1689,203 @@ export default function CampaignDetailPage() {
 
         <div className="campaign-detail-columns">
           <main className="campaign-detail-primary-column">
-            {/* FUNDRAISING */}
-
-            <section className="campaign-detail-card campaign-progress-card">
-              <h2>Fundraising Progress</h2>
-
-              <div className="campaign-progress-amount">
-                <strong>{formatMoney(amountRaised, campaign.currency)}</strong>
-
-                <span>
-                  raised of {formatMoney(goalAmount, campaign.currency)} goal
-                </span>
-              </div>
-
-              <div className="campaign-progress-meta">
-                <strong>
-                  {isInactive
-                    ? "Campaign ended"
-                    : campaign.end_date
-                      ? daysRemaining > 0
-                        ? `${daysRemaining} ${
-                            daysRemaining === 1 ? "day" : "days"
-                          } remaining`
-                        : "Campaign ended"
-                      : "No end date"}
-                </strong>
-
-                <strong>{Math.round(progressPercent)}% complete</strong>
-              </div>
-
-              <div className="campaign-progress-track">
-                <div
-                  className="campaign-progress-fill"
-                  style={{
-                    width: `${progressBarPercent}%`,
-                  }}
-                />
-              </div>
-
-              <div className="campaign-progress-note">
-                <img src="/images/campaign-detail/info.svg" alt="" />
-
-                <p>
-                  This amount is based on contributions you&apos;ve recorded.
-                  Fundu does not track incoming bank transfers.
-                </p>
-              </div>
-
-              <button
-                type="button"
-                className="campaign-detail-primary-btn campaign-detail-full-btn"
-                onClick={() => {
-                  setNewAmountRaised(String(amountRaised));
-                  setShowAmountModal(true);
-                }}
-              >
-                Update Amount Raised
-              </button>
-            </section>
-
-            {/* CAMPAIGN UPDATES */}
-
-            <section className="campaign-detail-card">
-              <div className="campaign-detail-section-header">
-                <h2>Campaign Updates</h2>
-
+            {/* FUNDRAISING, UPDATES, COMMENTS AND STORY — STEP 2 */}
+            <section
+              className="creator-content-card creator-progress"
+              aria-labelledby="creator-progress-title"
+            >
+              <div className="creator-progress__top">
+                <div>
+                  <h2 id="creator-progress-title">Fundraising progress</h2>
+                  <div className="creator-progress__amount">
+                    <strong>
+                      {formatMoney(amountRaised, campaign.currency)}
+                    </strong>
+                    <span>
+                      raised of {formatMoney(goalAmount, campaign.currency)}{" "}
+                      goal
+                    </span>
+                  </div>
+                </div>
                 <button
                   type="button"
-                  className="campaign-detail-outline-btn campaign-detail-small-action"
-                  onClick={openPostUpdateModal}
+                  className="creator-content-button creator-content-button--teal creator-progress__edit"
+                  onClick={() => {
+                    setNewAmountRaised(String(amountRaised));
+                    setShowAmountModal(true);
+                  }}
                 >
-                  {isInactive ? "Post Final Update" : "Post an Update"}
+                  Update amount raised
                 </button>
               </div>
+              <div
+                className="creator-progress__track"
+                role="progressbar"
+                aria-label="Campaign fundraising progress"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={Math.round(progressBarPercent)}
+                aria-valuetext={`${formatMoney(amountRaised, campaign.currency)} reported raised of ${formatMoney(goalAmount, campaign.currency)} goal`}
+              >
+                <div style={{ width: `${progressBarPercent}%` }} />
+              </div>
+              <div className="creator-progress__meta">
+                <strong>{Math.round(progressPercent)}% of goal</strong>
+                <span>
+                  {isInactive
+                    ? `Campaign ended${campaign.end_date ? ` ${formatShortDate(campaign.end_date)}` : ""}`
+                    : campaign.end_date
+                      ? `Ends ${formatCampaignEndDateTime(campaign.end_date)}`
+                      : "No end date"}
+                </span>
+              </div>
+              <dl className="creator-progress__stats">
+                <div>
+                  <dd>
+                    {campaign.status === "draft"
+                      ? "Not started"
+                      : isInactive
+                        ? "Ended"
+                        : campaign.end_date
+                          ? `${daysRemaining} ${daysRemaining === 1 ? "day" : "days"}`
+                          : `${daysLive} ${daysLive === 1 ? "day" : "days"}`}
+                  </dd>
+                  <dt>
+                    {campaign.status === "draft"
+                      ? "Draft campaign"
+                      : isInactive
+                        ? "Campaign status"
+                        : campaign.end_date
+                          ? "Left to go"
+                          : "Live so far"}
+                  </dt>
+                </div>
+                <div>
+                  <dd>
+                    {metricsLoadError
+                      ? "Unavailable"
+                      : (campaignMetrics?.donation_clicks ?? 0)}
+                  </dd>
+                  <dt>Link clicks</dt>
+                </div>
+                <div>
+                  <dd>{campaignUpdates.length}</dd>
+                  <dt>Updates posted</dt>
+                </div>
+              </dl>
+              <div className="creator-progress__note">
+                <img src="/images/campaign-detail/info.svg" alt="" />
+                <p>
+                  This amount is based on contributions you&apos;ve recorded.
+                  Fundu doesn&apos;t track incoming bank transfers.
+                </p>
+              </div>
+            </section>
 
-              {campaignUpdates.length > 0 ? (
-                <div className="campaign-updates-list">
+            <section
+              className="creator-content-card"
+              aria-labelledby="creator-updates-title"
+            >
+              <div className="creator-content-card__header">
+                <h2 id="creator-updates-title">
+                  Updates <span>{campaignUpdates.length}</span>
+                </h2>
+                <button
+                  type="button"
+                  className="creator-content-button creator-content-button--orange"
+                  onClick={openPostUpdateModal}
+                >
+                  <span aria-hidden="true">+</span>{" "}
+                  {isInactive ? "Post final update" : "Post update"}
+                </button>
+              </div>
+              {campaignUpdates.length ? (
+                <div className="creator-updates">
                   {campaignUpdates.map((update) => {
                     const images = Array.isArray(update.image_urls)
                       ? update.image_urls
                       : [];
-
                     return (
-                      <article className="campaign-update-card" key={update.id}>
-                        <div className="campaign-update-card__header">
-                          <div>
-                            {update.is_final_update && (
-                              <span className="campaign-update-final-badge">
-                                Final Update
-                              </span>
-                            )}
-
-                            <h3>{update.title || "Campaign update"}</h3>
-                          </div>
-                        </div>
-
+                      <article className="creator-update" key={update.id}>
+                        {update.is_final_update && (
+                          <span className="creator-update__final">
+                            Final update
+                          </span>
+                        )}
+                        <h3>{update.title || "Campaign update"}</h3>
                         {update.content && <p>{update.content}</p>}
-
                         {images.length > 0 && (
-                          <div
-                            className={`campaign-update-images campaign-update-images--${Math.min(
-                              images.length,
-                              4,
-                            )}`}
-                          >
+                          <div className="creator-update__photos">
                             {images.map((url, index) => (
                               <button
                                 type="button"
-                                className="campaign-update-image"
                                 key={`${url}-${index}`}
                                 onClick={() => setViewingUpdateImage(url)}
-                                aria-label={`View ${
-                                  update.title || "Campaign update"
-                                } photo ${index + 1}`}
+                                aria-label={`View ${update.title || "update"} photo ${index + 1}`}
                               >
                                 <CampaignStorageImage
                                   src={url}
-                                  alt={`${update.title || "Campaign update"} photo ${
-                                    index + 1
-                                  }`}
+                                  alt={`${update.title || "Update"} photo ${index + 1}`}
                                 />
                               </button>
                             ))}
                           </div>
                         )}
-
-                        <div className="campaign-update-footer">
+                        <div className="creator-update__footer">
                           <span>
-                            Posted on {formatLongDate(update.created_at)}
+                            Posted {formatLongDate(update.created_at)}
                           </span>
-
-                          <div className="campaign-update-footer__actions">
+                          <div className="creator-update__actions">
                             <button
                               type="button"
+                              className="creator-update__desktop-edit"
                               onClick={() => handleOpenEditUpdate(update)}
                             >
                               Edit
                             </button>
-
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteCampaignUpdate(update)}
+                            <details
+                              className="creator-update__menu"
+                              onKeyDown={(event) => {
+                                if (event.key === "Escape") {
+                                  event.currentTarget.open = false;
+                                  event.currentTarget
+                                    .querySelector("summary")
+                                    ?.focus();
+                                }
+                              }}
                             >
-                              Delete
-                            </button>
+                              <summary
+                                aria-label={`More actions for ${update.title || "campaign update"}`}
+                              >
+                                ⋯
+                              </summary>
+                              <div>
+                                <button
+                                  type="button"
+                                  className="creator-update__mobile-edit"
+                                  onClick={(event) => {
+                                    event.currentTarget.closest(
+                                      "details",
+                                    ).open = false;
+                                    handleOpenEditUpdate(update);
+                                  }}
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  type="button"
+                                  className="creator-update__delete"
+                                  onClick={(event) => {
+                                    event.currentTarget.closest(
+                                      "details",
+                                    ).open = false;
+                                    handleDeleteCampaignUpdate(update);
+                                  }}
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            </details>
                           </div>
                         </div>
                       </article>
@@ -1643,35 +1893,85 @@ export default function CampaignDetailPage() {
                   })}
                 </div>
               ) : (
-                <div className="campaign-detail-empty">
-                  <strong>No campaign updates yet</strong>
-
+                <div className="creator-content-empty">
+                  <strong>No updates yet</strong>
                   <p>
                     {isInactive
-                      ? "Share a final update to let supporters know how the campaign ended."
-                      : "Share progress, milestones, photos, and how funds are being used to keep supporters informed."}
+                      ? "Share a final update about how the campaign ended and what supporters helped achieve."
+                      : "Share progress, milestones, photos and how the money is being used. Updates appear on your public page and help keep supporters informed."}
                   </p>
                 </div>
               )}
             </section>
 
-            {/* STORY */}
+            <section
+              className="creator-content-card"
+              aria-labelledby="creator-comments-title"
+            >
+              <div className="creator-content-card__header">
+                <h2 id="creator-comments-title">
+                  Comments <span>{campaignComments.length}</span>
+                </h2>
+                <Link
+                  href={`/campaign/${campaign.id}`}
+                  className="creator-content-link"
+                >
+                  See on public page
+                </Link>
+              </div>
+              {commentsLoadError ? (
+                <div className="creator-content-empty">
+                  <p>
+                    We couldn&apos;t load comments. Refresh the page to try
+                    again.
+                  </p>
+                </div>
+              ) : campaignComments.length ? (
+                <div className="creator-comments">
+                  {campaignComments.map((comment) => {
+                    const author = commentAuthors[comment.user_id];
+                    return (
+                      <article className="creator-comment" key={comment.id}>
+                        <div className="creator-comment__meta">
+                          <strong>
+                            {author?.display_name ||
+                              author?.full_name ||
+                              "Supporter"}
+                          </strong>
+                          <span>{formatLongDate(comment.created_at)}</span>
+                        </div>
+                        <p>{comment.content}</p>
+                      </article>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="creator-content-empty">
+                  <strong>No comments yet</strong>
+                  <p>
+                    When supporters leave a comment on your public page,
+                    you&apos;ll see it here.
+                  </p>
+                </div>
+              )}
+            </section>
 
-            <section className="campaign-detail-card">
-              <div className="campaign-detail-section-header">
-                <h2>Campaign Story</h2>
-
+            <section
+              className="creator-content-card"
+              aria-labelledby="creator-story-title"
+            >
+              <div className="creator-content-card__header">
+                <h2 id="creator-story-title">Campaign story</h2>
                 {!isInactive && (
                   <Link
                     href={`/create-campaign?campaign=${campaign.id}`}
-                    className="campaign-detail-outline-btn campaign-detail-small-action"
+                    className="creator-content-button"
                   >
-                    Edit Story
+                    Edit story
                   </Link>
                 )}
               </div>
-
-              <div className="campaign-story-content">
+              <div className="creator-story-content">
                 <CreatorStoryBlocks
                   blocks={campaign.story_blocks}
                   fallbackText={
@@ -1680,262 +1980,230 @@ export default function CampaignDetailPage() {
                     "No campaign story has been added yet."
                   }
                   campaignTitle={campaign.title}
+                  onViewImage={setViewingUpdateImage}
                 />
               </div>
-            </section>
-
-            {/* ACTIVITY */}
-
-            <section className="campaign-detail-card">
-              <div className="campaign-detail-section-header">
-                <h2>Campaign Activity</h2>
-              </div>
-
-              {activity.length > 0 ? (
-                <div className="campaign-activity-list">
-                  {activity.map((item) => (
-                    <div className="campaign-activity-row" key={item.id}>
-                      <p>{item.description || item.title}</p>
-
-                      <span>{formatActivityDate(item.created_at)}</span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="campaign-detail-empty">
-                  <strong>No campaign activity yet</strong>
-
-                  <p>Changes to this campaign will appear here.</p>
-                </div>
-              )}
             </section>
           </main>
 
           {/* SIDEBAR */}
 
           <aside className="campaign-detail-sidebar">
-            {/* STATUS */}
+            <section
+              id="creator-campaign-share"
+              className="creator-rail-card creator-share"
+              tabIndex={-1}
+              aria-labelledby="creator-share-title"
+            >
+              <h2 id="creator-share-title">Share your campaign</h2>
+              <p>One link with your story, goal and bank details.</p>
+              {campaign.status === "draft" ? (
+                <p>Publish your campaign before sharing its public link.</p>
+              ) : (
+                <>
+                  <div className="creator-share__link">
+                    <input
+                      type="text"
+                      readOnly
+                      value={publicShareUrl}
+                      aria-label="Public campaign link"
+                      onFocus={(event) => event.target.select()}
+                    />
+                    <button
+                      type="button"
+                      className="creator-content-button creator-content-button--teal"
+                      onClick={copyPublicCampaignLink}
+                      disabled={!publicShareUrl}
+                      aria-label="Copy campaign link"
+                    >
+                      {shareCopied ? "Copied" : "Copy"}
+                    </button>
+                  </div>
+                  <div className="creator-share__social">
+                    <button
+                      type="button"
+                      onClick={() => sharePublicCampaignTo("whatsapp")}
+                      disabled={!publicShareUrl}
+                    >
+                      WhatsApp
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => sharePublicCampaignTo("x")}
+                      disabled={!publicShareUrl}
+                    >
+                      X
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => sharePublicCampaignTo("facebook")}
+                      disabled={!publicShareUrl}
+                    >
+                      Facebook
+                    </button>
+                  </div>
+                </>
+              )}
+              <span className="creator-rail-announcement" role="status">
+                {shareCopied ? "Campaign link copied." : shareCopyError}
+              </span>
+            </section>
 
-            <section className="campaign-detail-side-card">
-              <div className="campaign-status-heading">
-                <h3>Campaign Status</h3>
-
-                <span
-                  className={`campaign-detail-status campaign-detail-status--${displayStatus}`}
-                >
-                  {statusLabel}
-                </span>
-              </div>
-
-              <div className="campaign-status-description">
-                <p>{statusDescription}</p>
-
-                {campaign.end_date && (
-                  <span>
-                    {isInactive ? "Ended on " : "Ends on "}
-                    {formatLongDate(campaign.end_date)}
-
-                    {!isInactive && daysRemaining > 0
-                      ? ` (${daysRemaining} ${
-                          daysRemaining === 1 ? "day" : "days"
-                        } remaining)`
-                      : ""}
-                  </span>
+            <section
+              className="creator-rail-card creator-bank"
+              aria-labelledby="creator-bank-title"
+            >
+              <div className="creator-rail-card__heading">
+                <h2 id="creator-bank-title">Supporters pay into</h2>
+                {!isInactive && (
+                  <Link href="/settings">
+                    {bankAccount ? "Manage" : "Add account"}
+                  </Link>
                 )}
               </div>
-
-              {isActive && campaign.end_date && countdown && (
-                <div className="campaign-countdown">
-                  <span className="campaign-countdown__label">
-                    Time remaining
-                  </span>
-
-                  <div
-                    className="campaign-countdown__units"
-                    aria-label={`${countdown.days} days, ${countdown.hours} hours, ${countdown.minutes} minutes, ${countdown.seconds} seconds remaining`}
-                  >
-                    <CountdownUnit
-                      value={countdown.days}
-                      label={countdown.days === 1 ? "Day" : "Days"}
-                    />
-
-                    <CountdownUnit
-                      value={countdown.hours}
-                      label={countdown.hours === 1 ? "Hr" : "Hrs"}
-                    />
-
-                    <CountdownUnit
-                      value={countdown.minutes}
-                      label={countdown.minutes === 1 ? "Min" : "Mins"}
-                    />
-
-                    <CountdownUnit
-                      value={countdown.seconds}
-                      label={countdown.seconds === 1 ? "Sec" : "Secs"}
-                    />
-                  </div>
-
-                  <p className="campaign-countdown__end-date">
-                    Ends {formatCampaignEndDateTime(campaign.end_date)}
+              {bankAccount ? (
+                <>
+                  <strong className="creator-bank__number">
+                    {bankAccount.account_number}
+                  </strong>
+                  <p>
+                    {bankAccount.bank_name}, {bankAccount.account_holder_name}
                   </p>
-                </div>
+                </>
+              ) : (
+                <p>No bank account linked to this campaign.</p>
               )}
+              <p className="creator-bank__note">
+                {isInactive
+                  ? "This account was linked to your campaign. Its bank details are hidden from the public after the campaign ends."
+                  : "Money goes straight to this account. Fundu never holds your campaign funds."}
+              </p>
+            </section>
 
-              {isActive && (
+            <section
+              className="creator-rail-card"
+              aria-labelledby="creator-info-title"
+            >
+              <div className="creator-rail-card__heading">
+                <h2 id="creator-info-title">Campaign info</h2>
+                {!isInactive && (
+                  <Link href={`/create-campaign?campaign=${campaign.id}`}>
+                    Edit
+                  </Link>
+                )}
+              </div>
+              <dl className="creator-rail-info">
+                <div>
+                  <dt>Category</dt>
+                  <dd>{category?.name || "Uncategorized"}</dd>
+                </div>
+                <div>
+                  <dt>Goal</dt>
+                  <dd>{formatMoney(goalAmount, campaign.currency)}</dd>
+                </div>
+                <div>
+                  <dt>Organizer</dt>
+                  <dd>{organizerName}</dd>
+                </div>
+                <div>
+                  <dt>
+                    {campaign.status === "draft" ? "Created" : "Published"}
+                  </dt>
+                  <dd>
+                    {formatLongDate(
+                      campaign.status === "draft"
+                        ? campaign.created_at
+                        : campaign.start_date || campaign.created_at,
+                    )}
+                  </dd>
+                </div>
+                <div>
+                  <dt>{isInactive ? "Ended" : "Ends"}</dt>
+                  <dd>
+                    {campaign.end_date
+                      ? formatCampaignEndDateTime(campaign.end_date)
+                      : "No end date"}
+                  </dd>
+                </div>
+              </dl>
+            </section>
+
+            <section
+              className="creator-rail-card"
+              aria-labelledby="creator-activity-title"
+            >
+              <div className="creator-rail-card__heading">
+                <h2 id="creator-activity-title">Activity</h2>
+                <Link href="/activity">View all</Link>
+              </div>
+              {activity.length ? (
+                <ul className="creator-rail-activity">
+                  {activity.slice(0, 5).map((item) => (
+                    <li key={item.id}>
+                      <p>
+                        {item.description || item.title || "Campaign updated"}
+                      </p>
+                      <time dateTime={item.created_at}>
+                        {formatActivityDate(item.created_at)}
+                      </time>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p>Changes to this campaign will appear here.</p>
+              )}
+            </section>
+
+            {isActive && (
+              <section
+                className="creator-rail-card creator-end"
+                aria-labelledby="creator-end-title"
+              >
+                <h2 id="creator-end-title">End this campaign</h2>
+                <p>
+                  Supporters will see it as ended and the page will stop asking
+                  for support. Public bank details will be hidden.
+                </p>
                 <button
                   type="button"
-                  className="campaign-detail-danger-btn"
-                  onClick={handleEndCampaignEarly}
+                  className="creator-content-button creator-end__button"
+                  onClick={() => { setEndError(""); setShowEndDialog(true); }}
                   disabled={endingCampaign}
                 >
-                  {endingCampaign ? "Ending Campaign..." : "End Campaign Early"}
+                  {endingCampaign ? "Ending campaign..." : "End campaign early"}
                 </button>
-              )}
+              </section>
+            )}
 
-              {isInactive && (
-                <div className="campaign-detail-inactive-actions">
-                  <button
-                    type="button"
-                    className="campaign-detail-primary-btn campaign-detail-full-btn"
-                    onClick={handleRestartCampaign}
-                  >
-                    Restart Campaign
-                  </button>
-
-                  <button
-                    type="button"
-                    className="campaign-detail-danger-btn"
-                    onClick={handleDeleteCampaign}
-                    disabled={deletingCampaign}
-                  >
-                    Delete Campaign
-                  </button>
-                </div>
-              )}
-            </section>
-            {/* CAMPAIGN INFO */}
-
-            <section className="campaign-detail-side-card">
-              <h3>Campaign Info</h3>
-
-              <div className="campaign-info-list">
-                <InfoRow
-                  label="Category"
-                  value={category?.name || "Uncategorized"}
-                />
-
-                <InfoRow
-                  label="Goal"
-                  value={formatMoney(goalAmount, campaign.currency)}
-                />
-
-                <InfoRow label="Organizer" value={organizerName} />
-
-                <InfoRow
-                  label={campaign.status === "draft" ? "Created" : "Published"}
-                  value={formatLongDate(
-                    campaign.start_date || campaign.created_at,
-                  )}
-                />
-
-                {isInactive && campaign.end_date && (
-                  <InfoRow
-                    label="Ended"
-                    value={formatLongDate(campaign.end_date)}
-                  />
-                )}
-              </div>
-
-              {!isInactive && (
-                <Link
-                  href={`/create-campaign?campaign=${campaign.id}`}
-                  className="campaign-detail-outline-btn campaign-detail-full-btn"
-                >
-                  Edit Campaign Info
-                </Link>
-              )}
-            </section>
-
-            {/* BANK */}
-
-            <section className="campaign-detail-side-card">
-              <div className="campaign-bank-heading">
-                <div className="campaign-bank-icon">
-                  <img src="/images/campaign-detail/credit-card.svg" alt="" />
-                </div>
-
-                <h3>Direct Bank Account</h3>
-              </div>
-
-              <p className="campaign-bank-description">
-                {isInactive
-                  ? "This is the bank account that was linked to this campaign."
-                  : "Your supporters send contributions directly to this account. Fundu does not hold your campaign funds."}
-              </p>
-
-              {bankAccount ? (
-                <div className="campaign-bank-details">
-                  <BankField label="Bank" value={bankAccount.bank_name} />
-
-                  <BankField
-                    label="Account Name"
-                    value={bankAccount.account_holder_name}
-                  />
-
-                  <BankField
-                    label="Account Number"
-                    value={bankAccount.account_number}
-                    highlight
-                    last
-                  />
-                </div>
-              ) : (
-                <div className="campaign-detail-empty campaign-bank-empty">
-                  <strong>No bank account linked</strong>
-
-                  <p>
-                    {isInactive
-                      ? "No bank account is currently linked to this campaign."
-                      : "Add bank details so supporters can send contributions directly to you."}
-                  </p>
-                </div>
-              )}
-
-              {!isInactive && (
-                <Link
-                  href="/settings"
-                  className="campaign-detail-outline-btn campaign-detail-full-btn"
-                >
-                  {bankAccount ? "Manage Bank Details" : "Add Bank Details"}
-                </Link>
-              )}
-            </section>
-
-            {/* SUPPORTERS CTA */}
-
-            <section className="campaign-supporter-cta">
-              <div>
-                <h3>
-                  {isInactive
-                    ? "Close the loop with supporters"
-                    : "Keep supporters engaged"}
-                </h3>
-
-                <p>
-                  {isInactive
-                    ? "Share a final update with your community about how the campaign ended and what their support helped achieve."
-                    : "Share progress, photos, milestones, and receipts directly with your community to build trust."}
-                </p>
-              </div>
-
-              <button
-                type="button"
-                className="campaign-detail-primary-btn campaign-detail-full-btn"
-                onClick={openPostUpdateModal}
+            {isInactive && (
+              <section
+                className="creator-rail-card creator-ended-actions"
+                aria-labelledby="creator-ended-title"
               >
-                {isInactive ? "Post Final Update" : "Post an Update"}
-              </button>
-            </section>
+                <h2 id="creator-ended-title">Campaign ended</h2>
+                <p>
+                  Your story and updates remain visible. You can still post
+                  updates and change the recorded amount raised.
+                </p>
+                <button
+                  type="button"
+                  className="creator-content-button creator-content-button--teal"
+                  onClick={handleRestartCampaign}
+                >
+                  Reactivate campaign
+                </button>
+                <button
+                  type="button"
+                  className="creator-content-button creator-end__button"
+                  onClick={handleDeleteCampaign}
+                  disabled={deletingCampaign}
+                >
+                  {deletingCampaign
+                    ? "Deleting campaign..."
+                    : "Delete campaign"}
+                </button>
+              </section>
+            )}
           </aside>
         </div>
       </div>
@@ -1950,7 +2218,13 @@ export default function CampaignDetailPage() {
             }
           }}
         >
-          <div className="campaign-update-lightbox__content">
+          <div
+            className="campaign-update-lightbox__content"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Campaign photo"
+            tabIndex={-1}
+          >
             <button
               type="button"
               className="campaign-update-lightbox__close"
@@ -1979,7 +2253,13 @@ export default function CampaignDetailPage() {
             }
           }}
         >
-          <div className="campaign-detail-modal">
+          <div
+            className="campaign-detail-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Update amount raised"
+            tabIndex={-1}
+          >
             <div className="campaign-detail-modal-header">
               <div>
                 <h2>Update Amount Raised</h2>
@@ -1990,6 +2270,7 @@ export default function CampaignDetailPage() {
               <button
                 type="button"
                 className="campaign-detail-modal-close"
+                aria-label="Close dialog"
                 onClick={() => setShowAmountModal(false)}
               >
                 ×
@@ -2336,7 +2617,13 @@ export default function CampaignDetailPage() {
             }
           }}
         >
-          <div className="campaign-detail-modal campaign-detail-action-modal">
+          <div
+            className="campaign-detail-modal campaign-detail-action-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Reactivate campaign"
+            tabIndex={-1}
+          >
             <div className="campaign-detail-modal-header">
               <div>
                 <h2>Restart Campaign</h2>
@@ -2350,8 +2637,8 @@ export default function CampaignDetailPage() {
               <button
                 type="button"
                 className="campaign-detail-modal-close"
+                aria-label="Close dialog"
                 onClick={() => setShowRestartModal(false)}
-                aria-label="Close"
               >
                 ×
               </button>
@@ -2387,70 +2674,12 @@ export default function CampaignDetailPage() {
         </div>
       )}
 
-      {/* DELETE CAMPAIGN MODAL */}
-
-      {showDeleteModal && (
-        <div
-          className="campaign-detail-modal-overlay"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget && !deletingCampaign) {
-              setShowDeleteModal(false);
-            }
-          }}
-        >
-          <div className="campaign-detail-modal campaign-detail-action-modal">
-            <div className="campaign-detail-modal-header">
-              <div>
-                <h2>Delete Campaign?</h2>
-
-                <p>
-                  This will permanently remove this campaign from your Fundu
-                  account.
-                </p>
-              </div>
-
-              <button
-                type="button"
-                className="campaign-detail-modal-close"
-                onClick={() => setShowDeleteModal(false)}
-                disabled={deletingCampaign}
-                aria-label="Close"
-              >
-                ×
-              </button>
-            </div>
-
-            <div className="campaign-detail-delete-warning">
-              <strong>This action cannot be undone.</strong>
-
-              <p>
-                The campaign page and its shared Fundu link will no longer be
-                available after deletion.
-              </p>
-            </div>
-
-            <div className="campaign-detail-modal-actions">
-              <button
-                type="button"
-                className="campaign-detail-outline-btn"
-                onClick={() => setShowDeleteModal(false)}
-                disabled={deletingCampaign}
-              >
-                Cancel
-              </button>
-
-              <button
-                type="button"
-                className="campaign-detail-delete-confirm-btn"
-                onClick={handleConfirmDeleteCampaign}
-                disabled={deletingCampaign}
-              >
-                {deletingCampaign ? "Deleting..." : "Delete Campaign"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ActionDialog open={showEndDialog} onClose={() => setShowEndDialog(false)} busy={endingCampaign} error={endError} title="End this campaign early?" description="The story and updates stay public, but the page will show the campaign as ended and stop asking for support. This doesn't delete it." icon="stop" tone="warning" safeLabel="Keep campaign active" actionLabel="End campaign" busyLabel="Ending…" onAction={handleEndCampaignEarly}>
+        <div className="action-dialog-campaign">{coverImage && <CampaignStorageImage src={coverImage} alt="" />}<div><small>Campaign</small><strong>{campaign?.title || "Untitled campaign"}</strong></div></div>
+      </ActionDialog>
+      <ActionDialog open={showDeleteModal} onClose={() => setShowDeleteModal(false)} busy={deletingCampaign} error={deleteError} title="Delete this campaign?" description="Deleting removes the campaign and makes its link unavailable." icon="trash" tone="danger" safeLabel="Cancel" actionLabel="Delete campaign" busyLabel="Deleting…" onAction={handleConfirmDeleteCampaign}>
+        <div className="action-dialog-campaign">{coverImage && <CampaignStorageImage src={coverImage} alt="" />}<div><small>Campaign</small><strong>{campaign?.title || "Untitled campaign"}</strong></div></div>
+      </ActionDialog>
     </>
   );
 }
@@ -2661,7 +2890,12 @@ function getCampaignStatusDescription(status) {
    CREATOR CAMPAIGN STORY
 ========================================================= */
 
-function CreatorStoryBlocks({ blocks, fallbackText, campaignTitle }) {
+function CreatorStoryBlocks({
+  blocks,
+  fallbackText,
+  campaignTitle,
+  onViewImage,
+}) {
   const storyBlocks = parseStoryBlocks(blocks);
 
   const hasRenderableBlocks = storyBlocks.some((block) =>
@@ -2713,6 +2947,7 @@ function CreatorStoryBlocks({ blocks, fallbackText, campaignTitle }) {
                 <CreatorStoryImages
                   images={images}
                   campaignTitle={campaignTitle}
+                  onViewImage={onViewImage}
                 />
               )}
             </section>
@@ -2745,6 +2980,7 @@ function CreatorStoryBlocks({ blocks, fallbackText, campaignTitle }) {
               key={block.id || `images-${index}`}
               images={images}
               campaignTitle={campaignTitle}
+              onViewImage={onViewImage}
             />
           ) : null;
         }
@@ -2769,6 +3005,7 @@ function CreatorStoryBlocks({ blocks, fallbackText, campaignTitle }) {
               key={block.id || `legacy-images-${index}`}
               images={legacyImages}
               campaignTitle={campaignTitle}
+              onViewImage={onViewImage}
             />
           );
         }
@@ -2797,7 +3034,7 @@ function CreatorStoryBlocks({ blocks, fallbackText, campaignTitle }) {
    STORY IMAGES
 ========================================================= */
 
-function CreatorStoryImages({ images, campaignTitle }) {
+function CreatorStoryImages({ images, campaignTitle, onViewImage }) {
   const safeImages = images.filter(
     (url) =>
       typeof url === "string" && url.trim() && !url.trim().startsWith("blob:"),
@@ -2815,12 +3052,18 @@ function CreatorStoryImages({ images, campaignTitle }) {
       )}`}
     >
       {safeImages.map((url, index) => (
-        <div className="campaign-story-image" key={`${url}-${index}`}>
+        <button
+          type="button"
+          className="campaign-story-image"
+          key={`${url}-${index}`}
+          onClick={() => onViewImage?.(url)}
+          aria-label={`View ${campaignTitle || "campaign"} story photo ${index + 1}`}
+        >
           <CampaignStorageImage
             src={url}
             alt={`${campaignTitle || "Campaign"} story image ${index + 1}`}
           />
-        </div>
+        </button>
       ))}
     </div>
   );

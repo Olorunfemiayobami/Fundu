@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 /* Fundu footer, ported verbatim from the design artifact, including the
    torchlight wordmark. The cursor-follow light is driven by the marketing
    page's effect, which finds #torch in the DOM. */
@@ -83,8 +85,9 @@ export default function Footer() {
               <h4>Company</h4>
               <a href="#trust">Trust &amp; safety</a>
               <a href="#trust">Prohibited campaigns</a>
-              <a href="#trust">Report a campaign</a>
-              <a href="/signup">Contact</a>
+              <a href="mailto:funduhelp@gmail.com?subject=Report%20a%20Fundu%20campaign">Report a campaign</a>
+              <Link href="/help">Help</Link>
+              <Link href="/help#contact">Contact</Link>
             </nav>
           </div>
 
@@ -94,7 +97,7 @@ export default function Footer() {
               organisers, not verified by Fundu.
             </p>
             <p className="small">
-              <a href="#trust">Terms</a> · <a href="#trust">Privacy</a> ·{" "}
+              <a href="/terms">Terms</a> · <a href="/privacy">Privacy</a> ·{" "}
               <a href="#trust">Cookies</a>
             </p>
           </div>

@@ -3,6 +3,8 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { TERMS_VERSION } from "@/lib/legalVersion";
+import { legalAcceptanceRequest } from "@/lib/legalAcceptanceClient";
 import "@/styles/auth.css";
 
 function AuthCallbackContent() {
@@ -10,6 +12,7 @@ function AuthCallbackContent() {
   const searchParams = useSearchParams();
 
   const handled = useRef(false);
+  const completed = useRef(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -23,7 +26,23 @@ function AuthCallbackContent() {
         information returned in the URL and creates the session.
       */
 
-      const next = searchParams.get("next") || "/dashboard";
+      const requestedNext = searchParams.get("next") || "/dashboard";
+      const next = requestedNext.startsWith("/") && !requestedNext.startsWith("//") ? requestedNext : "/dashboard";
+      const complete = async () => {
+        if (completed.current) return;
+        completed.current = true;
+        if (sessionStorage.getItem("fundu-google-signup-consent") === TERMS_VERSION) {
+          try {
+            await legalAcceptanceRequest("POST", { context: "signup" });
+            sessionStorage.removeItem("fundu-google-signup-consent");
+          } catch {
+            router.replace("/accept-terms");
+            return;
+          }
+        }
+        router.replace(next);
+        router.refresh();
+      };
 
       const {
         data: { session },
@@ -37,8 +56,7 @@ function AuthCallbackContent() {
       }
 
       if (session) {
-        router.replace(next);
-        router.refresh();
+        await complete();
         return;
       }
 
@@ -55,8 +73,7 @@ function AuthCallbackContent() {
           (event === "SIGNED_IN" || event === "INITIAL_SESSION")
         ) {
           subscription.unsubscribe();
-          router.replace(next);
-          router.refresh();
+          void complete();
         }
       });
 
@@ -67,8 +84,7 @@ function AuthCallbackContent() {
 
         if (finalSession) {
           subscription.unsubscribe();
-          router.replace(next);
-          router.refresh();
+          await complete();
           return;
         }
 

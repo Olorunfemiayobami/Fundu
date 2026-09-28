@@ -1,17 +1,34 @@
 "use client";
 
-import React, { useRef, useState } from "react";
-import { useSortable } from "@dnd-kit/sortable";
+import React, { useEffect, useRef, useState } from "react";
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, rectSortingStrategy, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { supabase } from "@/lib/supabase";
 import CampaignStorageImage from "@/components/campaigns/CampaignStorageImage";
 
-export default function SortableBlock({ block, removeBlock, updateBlockData }) {
+export default function SortableBlock({ block, removeBlock, updateBlockData, moveBlock, canMoveUp, canMoveDown, onUploadBusyChange }) {
   const [isExpanded, setIsExpanded] = useState(true);
   const [isUploadingImages, setIsUploadingImages] = useState(false);
   const [imageUploadError, setImageUploadError] = useState("");
+  const [failedFiles, setFailedFiles] = useState([]);
 
   const fileInputRef = useRef(null);
+  const [menuOpen,setMenuOpen]=useState(false);
+  const menuRef=useRef(null), menuButtonRef=useRef(null);
+  const photoSensors=useSensors(useSensor(PointerSensor,{activationConstraint:{distance:5}}),useSensor(KeyboardSensor,{coordinateGetter:sortableKeyboardCoordinates}));
+  useEffect(()=>{
+    onUploadBusyChange?.(block.id,isUploadingImages);
+    return ()=>onUploadBusyChange?.(block.id,false);
+  },[block.id,isUploadingImages,onUploadBusyChange]);
+  useEffect(()=>{
+    if(!menuOpen) return;
+    function closeOutside(event){if(!menuRef.current?.contains(event.target))setMenuOpen(false);}
+    function escape(event){if(event.key==="Escape"){setMenuOpen(false);menuButtonRef.current?.focus();}}
+    const frame=requestAnimationFrame(()=>menuRef.current?.querySelector('[role="menuitem"]:not(:disabled)')?.focus());
+    document.addEventListener("pointerdown",closeOutside);document.addEventListener("keydown",escape);
+    return ()=>{cancelAnimationFrame(frame);document.removeEventListener("pointerdown",closeOutside);document.removeEventListener("keydown",escape);};
+  },[menuOpen]);
 
   const {
     attributes,
@@ -20,7 +37,7 @@ export default function SortableBlock({ block, removeBlock, updateBlockData }) {
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: block.id });
+  } = useSortable({ id: block.id, disabled: isUploadingImages });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -36,127 +53,44 @@ export default function SortableBlock({ block, removeBlock, updateBlockData }) {
      IMAGE UPLOAD
   ========================================================= */
 
-  const handleFileChange = async (event) => {
-    const input = event.target;
-
-    const files = Array.from(input.files || []);
-
+  const uploadFiles = async (files) => {
     const currentMedia = Array.isArray(block.media) ? block.media : [];
-
-    const availableSlots = 4 - currentMedia.length;
-
-    const selectedFiles = files
-      .filter((file) => file.type.startsWith("image/"))
-      .slice(0, availableSlots);
-
-    /*
-     * Reset the input immediately so the same image
-     * can be selected again later if necessary.
-     */
-
-    input.value = "";
-
-    if (selectedFiles.length === 0) {
-      return;
-    }
-
+    const selectedFiles = files.filter(file => file.type.startsWith("image/")).slice(0, 4 - currentMedia.length);
+    if (!selectedFiles.length || isUploadingImages) return;
     setImageUploadError("");
+    setFailedFiles([]);
     setIsUploadingImages(true);
-
+    const uploadedUrls = [];
+    let remaining = selectedFiles;
     try {
-      /*
-       * Make sure the user is signed in.
-       */
-
-      const {
-        data: { user },
-        error: authError,
-      } = await supabase.auth.getUser();
-
-      if (authError) {
-        throw authError;
-      }
-
-      if (!user) {
-        throw new Error(
-          "You need to sign in before uploading campaign images.",
-        );
-      }
-
-      /*
-       * Upload each selected image to Supabase Storage.
-       */
-
-      const uploadedUrls = [];
-
-      for (const file of selectedFiles) {
-        const extension = file.name.split(".").pop()?.toLowerCase() || "jpg";
-
-        const safeExtension = extension.replace(/[^a-z0-9]/g, "") || "jpg";
-
-        const uniqueFileName = `${Date.now()}-${crypto.randomUUID()}.${safeExtension}`;
-
-        /*
-         * Each user's Story images are kept inside
-         * their own folder.
-         */
-
-        const filePath = `${user.id}/story/${uniqueFileName}`;
-
-        const { error: uploadError } = await supabase.storage
-          .from("campaign-images")
-          .upload(filePath, file, {
-            cacheControl: "60",
-            upsert: false,
-            contentType: file.type,
-          });
-
-        if (uploadError) {
-          throw uploadError;
-        }
-
-        /*
-         * Get the permanent public URL.
-         */
-
-        const { data: publicUrlData } = supabase.storage
-          .from("campaign-images")
-          .getPublicUrl(filePath);
-
-        const publicUrl = publicUrlData?.publicUrl;
-
-        if (!publicUrl) {
-          throw new Error(
-            "The image was uploaded but its public URL could not be created.",
-          );
-        }
-
-        uploadedUrls.push(publicUrl);
-      }
-
-      /*
-       * Store permanent Supabase URLs in the Story block.
-       *
-       * These are the values that will eventually be saved
-       * inside campaigns.story_blocks.
-       */
-
-      if (uploadedUrls.length > 0) {
-        updateBlockData(block.id, {
-          media: [...currentMedia, ...uploadedUrls],
-        });
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) throw authError || new Error("Sign in before uploading.");
+      for (let index = 0; index < selectedFiles.length; index++) {
+        const file = selectedFiles[index];
+        remaining = selectedFiles.slice(index);
+        const extension = file.name.split(".").pop()?.toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
+        const path = `${user.id}/story/${Date.now()}-${crypto.randomUUID()}.${extension}`;
+        const { error: uploadError } = await supabase.storage.from("campaign-images").upload(path, file, { cacheControl: "60", upsert: false, contentType: file.type });
+        if (uploadError) throw uploadError;
+        const { data } = supabase.storage.from("campaign-images").getPublicUrl(path);
+        if (!data?.publicUrl) throw new Error("Could not create image URL.");
+        uploadedUrls.push(data.publicUrl);
+        remaining = selectedFiles.slice(index + 1);
       }
     } catch (error) {
       console.error("Story image upload error:", error);
-
-      setImageUploadError(
-        error?.message || "We couldn't upload your images. Please try again.",
-      );
+      setFailedFiles(remaining);
+      setImageUploadError("Didn't upload");
     } finally {
+      if (uploadedUrls.length) updateBlockData(block.id, { media: [...currentMedia, ...uploadedUrls] });
       setIsUploadingImages(false);
     }
   };
-
+  const handleFileChange = event => {
+    const files = Array.from(event.target.files || []);
+    event.target.value = "";
+    void uploadFiles(files);
+  };
   /* =========================================================
      REMOVE IMAGE
   ========================================================= */
@@ -272,322 +206,101 @@ export default function SortableBlock({ block, removeBlock, updateBlockData }) {
 
   function getBlockLabel() {
     if (isImageBlock) {
-      return "Image Block";
+      return "Images";
     }
 
     if (block.type === "video") {
-      return "Video Block";
+      return "Video";
     }
 
     if (block.type === "section") {
-      return "Section Block";
+      return "Section";
     }
 
     if (block.type === "text") {
-      return "Text Block";
+      return "Text";
     }
 
-    return "Story Block";
+    return "Story";
   }
 
+  const media=Array.isArray(block.media)?block.media:[];
+  const photoIds=media.map((_,index)=>block.id+"-photo-"+index);
+  const summary=isImageBlock ? media.length+" of 4 photos" : block.type === "section" ? block.title : block.type === "video" ? block.url : block.content;
+  function movePhoto(index,direction){
+    const destination=index+direction;
+    if(destination<0 || destination>=media.length || isUploadingImages)return;
+    updateBlockData(block.id,{media:arrayMove(media,index,destination)});
+  }
+  function photoDragEnd({active,over}){
+    if(!over || active.id===over.id || isUploadingImages)return;
+    const from=photoIds.indexOf(active.id),to=photoIds.indexOf(over.id);
+    if(from>=0 && to>=0)updateBlockData(block.id,{media:arrayMove(media,from,to)});
+  }
+  function menuKeys(event){
+    if(!["ArrowDown","ArrowUp","Home","End"].includes(event.key))return;
+    event.preventDefault();const buttons=[...event.currentTarget.querySelectorAll('button:not(:disabled)')];const index=buttons.indexOf(document.activeElement);
+    const next=event.key==="Home"?0:event.key==="End"?buttons.length-1:(index+(event.key==="ArrowDown"?1:-1)+buttons.length)%buttons.length;buttons[next]?.focus();
+  }
   return (
-    <div ref={setNodeRef} style={style} className="story-block-card">
+    <div ref={setNodeRef} style={style} id={"story-block-"+block.id} className="story-block-card">
       <div className="block-header">
         <div className="block-header-left">
-          {/* DRAG HANDLE */}
-
-          <div className="drag-handle-container" {...attributes} {...listeners}>
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <path
-                d="M7.49722 10.8304C7.95736 10.8304 8.33037 10.4574 8.33037 9.99722C8.33037 9.53708 7.95736 9.16406 7.49722 9.16406C7.03708 9.16406 6.66406 9.53708 6.66406 9.99722C6.66406 10.4574 7.03708 10.8304 7.49722 10.8304Z"
-                stroke="#888888"
-                strokeWidth="1.66631"
-              />
-
-              <path
-                d="M7.49722 4.99834C7.95736 4.99834 8.33037 4.62532 8.33037 4.16519C8.33037 3.70505 7.95736 3.33203 7.49722 3.33203C7.03708 3.33203 6.66406 3.70505 6.66406 4.16519C6.66406 4.62532 7.03708 4.99834 7.49722 4.99834Z"
-                stroke="#888888"
-                strokeWidth="1.66631"
-              />
-
-              <path
-                d="M7.49722 16.6624C7.95736 16.6624 8.33037 16.2894 8.33037 15.8292C8.33037 15.3691 7.95736 14.9961 7.49722 14.9961C7.03708 14.9961 6.66406 15.3691 6.66406 15.8292C6.66406 16.2894 7.03708 16.6624 7.49722 16.6624Z"
-                stroke="#888888"
-                strokeWidth="1.66631"
-              />
-
-              <path
-                d="M12.4972 10.8304C12.9574 10.8304 13.3304 10.4574 13.3304 9.99722C13.3304 9.53708 12.9574 9.16406 12.4972 9.16406C12.0371 9.16406 11.6641 9.53708 11.6641 9.99722C11.6641 10.4574 12.0371 10.8304 12.4972 10.8304Z"
-                stroke="#888888"
-                strokeWidth="1.66631"
-              />
-
-              <path
-                d="M12.4972 4.99834C12.9574 4.99834 13.3304 4.62532 13.3304 4.16519C13.3304 3.70505 12.9574 3.33203 12.4972 3.33203C12.0371 3.33203 11.6641 3.70505 11.6641 4.16519C11.6641 4.62532 12.0371 4.99834 12.4972 4.99834Z"
-                stroke="#888888"
-                strokeWidth="1.66631"
-              />
-
-              <path
-                d="M12.4972 16.6624C12.9574 16.6624 13.3304 16.2894 13.3304 15.8292C13.3304 15.3691 12.9574 14.9961 12.4972 14.9961C12.0371 14.9961 11.6641 15.3691 11.6641 15.8292C11.6641 16.2894 12.0371 16.6624 12.4972 16.6624Z"
-                stroke="#888888"
-                strokeWidth="1.66631"
-              />
-            </svg>
-          </div>
-
-          <div className="block-label-group">
-            {renderBlockIcon()}
-
-            <span className="block-type-label">{getBlockLabel()}</span>
-          </div>
+          <button type="button" className="drag-handle-container" {...attributes} {...listeners} aria-label="Drag to reorder" disabled={isUploadingImages}><svg width="16" height="20" viewBox="0 0 16 20" fill="currentColor" aria-hidden="true">{[5,10,15].flatMap(y=>[5,11].map(x=><circle key={x+"-"+y} cx={x} cy={y} r="1.2"/>))}</svg></button>
+          <span className="cw-block-icon" aria-hidden="true">{renderBlockIcon()}</span>
+          <strong className="block-type-label">{getBlockLabel()}</strong>
+          <span className="cw-block-summary">{summary}</span>
         </div>
-
         <div className="block-header-right">
-          {/* COLLAPSE */}
-
-          <button
-            type="button"
-            className="collapse-btn"
-            onClick={() => setIsExpanded((current) => !current)}
-            style={{
-              transform: isExpanded ? "rotate(0deg)" : "rotate(180deg)",
-              transition: "transform 0.2s ease",
-            }}
-            aria-label={isExpanded ? "Collapse block" : "Expand block"}
-          >
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <path
-                d="M18 14L10 6L2 14"
-                stroke="#4A5565"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
-
-          {/* DELETE */}
-
-          <button
-            type="button"
-            onClick={() => removeBlock(block.id)}
-            className="block-control-btn"
-            aria-label="Delete block"
-          >
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#fc1010"
-              strokeWidth="2"
-            >
-              <path d="M18 6L6 18M6 6l12 12" />
-            </svg>
-          </button>
+          <button type="button" className="collapse-btn" aria-label={isExpanded?"Collapse block":"Expand block"} aria-expanded={isExpanded} aria-controls={"story-body-"+block.id} onClick={()=>setIsExpanded(value=>!value)}><span aria-hidden="true">{isExpanded?"⌃":"⌄"}</span></button>
+          <div className="cw-block-menu-wrap" ref={menuRef}>
+            <button type="button" className="cw-block-more" ref={menuButtonRef} aria-label={"More actions for "+getBlockLabel()+" block"} aria-haspopup="menu" aria-expanded={menuOpen} aria-controls={menuOpen?"story-menu-"+block.id:undefined} disabled={isUploadingImages} onClick={()=>setMenuOpen(value=>!value)}>⋯</button>
+            {menuOpen && <div className="cw-block-menu" id={"story-menu-"+block.id} role="menu" aria-label="Block actions" onKeyDown={menuKeys}>
+              <button type="button" role="menuitem" disabled={!canMoveUp} onClick={()=>{moveBlock(block.id,-1);setMenuOpen(false);menuButtonRef.current?.focus();}}>Move up</button>
+              <button type="button" role="menuitem" disabled={!canMoveDown} onClick={()=>{moveBlock(block.id,1);setMenuOpen(false);menuButtonRef.current?.focus();}}>Move down</button>
+              <button type="button" role="menuitem" className="cw-delete-block" onClick={()=>{removeBlock(block.id);setMenuOpen(false);}}>Delete</button>
+            </div>}
+          </div>
         </div>
       </div>
-
-      {isExpanded && (
-        <div className="block-body">
-          {/* TEXT */}
-
-          {block.type === "text" && (
-            <textarea
-              className="block-textarea"
-              placeholder="Enter your text..."
-              value={block.content || ""}
-              onChange={(event) =>
-                handleTextChange("content", event.target.value)
-              }
-            />
-          )}
-
-          {/* SECTION */}
-
-          {block.type === "section" && (
-            <>
-              <input
-                className="block-input"
-                placeholder="Section title"
-                value={block.title || ""}
-                onChange={(event) =>
-                  handleTextChange("title", event.target.value)
-                }
-              />
-
-              <textarea
-                className="block-textarea"
-                placeholder="Section content..."
-                value={block.content || ""}
-                onChange={(event) =>
-                  handleTextChange("content", event.target.value)
-                }
-              />
-            </>
-          )}
-
-          {/* IMAGE */}
-
-          {isImageBlock && (
-            <div className="media-block-wrapper">
-              <p className="media-counter">
-                Images {block.media?.length || 0}/4
-              </p>
-
-              {(block.media?.length || 0) < 4 && (
-                <div
-                  className={`media-dropzone ${
-                    isUploadingImages ? "media-dropzone--uploading" : ""
-                  }`}
-                  onClick={() => {
-                    if (!isUploadingImages) {
-                      fileInputRef.current?.click();
-                    }
-                  }}
-                >
-                  <input
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    ref={fileInputRef}
-                    onChange={handleFileChange}
-                    disabled={isUploadingImages}
-                    hidden
-                  />
-
-                  {isUploadingImages ? (
-                    <>
-                      <div className="story-image-upload-spinner" />
-
-                      <h3>Uploading images...</h3>
-
-                      <p>Please wait while your images are saved.</p>
-                    </>
-                  ) : (
-                    <>
-                      <svg
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                      >
-                        <path
-                          d="M12 3V15"
-                          stroke="#333333"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                        />
-
-                        <path
-                          d="M17 8L12 3L7 8"
-                          stroke="#333333"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                        />
-
-                        <path
-                          d="M21 15V19C21 20.1046 20.1046 21 19 21H5C3.89543 21 3 20.1046 3 19V15"
-                          stroke="#333333"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                        />
-                      </svg>
-
-                      <h3>Upload images</h3>
-
-                      <p>
-                        {4 - (block.media?.length || 0)}{" "}
-                        {4 - (block.media?.length || 0) === 1
-                          ? "slot"
-                          : "slots"}{" "}
-                        remaining
-                      </p>
-                    </>
-                  )}
-                </div>
-              )}
-
-              {imageUploadError && (
-                <p className="story-image-upload-error">{imageUploadError}</p>
-              )}
-
-              {block.media?.length > 0 && (
-                <div className="media-preview-grid">
-                  {block.media.map((url, idx) => (
-                    <div key={`${url}-${idx}`} className="media-preview-item">
-                      <CampaignStorageImage src={url} alt={`Campaign image ${idx + 1}`} />
-
-                      <button
-                        type="button"
-                        className="remove-img-btn"
-                        onClick={() => removeImage(idx)}
-                        aria-label={`Remove image ${idx + 1}`}
-                      >
-                        <svg
-                          width="12"
-                          height="12"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="#fc1010"
-                          strokeWidth="3"
-                        >
-                          <path d="M18 6L6 18M6 6l12 12" />
-                        </svg>
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* VIDEO */}
-
-          {block.type === "video" && (
-            <div className="video-block-wrapper">
-              <div className="video-block-field">
-                <label htmlFor={`video-url-${block.id}`}>Video link</label>
-
-                <input
-                  id={`video-url-${block.id}`}
-                  type="url"
-                  className="block-input"
-                  placeholder="Paste a YouTube or Vimeo link"
-                  value={block.url || ""}
-                  onChange={(event) =>
-                    handleTextChange("url", event.target.value)
-                  }
-                />
-
-                <p className="video-block-helper">
-                  Paste the link to your video from YouTube or Vimeo.
-                </p>
+      {isExpanded && <div className="block-body" id={"story-body-"+block.id}>
+        {block.type === "text" && <><label className="cw-story-label" htmlFor={"story-text-"+block.id}>Text</label><textarea id={"story-text-"+block.id} className="block-textarea" placeholder="Write your paragraph…" value={block.content || ""} onChange={event=>handleTextChange("content",event.target.value)} /><p className="cw-block-helper">Line breaks are kept on your public page.</p></>}
+        {block.type === "section" && <>
+          <label className="cw-story-label" htmlFor={"story-title-"+block.id}>Section heading</label><input id={"story-title-"+block.id} className="block-input" placeholder="Section title" value={block.title || ""} onChange={event=>handleTextChange("title",event.target.value)} />
+          <label className="cw-story-label" htmlFor={"story-content-"+block.id}>Paragraph</label><textarea id={"story-content-"+block.id} className="block-textarea" placeholder="Tell supporters more…" value={block.content || ""} onChange={event=>handleTextChange("content",event.target.value)} /><p className="cw-block-helper">Line breaks are kept on your public page.</p>
+        </>}
+        {isImageBlock && <div className="media-block-wrapper">
+          <input type="file" multiple accept="image/*" ref={fileInputRef} onChange={handleFileChange} disabled={isUploadingImages} hidden />
+          {isUploadingImages && <p role="status" className="cw-block-helper">Uploading images… Please wait while your images are saved.</p>}
+          <DndContext sensors={photoSensors} collisionDetection={closestCenter} onDragEnd={photoDragEnd}>
+            <SortableContext items={photoIds} strategy={rectSortingStrategy}>
+              <div className="media-preview-grid">
+                {media.map((url,index)=><StoryPhoto key={photoIds[index]} id={photoIds[index]} url={url} index={index} count={media.length} disabled={isUploadingImages} onRemove={()=>removeImage(index)} onMove={direction=>movePhoto(index,direction)} />)}
+                {isUploadingImages && <div className="cw-photo-upload cw-photo-upload--busy" role="status"><span className="cw-saving-spinner" aria-hidden="true" /><strong>Uploading…</strong></div>}
+                {!isUploadingImages && failedFiles.length > 0 && <div className="cw-photo-upload cw-photo-upload--failed" role="alert"><strong>Didn&apos;t upload</strong><button type="button" aria-label={`Retry uploading image ${media.length + 1}`} onClick={() => uploadFiles(failedFiles)}><span className="action-icon action-icon--refresh" /></button><button type="button" onClick={() => fileInputRef.current?.click()}>Choose another</button></div>}
+                {Array.from({length:Math.max(0,4-media.length-(isUploadingImages || failedFiles.length ? 1 : 0))},(_,index)=><button key={"empty-"+index} type="button" data-upload className="cw-photo-upload" disabled={isUploadingImages} onClick={()=>fileInputRef.current?.click()} aria-label="Upload story images"><span aria-hidden="true">↑</span><strong>Add photos</strong></button>)}
               </div>
-
-              {block.url?.trim() && videoEmbedUrl && (
-                <div className="video-embed-preview">
-                  <iframe
-                    src={videoEmbedUrl}
-                    title="Campaign video preview"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    allowFullScreen
-                  />
-                </div>
-              )}
-
-              {block.url?.trim() && !videoEmbedUrl && (
-                <p className="video-block-error">
-                  Enter a valid YouTube or Vimeo video link.
-                </p>
-              )}
-            </div>
-          )}
-        </div>
-      )}
+            </SortableContext>
+          </DndContext>
+          {imageUploadError && <p className="story-image-upload-error" role="alert">Only the failed image needs attention. Your other images and text are safe.</p>}
+          <p className="cw-block-helper">Drag photos to reorder. Up to 4 per block.</p>
+        </div>}
+        {block.type === "video" && <div className="video-block-wrapper"><div className="video-block-field"><label htmlFor={"video-url-"+block.id}>Video link</label><input id={"video-url-"+block.id} type="url" className="block-input" placeholder="Paste a YouTube or Vimeo link" value={block.url || ""} onChange={event=>handleTextChange("url",event.target.value)} aria-describedby={"video-help-"+block.id} /><p className="video-block-helper" id={"video-help-"+block.id}>Paste the link to your video from YouTube or Vimeo.</p></div>
+          {block.url?.trim() && videoEmbedUrl && <div className="video-embed-preview"><iframe src={videoEmbedUrl} title="Campaign video preview" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen /></div>}
+          {block.url?.trim() && !videoEmbedUrl && <p className="video-block-error" role="alert">Enter a valid YouTube or Vimeo video link.</p>}
+        </div>}
+      </div>}
     </div>
   );
+}
+
+function StoryPhoto({id,url,index,count,disabled,onRemove,onMove}) {
+  const {attributes,listeners,setNodeRef,transform,transition,isDragging}=useSortable({id,disabled});
+  return <div className="media-preview-item" ref={setNodeRef} style={{transform:CSS.Transform.toString(transform),transition,opacity:isDragging ? 0.6 : 1,zIndex:isDragging?2:0}}>
+    <CampaignStorageImage src={url} alt={"Campaign image "+(index+1)} />
+    <button type="button" className="remove-img-btn" disabled={disabled} onClick={onRemove} aria-label={"Remove image "+(index+1)}>×</button>
+    <div className="cw-photo-controls"><button type="button" {...attributes} {...listeners} disabled={disabled} aria-label={"Drag to reorder image "+(index+1)}>⠿</button><button type="button" disabled={disabled || index===0} onClick={()=>onMove(-1)} aria-label={"Move image "+(index+1)+" earlier"}>←</button><button type="button" disabled={disabled || index===count-1} onClick={()=>onMove(1)} aria-label={"Move image "+(index+1)+" later"}>→</button></div>
+  </div>;
 }
 
 /* =========================================================

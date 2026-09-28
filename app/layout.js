@@ -1,5 +1,6 @@
 import { Urbanist, Bricolage_Grotesque } from "next/font/google";
 import "@/app/globals.css";
+import "@/styles/feedback.css";
 import "@/app/(website)/marketing.css";
 
 const urbanist = Urbanist({

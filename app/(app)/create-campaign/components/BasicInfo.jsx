@@ -1,58 +1,8 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { supabase } from "@/lib/supabase";
 import CampaignStorageImage from "@/components/campaigns/CampaignStorageImage";
-
-const categories = [
-  {
-    id: "724ab01c-2223-4514-93ec-27b2cc51b68e",
-    name: "Medical & Health",
-  },
-  {
-    id: "f3a6e06a-fbc0-433c-bc7e-aba8f6daf112",
-    name: "Education",
-  },
-  {
-    id: "080aec2c-7639-42cb-80c5-9038cdef5098",
-    name: "Emergency & Crisis",
-  },
-  {
-    id: "51f844c4-7e89-4f69-a1ac-97df2c652675",
-    name: "Business & Entrepreneurship",
-  },
-  {
-    id: "074b8ffc-2b60-4246-bcba-6b0a531a6574",
-    name: "Community & Social",
-  },
-  {
-    id: "5aa78afa-7eb5-4ec8-871f-22ae9a72e728",
-    name: "Religion & Charity",
-  },
-  {
-    id: "d798aa24-9418-4ef4-8b5b-1b1a0f1fce2c",
-    name: "Personal & Life Events",
-  },
-  {
-    id: "26ea1e87-3e40-4d48-bbc2-fa9da49c06b8",
-    name: "Housing & Shelter",
-  },
-  {
-    id: "25466d58-b1a0-4063-8844-6f9d61489bac",
-    name: "Creative & Arts",
-  },
-  {
-    id: "9f02e510-1975-466f-bf44-d0365a4cd7fc",
-    name: "Sports & Fitness",
-  },
-  {
-    id: "15004dff-0e91-4fdd-918e-748c31c59b11",
-    name: "Technology & Innovation",
-  },
-  {
-    id: "81a278dd-d3a9-46fc-bb6e-1ef3625e498b",
-    name: "Animals & Environment",
-  },
-];
 
 export default function BasicInfo({
   formData,
@@ -60,10 +10,33 @@ export default function BasicInfo({
   onNext,
   onSaveAndExit,
   onCancel,
+  onDiscardDraft,
+  coverUploadFailed = false,
+  onCoverChanged,
+  onRetryCover,
+  isDraft = true,
+  discardError,
   isSaving,
   isRestarting = false,
+  profileName = "",
 }) {
-  const today = new Date().toISOString().split("T")[0];
+  const today = new Intl.DateTimeFormat("en-CA", {timeZone:"Africa/Lagos",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
+  const [categories, setCategories] = useState([]);
+  const [categoryError, setCategoryError] = useState("");
+  const [categoryLoading, setCategoryLoading] = useState(true);
+  const [categoryAttempt, setCategoryAttempt] = useState(0);
+
+  const [attempted, setAttempted] = useState(false);
+  const coverPreviewRef = useRef(null);
+  useEffect(() => {
+    let cancelled = false;
+    supabase.from("categories").select("id,name").order("name").then(({data,error}) => {
+      if(cancelled) return;
+      setCategories(data || []); setCategoryError(error ? "Could not load categories. Please retry." : ""); setCategoryLoading(false);
+    }).catch(() => {if(!cancelled) {setCategoryError("Could not load categories. Please retry.");setCategoryLoading(false);}});
+    return () => {cancelled=true;};
+  }, [categoryAttempt]);
+  const endDays = formData.duration ? Math.round((Date.parse(formData.duration+"T00:00:00Z")-Date.parse(today+"T00:00:00Z"))/86400000) : null;
 
   /*
    * =========================================================
@@ -72,12 +45,12 @@ export default function BasicInfo({
    */
 
   const tomorrow = useMemo(() => {
-    const date = new Date();
+    const date = new Date(today + "T00:00:00Z");
 
-    date.setDate(date.getDate() + 1);
+    date.setUTCDate(date.getUTCDate() + 1);
 
     return date.toISOString().split("T")[0];
-  }, []);
+  }, [today]);
 
   const minimumEndDate = isRestarting ? tomorrow : today;
 
@@ -255,8 +228,9 @@ export default function BasicInfo({
       [field]: value,
     }));
 
-    if (value !== "" && value !== null && value !== undefined) {
-      clearError(field);
+    if (attempted) {
+      const invalid = field === "title" ? !value.trim() : field === "goal" ? !value || Number(value)<=0 : field === "duration" ? !value || value < minimumEndDate : false;
+      setErrors(current => ({...current,[field]: invalid ? (field === "duration" ? "Choose a valid end date." : field === "goal" ? "Enter a goal greater than zero." : "Enter a campaign title.") : undefined}));
     }
   }
 
@@ -305,6 +279,8 @@ export default function BasicInfo({
       }
     }
 
+    if (formData.duration && (formData.duration < minimumEndDate || Number.isNaN(Date.parse(formData.duration)))) { nextErrors.duration = "Choose a valid end date."; }
+
     const hasCoverImage =
       formData.coverImageFile ||
       formData.imagePreview ||
@@ -329,11 +305,13 @@ export default function BasicInfo({
    */
 
   function handleContinue() {
+    setAttempted(true);
     const isValid = validateBasicInfo();
 
     if (!isValid) {
       requestAnimationFrame(() => {
-        const firstError = document.querySelector(".form-field-error");
+        const firstError = document.querySelector('.cw-basics [data-invalid="true"], .cw-basics [aria-invalid="true"]');
+        firstError?.focus();
 
         firstError?.scrollIntoView({
           behavior: "smooth",
@@ -359,6 +337,7 @@ export default function BasicInfo({
     if (!file) {
       return;
     }
+    onCoverChanged?.();
 
     if (!file.type.startsWith("image/")) {
       setErrors((current) => ({
@@ -856,6 +835,15 @@ export default function BasicInfo({
     }
   }
 
+  async function handleReposition() {
+    try {
+      const displayedImage = coverPreviewRef.current?.querySelector("img");
+      const response = await fetch(displayedImage?.currentSrc || existingCoverImage);
+      if(!response.ok) throw new Error("Could not load cover");
+      const blob=await response.blob();
+      handleImageSelect({target:{files:[new File([blob], "campaign-cover.jpg", {type:blob.type || "image/jpeg"})],value:""}});
+    } catch {setErrors(current=>({...current,coverImage:"Could not reopen this cover. Use Replace to upload it again."}));}
+  }
   const displayPosition = getDisplayPosition();
 
   /*
@@ -870,186 +858,53 @@ export default function BasicInfo({
         <h1 className="form-main-title">Let&apos;s start with the basics</h1>
 
         <p className="form-sub-title">
-          Tell us about your campaign in a few simple steps
+          The essentials supporters see first.
         </p>
       </div>
 
-      <div className="form-container-main">
-        {/* =====================================================
-            CAMPAIGN TITLE
-        ====================================================== */}
+      <div className="form-container-main cw-basics">
+<div className="form-group">
+          <label className="form-label" htmlFor="basics-title">Campaign title</label>
+          <input id="basics-title" aria-invalid={Boolean(errors.title)} aria-describedby={errors.title ? "basics-title-error" : "basics-title-help"} className={`input-field ${errors.title ? "input-field--error" : ""}`} value={formData.title || ""} onChange={e=>updateField("title",e.target.value)} placeholder="Give your campaign a clear title" />
 
-        <div className="form-group">
-          <label className="form-label">
-            Campaign Title <span>*</span>
+          <p className="helper-text" id="basics-title-help">Keep it short and specific. {(formData.title || "").length} characters.</p>{errors.title && <p className="form-field-error" id="basics-title-error">{errors.title}</p>}</div>
+          <div className="cw-field-pair">
+          <div className="form-group">
+          <label className="form-label" htmlFor="basics-categoryId">Category</label>
+          <select id="basics-categoryId" aria-invalid={Boolean(errors.categoryId)} aria-describedby={errors.categoryId ? "basics-categoryId-error" : undefined} className="input-field" disabled={categoryLoading} value={formData.categoryId || ""} onChange={e=>{const selectedId=e.target.value;setFormData(current=>({...current,categoryId:selectedId,category:categories.find(c=>c.id===selectedId)?.name || ""}));if(selectedId)clearError("categoryId");else if(attempted)setErrors(current=>({...current,categoryId:"Select a category."}));}}>
+          <option value="">{categoryLoading ? "Loading categories…" : "Select a category"}</option>{formData.categoryId && !categories.some(c=>c.id===formData.categoryId) && <option value={formData.categoryId}>{formData.category || "Current category"}</option>}{categories.map(c=>
+          <option key={c.id} value={c.id}>{c.name}</option>)}</select>{categoryError && <p role="alert" className="form-field-error">{categoryError} <button type="button" onClick={()=>{setCategoryLoading(true);setCategoryAttempt(n=>n+1);}}>Retry</button>
+          </p>}{errors.categoryId && <p className="form-field-error" id="basics-categoryId-error">{errors.categoryId}</p>}</div>
+          <div className="form-group">
+          <label className="form-label" htmlFor="basics-goal">Goal amount</label>
+          <div className={`cw-goal ${errors.goal ? "cw-goal--error" : ""}`}>
+          <span aria-hidden="true">₦</span>
+          <input id="basics-goal" aria-invalid={Boolean(errors.goal)} aria-describedby={errors.goal ? "basics-goal-error" : undefined} aria-label="Goal amount in naira" className="input-field" type="text" inputMode="numeric" placeholder="0" value={String(formData.goal || "").replace(/\B(?=(\d{3})+(?!\d))/g,",")} onChange={e=>{const raw=e.target.value.replace(/[₦,\s]/g,"");if(/^\d*$/.test(raw))updateField("goal",raw);}} />
+
+          </div>{errors.goal && <p className="form-field-error" id="basics-goal-error">{errors.goal}</p>}</div>
+          </div>
+          <div className="cw-field-pair">
+          <div className="form-group">
+          <label className="form-label" htmlFor="basics-duration">{isRestarting ? "New end date" : "End date"}</label>
+          <input id="basics-duration" aria-invalid={Boolean(errors.duration)} aria-describedby={errors.duration ? "basics-duration-error" : "basics-duration-help"} className="input-field" type="date" min={minimumEndDate} value={formData.duration || ""} onChange={e=>updateField("duration",e.target.value)} />
+
+          <p className="helper-text" id="basics-duration-help">{endDays === null ? "Choose when your campaign ends." : endDays >= 0 ? `${endDays} ${endDays === 1 ? "day" : "days"} from today.` : "Choose a future end date."}</p>{errors.duration && <p className="form-field-error" id="basics-duration-error">{errors.duration}</p>}</div>
+          <div className="form-group">
+          <label className="form-label" htmlFor="basics-organiser">Organizer name <span className="optional-text">(optional)</span>
           </label>
+          <input id="basics-organiser" aria-describedby="basics-organiser-help" className="input-field" value={formData.organiser || ""} placeholder={profileName || "Your profile name"} onChange={e=>updateField("organiser",e.target.value)} />
 
-          <input
-            className={`input-field ${
-              errors.title ? "input-field--error" : ""
-            }`}
-            placeholder="Enter a compelling title"
-            value={formData.title || ""}
-            onChange={(event) => updateField("title", event.target.value)}
-          />
-
-          {errors.title && <p className="form-field-error">{errors.title}</p>}
-        </div>
-
-        {/* =====================================================
-            CATEGORY
-        ====================================================== */}
-
-        <div className="form-group">
-          <label className="form-label">
-            Category <span>*</span>
-          </label>
-
-          <select
-            className={`input-field ${
-              errors.categoryId ? "input-field--error" : ""
-            }`}
-            value={formData.categoryId || ""}
-            onChange={(event) => {
-              const selectedId = event.target.value;
-
-              const selectedCategory = categories.find(
-                (category) => category.id === selectedId,
-              );
-
-              setFormData((current) => ({
-                ...current,
-
-                categoryId: selectedId,
-
-                category: selectedCategory?.name || "",
-              }));
-
-              if (selectedId) {
-                clearError("categoryId");
-              }
-            }}
-          >
-            <option value="">Select a category</option>
-
-            {categories.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.name}
-              </option>
-            ))}
-          </select>
-
-          {errors.categoryId && (
-            <p className="form-field-error">{errors.categoryId}</p>
-          )}
-        </div>
-
-        {/* =====================================================
-            GOAL
-        ====================================================== */}
-
-        <div className="form-group">
-          <label className="form-label">
-            Goal Amount <span>*</span>
-          </label>
-
-          <input
-            className={`input-field ${errors.goal ? "input-field--error" : ""}`}
-            type="text"
-            inputMode="numeric"
-            placeholder="Enter an amount"
-            value={
-              formData.goal
-                ? `₦${Number(formData.goal).toLocaleString("en-NG")}`
-                : ""
-            }
-            onChange={(event) => {
-              const rawValue = event.target.value.replace(/[₦,\s]/g, "");
-
-              if (/^\d*$/.test(rawValue)) {
-                updateField("goal", rawValue);
-              }
-            }}
-          />
-
-          {errors.goal && <p className="form-field-error">{errors.goal}</p>}
-        </div>
-
-        {/* =====================================================
-            ORGANISER
-        ====================================================== */}
-
-        <div className="form-group">
-          <label className="form-label">
-            Organiser Name <span className="optional-text">(Optional)</span>
-          </label>
-
-          <input
-            className="input-field"
-            placeholder="Enter a name"
-            value={formData.organiser || ""}
-            onChange={(event) => updateField("organiser", event.target.value)}
-          />
-
-          <p className="helper-text">
-            Enter a name if you want a different name from your profile name
-          </p>
-        </div>
-
-        {/* =====================================================
-            END DATE
-        ====================================================== */}
-
-        <div className="form-group">
-          {isRestarting && (
-            <div className="restart-end-date-notice">
-              <strong>Choose a new campaign end date</strong>
-
-              <p>
-                Your previous campaign has ended. Select a new future date to
-                restart it.
-              </p>
-            </div>
-          )}
-
-          <label className="form-label">
-            {isRestarting ? "New Campaign End Date" : "Campaign End Date"}{" "}
-            <span>*</span>
-          </label>
-
-          <input
-            className={`input-field ${
-              errors.duration ? "input-field--error" : ""
-            }`}
-            type="date"
-            min={minimumEndDate}
-            value={formData.duration || ""}
-            onChange={(event) => updateField("duration", event.target.value)}
-          />
-
-          <p className="helper-text">
-            {isRestarting
-              ? "Choose when you want the restarted campaign to end"
-              : "Choose the date you want your campaign to end"}
-          </p>
-
-          {errors.duration && (
-            <p className="form-field-error">{errors.duration}</p>
-          )}
-        </div>
-
-        {/* =====================================================
+          <p className="helper-text" id="basics-organiser-help">Leave blank to use your profile name.</p>{errors.organiser && <p className="form-field-error" id="basics-organiser-error">{errors.organiser}</p>}</div>
+          </div>        {/* =====================================================
             COVER IMAGE
         ====================================================== */}
 
         <div className="form-group">
           <label className="form-label">
-            Cover Image <span>*</span>
+            Cover image
           </label>
 
-          <p className="helper-text cover-image-helper">
-            Upload a campaign cover image. It will be displayed in a 16:7 ratio.
-          </p>
+
 
           <input
             ref={fileInputRef}
@@ -1059,8 +914,9 @@ export default function BasicInfo({
             onChange={handleImageSelect}
           />
 
-          {existingCoverImage ? (
+          {coverUploadFailed ? <div className="cw-cover-upload-failed" role="alert"><strong><span className="action-icon action-icon--alert" />Cover didn&apos;t upload</strong><p>Your other images and text are safe.</p><div><button type="button" onClick={onRetryCover} disabled={isSaving}><span className="action-icon action-icon--refresh" />Retry upload</button><button type="button" onClick={() => fileInputRef.current?.click()} disabled={isSaving}>Choose another image</button></div></div> : existingCoverImage ? (
             <div
+              ref={coverPreviewRef}
               className={`cover-image-preview ${
                 errors.coverImage ? "cover-image-preview--error" : ""
               }`}
@@ -1068,18 +924,22 @@ export default function BasicInfo({
               <CampaignStorageImage src={existingCoverImage} alt="Campaign cover preview" />
 
               <div className="cover-image-preview__overlay">
+                <button type="button" className="cover-image-change-btn" onClick={handleReposition} disabled={isSaving}>Reposition</button>
                 <button
                   type="button"
                   className="cover-image-change-btn"
+                  data-invalid={Boolean(errors.coverImage)}
+                  disabled={isSaving}
                   onClick={() => fileInputRef.current?.click()}
                 >
-                  Change Image
+                  ↑ Replace
                 </button>
               </div>
             </div>
           ) : (
             <button
               type="button"
+              data-invalid={Boolean(errors.coverImage)}
               className={`upload-box cover-upload-box ${
                 errors.coverImage ? "upload-box--error" : ""
               }`}
@@ -1099,6 +959,7 @@ export default function BasicInfo({
             </button>
           )}
 
+          <p className="helper-text">Shown at 16:7. Best at 1600 × 700 px, JPG or PNG.</p>
           {errors.coverImage && (
             <p className="form-field-error">{errors.coverImage}</p>
           )}
@@ -1108,6 +969,7 @@ export default function BasicInfo({
             BOTTOM NAVIGATION
         ====================================================== */}
 
+        {discardError && <p role="alert" className="form-field-error">{discardError}</p>}
         <div className="campaign-bottom-actions">
           <button
             type="button"
@@ -1118,15 +980,16 @@ export default function BasicInfo({
             {isSaving ? "Saving..." : "Save & Exit"}
           </button>
 
-          <div className="campaign-bottom-actions__right">
             <button
               type="button"
-              className="campaign-action-secondary"
-              onClick={onCancel}
+              className="campaign-action-secondary cw-discard"
+              onClick={isDraft ? onDiscardDraft : onCancel}
               disabled={isSaving}
             >
-              Cancel process
+              {isDraft ? "Discard draft" : "Cancel editing"}
             </button>
+          <div className="campaign-bottom-actions__right">
+
 
             <button
               type="button"
@@ -1141,7 +1004,7 @@ export default function BasicInfo({
                   <span>Saving...</span>
                 </span>
               ) : (
-                "Continue"
+                "Continue to story"
               )}
             </button>
           </div>

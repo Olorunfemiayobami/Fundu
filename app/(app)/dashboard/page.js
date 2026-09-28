@@ -1,5 +1,6 @@
 "use client";
 
+import LoadingScreen from "@/components/feedback/LoadingScreen";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -30,18 +31,10 @@ export default function DashboardPage() {
         error: authError,
       } = await supabase.auth.getUser();
 
-      if (authError) {
-        throw authError;
-      }
+      if (authError) throw authError;
+      if (!authUser) return;
 
-      if (!authUser) {
-        setLoading(false);
-        return;
-      }
-
-      /* =========================
-         USER PROFILE
-      ========================= */
+      /* USER PROFILE */
 
       const { data: profile, error: profileError } = await supabase
         .from("users")
@@ -66,9 +59,7 @@ export default function DashboardPage() {
         },
       );
 
-      /* =========================
-         CAMPAIGNS
-      ========================= */
+      /* CAMPAIGNS */
 
       const { data: campaignRows, error: campaignsError } = await supabase
         .from("campaigns")
@@ -94,17 +85,12 @@ export default function DashboardPage() {
         .eq("creator_id", authUser.id)
         .order("updated_at", { ascending: false });
 
-      if (campaignsError) {
-        throw campaignsError;
-      }
+      if (campaignsError) throw campaignsError;
 
       const safeCampaigns = campaignRows || [];
-
       setCampaigns(safeCampaigns);
 
-      /* =========================
-         BANK ACCOUNT
-      ========================= */
+      /* BANK ACCOUNT */
 
       const { data: bankRows, error: bankError } = await supabase
         .from("campaign_bank_accounts")
@@ -132,9 +118,7 @@ export default function DashboardPage() {
 
       setBankAccount(bankRows?.[0] || null);
 
-      /* =========================
-         ACTIVITY
-      ========================= */
+      /* ACTIVITY */
 
       const { data: activityRows, error: activityError } = await supabase
         .from("activity_feed")
@@ -159,9 +143,7 @@ export default function DashboardPage() {
 
       setActivity(activityRows || []);
 
-      /* =========================
-         METRICS + COMMENTS + UPDATES
-      ========================= */
+      /* METRICS, COMMENTS AND UPDATE COUNTS */
 
       if (safeCampaigns.length > 0) {
         const campaignIds = safeCampaigns.map((campaign) => campaign.id);
@@ -249,29 +231,32 @@ export default function DashboardPage() {
     return name.trim().split(" ")[0];
   }, [user]);
 
-  const totalRaised = useMemo(() => {
-    return campaigns.reduce(
-      (sum, campaign) => sum + Number(campaign.amount_raised || 0),
-      0,
-    );
-  }, [campaigns]);
+  const totalRaised = useMemo(
+    () =>
+      campaigns.reduce(
+        (sum, campaign) => sum + Number(campaign.amount_raised || 0),
+        0,
+      ),
+    [campaigns],
+  );
 
-  const totalGoal = useMemo(() => {
-    return campaigns.reduce(
-      (sum, campaign) => sum + Number(campaign.goal_amount || 0),
-      0,
-    );
-  }, [campaigns]);
+  const totalGoal = useMemo(
+    () =>
+      campaigns.reduce(
+        (sum, campaign) => sum + Number(campaign.goal_amount || 0),
+        0,
+      ),
+    [campaigns],
+  );
 
-  const activeCampaignCount = useMemo(() => {
-    return campaigns.filter((campaign) => isCampaignActive(campaign)).length;
-  }, [campaigns]);
+  const activeCampaignCount = useMemo(
+    () => campaigns.filter((campaign) => isCampaignActive(campaign)).length,
+    [campaigns],
+  );
 
   if (loading) {
     return (
-      <div className="creator-dashboard creator-dashboard--loading">
-        <p>Loading your dashboard...</p>
-      </div>
+      <LoadingScreen variant="dashboard" label="Loading your dashboard" />
     );
   }
 
@@ -308,7 +293,6 @@ function DashboardGreeting({ firstName }) {
     <section className="dashboard-header">
       <div className="dashboard-header__copy">
         <h1>Good afternoon, {firstName} 👋</h1>
-
         <p>Here&apos;s an overview of your Fundu account.</p>
       </div>
 
@@ -357,84 +341,244 @@ function BankDetailsNotice() {
 }
 
 /* =========================================================
-   EMPTY DASHBOARD
+   EMPTY DASHBOARD — EXISTING LAYOUT
 ========================================================= */
 
 function EmptyDashboard({ firstName, bankAccount }) {
+  const [showSharingHelp, setShowSharingHelp] = useState(false);
+
+  const steps = [
+    {
+      number: 1,
+      title: "Add your bank account",
+      description:
+        "This is where supporters will send money. Fundu never holds your funds.",
+      icon: "/icons/activity/activity-bank.svg",
+      done: Boolean(bankAccount),
+      action: bankAccount ? "Manage bank account" : "Add bank account",
+      href: "/settings",
+    },
+    {
+      number: 2,
+      title: "Tell your story",
+      description:
+        "Say what happened, what you’re raising for and how the money will be used.",
+      icon: "/icons/activity/activity-file.svg",
+      action: "Start a campaign",
+      href: "/create-campaign",
+      primary: true,
+    },
+    {
+      number: 3,
+      title: "Share your link",
+      description:
+        "Post it on WhatsApp, X, Instagram or Facebook, then keep supporters updated.",
+      icon: "/share.svg",
+      action: "How sharing works",
+    },
+  ];
+
   return (
-    <div className="creator-dashboard">
-      <DashboardGreeting firstName={firstName} />
+    <div className="creator-dashboard dashboard-empty-v2">
+      {/* WELCOME */}
 
-      {!bankAccount && <BankDetailsNotice />}
+      <header className="dashboard-empty-v2__welcome">
+        <h1>Welcome to Fundu, {firstName}</h1>
+        <p>Let&apos;s get your first fundraiser ready to share.</p>
+      </header>
 
-      <section className="dashboard-fundraising">
-        <div className="dashboard-fundraising__header">
-          <h2>Your Fundraising</h2>
-          <span>No campaign activity yet</span>
-        </div>
+      {/* INTRODUCTION */}
 
-        <div className="dashboard-stats">
-          <StatCard label="Total raised" value="₦0" muted />
-          <StatCard label="Total goal" value="₦0" muted />
-          <StatCard label="Active Campaigns" value="0" muted />
-          <StatCard label="Total Campaigns" value="0" muted />
-        </div>
-      </section>
-
-      <section className="dashboard-section">
-        <div className="dashboard-section-header dashboard-section-header--simple">
-          <h2>Your Campaigns</h2>
-        </div>
-
-        <div className="dashboard-empty-campaign">
-          <div className="dashboard-empty-campaign__copy">
-            <span>Have something you need help with?</span>
-
-            <h3>Tell your story. Get support.</h3>
-
-            <p>Create a campaign and share it with people who care.</p>
-          </div>
-
-          <Link
-            href="/create-campaign"
-            className="dashboard-primary-btn dashboard-empty-campaign__button"
-          >
-            <span className="dashboard-button-plus">+</span>
-            Create a campaign
-          </Link>
-        </div>
-      </section>
-
-      <section className="dashboard-section">
-        <div className="dashboard-section-header dashboard-section-header--simple">
-          <h2>Recent Activity</h2>
-        </div>
-
-        <div className="dashboard-empty-activity">
-          <strong>No recent activity</strong>
+      <section
+        className="dashboard-empty-v2__hero"
+        aria-labelledby="empty-dashboard-hero-title"
+      >
+        <div className="dashboard-empty-v2__hero-copy">
+          <h2 id="empty-dashboard-hero-title">
+            Give every goal a place of its own
+          </h2>
 
           <p>
-            Your activity will appear here as you create campaigns, post
-            updates, edit campaigns, and update amounts raised.
+            Put your story, photos, goal and bank details on one page. Share one
+            link on WhatsApp, Instagram or anywhere else, and supporters send
+            money straight to your account.
           </p>
+
+          <div className="dashboard-empty-v2__hero-actions">
+            <Link
+              href="/create-campaign"
+              className="dashboard-empty-v2__button dashboard-empty-v2__button--primary"
+            >
+              <span aria-hidden="true">+</span>
+              Create your first campaign
+            </Link>
+
+            <Link href="/explore" className="dashboard-empty-v2__explore">
+              See campaigns on Explore
+            </Link>
+          </div>
+        </div>
+
+        {/* Decorative example, not an actual campaign */}
+
+        <div className="dashboard-empty-v2__sample" aria-hidden="true">
+          <div className="dashboard-empty-v2__sample-image">
+            <svg
+              width="28"
+              height="28"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <circle cx="8" cy="8" r="1.5" />
+              <path d="m21 15-5-5L5 21" />
+            </svg>
+          </div>
+
+          <h3>Your campaign title</h3>
+
+          <p className="dashboard-empty-v2__sample-amount">
+            <strong>₦0</strong>
+            <span>of your goal</span>
+          </p>
+
+          <div className="dashboard-empty-v2__sample-progress">
+            <span />
+          </div>
+
+          <p className="dashboard-empty-v2__sample-link">Your campaign link</p>
         </div>
       </section>
 
-      <section className="dashboard-section">
-        <div className="dashboard-section-header dashboard-section-header--simple">
-          <h2>Your Bank Account</h2>
-        </div>
+      {/* THREE SETUP STEPS */}
 
-        {bankAccount ? (
-          <BankAccountCard bankAccount={bankAccount} />
-        ) : (
-          <EmptyBankAccount />
-        )}
+      <section className="dashboard-empty-v2__section">
+        <h2>Three steps to go live</h2>
+
+        <div className="dashboard-empty-v2__steps">
+          {steps.map((step) => (
+            <div className="dashboard-empty-v2__step" key={step.number}>
+              <div className="dashboard-empty-v2__step-top">
+                <span
+                  className="dashboard-empty-v2__icon"
+                  style={{
+                    "--empty-icon": `url("${step.icon}")`,
+                  }}
+                  aria-hidden="true"
+                />
+
+                <span className="dashboard-empty-v2__step-number">
+                  Step {step.number} of 3
+                  {step.done && (
+                    <span className="dashboard-empty-v2__done">Done</span>
+                  )}
+                </span>
+              </div>
+
+              <div className="dashboard-empty-v2__step-copy">
+                <h3>{step.title}</h3>
+                <p>{step.description}</p>
+              </div>
+
+              {step.href ? (
+                <Link
+                  href={step.href}
+                  className={`dashboard-empty-v2__button ${
+                    step.primary ? "dashboard-empty-v2__button--primary" : ""
+                  }`}
+                >
+                  {step.action}
+                </Link>
+              ) : (
+                <button
+                  type="button"
+                  className="dashboard-empty-v2__button"
+                  aria-expanded={showSharingHelp}
+                  aria-controls="empty-dashboard-sharing-help"
+                  onClick={() => setShowSharingHelp((open) => !open)}
+                >
+                  {step.action}
+                </button>
+              )}
+
+              {step.number === 3 && showSharingHelp && (
+                <p
+                  id="empty-dashboard-sharing-help"
+                  className="dashboard-empty-v2__sharing-help"
+                >
+                  After publishing, copy your campaign link and share it in
+                  messages or on social media. Supporters open the page to read
+                  your story and find your bank details. Post updates to keep
+                  them informed.
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
       </section>
+
+      {/* ACTIVITY AND BANK ACCOUNT */}
+
+      <div className="dashboard-lower-grid">
+        <section className="dashboard-lower-section">
+          <div className="dashboard-lower-heading">
+            <h2>Recent activity</h2>
+          </div>
+
+          <div className="dashboard-recent-empty dashboard-empty-v2__activity">
+            <span
+              className="dashboard-empty-v2__icon"
+              style={{
+                "--empty-icon": 'url("/icons/activity/activity-bell.svg")',
+              }}
+              aria-hidden="true"
+            />
+
+            <p>Drafts, updates and campaign changes will show up here.</p>
+          </div>
+        </section>
+
+        <section className="dashboard-lower-section">
+          <div className="dashboard-lower-heading">
+            <h2>Your bank account</h2>
+
+            {bankAccount && <Link href="/settings">Manage</Link>}
+          </div>
+
+          {bankAccount ? (
+            <BankAccountCard bankAccount={bankAccount} />
+          ) : (
+            <div className="dashboard-empty-v2__missing-bank">
+              <span
+                className="dashboard-empty-v2__icon dashboard-empty-v2__icon--orange"
+                style={{
+                  "--empty-icon": 'url("/icons/activity/activity-bank.svg")',
+                }}
+                aria-hidden="true"
+              />
+
+              <div className="dashboard-empty-v2__missing-bank-copy">
+                <h3>No account added</h3>
+                <p>Needed before you publish</p>
+              </div>
+
+              <Link
+                href="/settings"
+                className="dashboard-empty-v2__button dashboard-empty-v2__button--dark"
+              >
+                Add account
+              </Link>
+            </div>
+          )}
+        </section>
+      </div>
     </div>
   );
 }
-
 /* =========================================================
    POPULATED DASHBOARD
 ========================================================= */
@@ -456,11 +600,6 @@ function CreatorDashboard({
   reloadDashboard,
 }) {
   const [campaignFilter, setCampaignFilter] = useState("all");
-
-  /* =========================================================
-     POST UPDATE
-  ========================================================= */
-
   const [selectedCampaign, setSelectedCampaign] = useState(null);
   const [showPostUpdateModal, setShowPostUpdateModal] = useState(false);
   const [updateTitle, setUpdateTitle] = useState("");
@@ -470,6 +609,8 @@ function CreatorDashboard({
   const [updateError, setUpdateError] = useState("");
 
   const updateFileInputRef = useRef(null);
+  const endingCampaignRef = useRef(false);
+  const deletingCampaignRef = useRef(false);
 
   const activeCampaigns = campaigns.filter((campaign) =>
     isCampaignActive(campaign),
@@ -501,14 +642,10 @@ function CreatorDashboard({
     updates_count: updateCounts[campaign.id] || 0,
   }));
 
-  /* =========================================================
-     SHARE
-  ========================================================= */
+  /* SHARE */
 
   async function handleShare(campaign) {
-    if (!campaign?.id) {
-      return;
-    }
+    if (!campaign?.id) return;
 
     const url = `${window.location.origin}/campaign/${campaign.id}`;
 
@@ -522,9 +659,7 @@ function CreatorDashboard({
 
         return;
       } catch (error) {
-        if (error?.name === "AbortError") {
-          return;
-        }
+        if (error?.name === "AbortError") return;
       }
     }
 
@@ -536,22 +671,18 @@ function CreatorDashboard({
     }
   }
 
-  /* =========================================================
-     DELETE DRAFT
-  ========================================================= */
+  /* DELETE CAMPAIGN */
 
   async function handleDelete(campaign) {
-    if (!campaign?.id) {
-      return;
-    }
+    if (!campaign?.id || deletingCampaignRef.current) return;
 
     const confirmed = window.confirm(
       `Delete "${campaign.title || "this campaign"}"? This action cannot be undone.`,
     );
 
-    if (!confirmed) {
-      return;
-    }
+    if (!confirmed) return;
+
+    deletingCampaignRef.current = true;
 
     try {
       const {
@@ -559,9 +690,7 @@ function CreatorDashboard({
         error: authError,
       } = await supabase.auth.getUser();
 
-      if (authError) {
-        throw authError;
-      }
+      if (authError) throw authError;
 
       if (!user) {
         throw new Error("You need to sign in to delete this campaign.");
@@ -579,9 +708,7 @@ function CreatorDashboard({
         .select("id")
         .maybeSingle();
 
-      if (deleteError) {
-        throw deleteError;
-      }
+      if (deleteError) throw deleteError;
 
       if (!deletedCampaign) {
         throw new Error("The campaign could not be deleted.");
@@ -592,19 +719,127 @@ function CreatorDashboard({
       );
     } catch (error) {
       console.error("Dashboard delete campaign error:", error);
-
       alert(error?.message || "Unable to delete this campaign.");
+    } finally {
+      deletingCampaignRef.current = false;
     }
   }
 
-  /* =========================================================
-     OPEN UPDATE MODAL
-  ========================================================= */
+  /* END CAMPAIGN */
 
-  function handlePostUpdate(campaign) {
-    if (!campaign || campaign.status?.toLowerCase() === "draft") {
+  async function handleEndCampaign(campaign) {
+    if (
+      !campaign?.id ||
+      endingCampaignRef.current ||
+      !isCampaignActive(campaign)
+    ) {
       return;
     }
+
+    const confirmed = window.confirm(
+      `End "${campaign.title || "this campaign"}" early? ` +
+        "Its public page will stop showing bank details for contributions.",
+    );
+
+    if (!confirmed) return;
+
+    endingCampaignRef.current = true;
+
+    try {
+      const {
+        data: { user },
+        error: authError,
+      } = await supabase.auth.getUser();
+
+      if (authError) throw authError;
+
+      if (!user) {
+        throw new Error("You need to sign in to end this campaign.");
+      }
+
+      if (campaign.creator_id !== user.id) {
+        throw new Error("You do not have permission to end this campaign.");
+      }
+
+      const endedAt = new Date().toISOString();
+
+      const { data: endedCampaign, error } = await supabase
+        .from("campaigns")
+        .update({
+          status: "ended",
+          end_date: endedAt,
+          updated_at: endedAt,
+        })
+        .eq("id", campaign.id)
+        .eq("creator_id", user.id)
+        .eq("status", "active")
+        .select("id, status, end_date, updated_at")
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (!endedCampaign) {
+        throw new Error(
+          "The campaign could not be ended. Refresh the page and try again.",
+        );
+      }
+
+      setCampaigns((current) =>
+        current.map((item) =>
+          item.id === campaign.id ? { ...item, ...endedCampaign } : item,
+        ),
+      );
+
+      const { error: activityError } = await supabase
+        .from("activity_feed")
+        .insert({
+          user_id: user.id,
+          campaign_id: campaign.id,
+          activity_type: "campaign_ended_early",
+          title: "Campaign ended early",
+          description: `${campaign.title || "Your campaign"} was ended early`,
+          metadata: {
+            campaign_title: campaign.title,
+            ended_at: endedAt,
+          },
+          is_notification: false,
+          is_read: true,
+          read_at: endedAt,
+        });
+
+      if (activityError) {
+        console.error("Campaign end activity error:", activityError);
+      } else {
+        setActivity((current) =>
+          [
+            {
+              id: `ended-${campaign.id}-${endedAt}`,
+              activity_type: "campaign_ended_early",
+              title: "Campaign ended early",
+              description: `${campaign.title || "Your campaign"} was ended early`,
+              campaign_id: campaign.id,
+              metadata: {
+                campaign_title: campaign.title,
+                ended_at: endedAt,
+              },
+              created_at: endedAt,
+            },
+            ...current,
+          ].slice(0, 3),
+        );
+      }
+    } catch (error) {
+      console.error("Dashboard end campaign error:", error);
+      alert(error?.message || "Unable to end this campaign.");
+    } finally {
+      endingCampaignRef.current = false;
+    }
+  }
+
+  /* OPEN AND CLOSE UPDATE MODAL */
+
+  function handlePostUpdate(campaign) {
+    if (!campaign || campaign.status?.toLowerCase() === "draft") return;
 
     cleanupUpdatePreviews();
 
@@ -620,13 +855,6 @@ function CreatorDashboard({
     }
   }
 
-  /*
-   * The general dashboard buttons do not identify a campaign,
-   * so open the modal for the most recently updated active
-   * campaign. If there is no active campaign, use the most
-   * recently updated inactive campaign.
-   */
-
   function handleGeneralPostUpdate() {
     const campaign =
       campaigns.find((item) => isCampaignActive(item)) ||
@@ -641,9 +869,7 @@ function CreatorDashboard({
   }
 
   function closePostUpdateModal() {
-    if (postingUpdate) {
-      return;
-    }
+    if (postingUpdate) return;
 
     cleanupUpdatePreviews();
 
@@ -667,16 +893,11 @@ function CreatorDashboard({
     });
   }
 
-  /* =========================================================
-     UPDATE IMAGES
-  ========================================================= */
+  /* UPDATE PHOTOS */
 
   function handleUpdateImageSelect(event) {
     const files = Array.from(event.target.files || []);
-
-    if (!files.length) {
-      return;
-    }
+    if (!files.length) return;
 
     const availableSlots = Math.max(0, 4 - updateImages.length);
 
@@ -689,14 +910,12 @@ function CreatorDashboard({
         typeof crypto !== "undefined" && crypto.randomUUID
           ? crypto.randomUUID()
           : `${Date.now()}-${Math.random().toString(36).slice(2)}`,
-
       file,
       previewUrl: URL.createObjectURL(file),
     }));
 
     setUpdateImages((current) => [...current, ...newImages]);
     setUpdateError("");
-
     event.target.value = "";
   }
 
@@ -713,18 +932,13 @@ function CreatorDashboard({
   }
 
   async function uploadCampaignUpdateImages(userId) {
-    if (!updateImages.length || !selectedCampaign?.id) {
-      return [];
-    }
+    if (!updateImages.length || !selectedCampaign?.id) return [];
 
     const uploadedUrls = [];
 
     for (const item of updateImages) {
       const file = item.file;
-
-      if (!file) {
-        continue;
-      }
+      if (!file) continue;
 
       const originalExtension =
         file.name?.split(".").pop()?.toLowerCase() || "jpg";
@@ -739,7 +953,9 @@ function CreatorDashboard({
           ? crypto.randomUUID()
           : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
-      const filePath = `campaign-updates/${userId}/${selectedCampaign.id}/${uniqueId}.${safeExtension}`;
+      const filePath =
+        `campaign-updates/${userId}/${selectedCampaign.id}/` +
+        `${uniqueId}.${safeExtension}`;
 
       const { error: uploadError } = await supabase.storage
         .from("campaign-images")
@@ -749,9 +965,7 @@ function CreatorDashboard({
           contentType: file.type || "image/jpeg",
         });
 
-      if (uploadError) {
-        throw uploadError;
-      }
+      if (uploadError) throw uploadError;
 
       const { data: publicUrlData } = supabase.storage
         .from("campaign-images")
@@ -769,16 +983,12 @@ function CreatorDashboard({
     return uploadedUrls;
   }
 
-  /* =========================================================
-     SAVE UPDATE
-  ========================================================= */
+  /* PUBLISH UPDATE */
 
   async function handlePostCampaignUpdate(event) {
     event.preventDefault();
 
-    if (!selectedCampaign?.id || postingUpdate) {
-      return;
-    }
+    if (!selectedCampaign?.id || postingUpdate) return;
 
     const cleanTitle = updateTitle.trim();
     const cleanContent = updateContent.trim();
@@ -802,9 +1012,7 @@ function CreatorDashboard({
         error: authError,
       } = await supabase.auth.getUser();
 
-      if (authError) {
-        throw authError;
-      }
+      if (authError) throw authError;
 
       if (!user) {
         throw new Error("You need to sign in to post an update.");
@@ -816,8 +1024,13 @@ function CreatorDashboard({
         );
       }
 
-      const finalUpdate = isCampaignInactive(selectedCampaign);
+      if (selectedCampaign.status?.toLowerCase() === "draft") {
+        throw new Error(
+          "Publish this campaign before posting campaign updates.",
+        );
+      }
 
+      const finalUpdate = isCampaignInactive(selectedCampaign);
       const imageUrls = await uploadCampaignUpdateImages(user.id);
 
       const { data: newUpdate, error: insertError } = await supabase
@@ -845,9 +1058,7 @@ function CreatorDashboard({
         )
         .single();
 
-      if (insertError) {
-        throw insertError;
-      }
+      if (insertError) throw insertError;
 
       const { error: activityError } = await supabase
         .from("activity_feed")
@@ -871,18 +1082,11 @@ function CreatorDashboard({
         console.error("Campaign update activity error:", activityError);
       }
 
-      /*
-       * Update campaign.updated_at too so the CampaignCard's
-       * "Last updated" value remains correct after a reload.
-       */
-
       const now = new Date().toISOString();
 
       const { error: campaignUpdateError } = await supabase
         .from("campaigns")
-        .update({
-          updated_at: now,
-        })
+        .update({ updated_at: now })
         .eq("id", selectedCampaign.id)
         .eq("creator_id", user.id);
 
@@ -898,10 +1102,7 @@ function CreatorDashboard({
       setCampaigns((current) =>
         current.map((campaign) =>
           campaign.id === selectedCampaign.id
-            ? {
-                ...campaign,
-                updated_at: now,
-              }
+            ? { ...campaign, updated_at: now }
             : campaign,
         ),
       );
@@ -963,67 +1164,98 @@ function CreatorDashboard({
 
         {!bankAccount && <BankDetailsNotice />}
 
-        {/* FUNDRAISING */}
+        {/* FUNDRAISING — STEP 2 */}
 
-        <section className="dashboard-fundraising">
-          <div className="dashboard-fundraising__header">
-            <h2>Your Fundraising</h2>
-          </div>
+        <section
+          className="dashboard-fundraising-v2"
+          aria-labelledby="dashboard-fundraising-heading"
+        >
+          <h2 id="dashboard-fundraising-heading">Your fundraising</h2>
 
-          <div className="dashboard-stats">
-            <StatCard label="Total raised" value={formatMoney(totalRaised)} />
+          <dl className="dashboard-fundraising-v2__stats">
+            <div className="dashboard-fundraising-v2__stat dashboard-fundraising-v2__stat--raised">
+              <dt>Total raised</dt>
+              <dd>{formatMoney(totalRaised)}</dd>
+              <p>As recorded by you</p>
+            </div>
 
-            <StatCard label="Total goal" value={formatMoney(totalGoal)} />
+            <div className="dashboard-fundraising-v2__stat dashboard-fundraising-v2__stat--goal">
+              <dt>Total goal</dt>
+              <dd>{formatMoney(totalGoal)}</dd>
+              <p>Across all campaigns</p>
+            </div>
 
-            <StatCard
-              label="Active Campaigns"
-              value={String(activeCampaignCount)}
-            />
+            <div className="dashboard-fundraising-v2__stat dashboard-fundraising-v2__stat--active">
+              <dt>
+                <span className="dashboard-fundraising-v2__desktop-label">
+                  Active campaigns
+                </span>
+                <span className="dashboard-fundraising-v2__mobile-label">
+                  Active
+                </span>
+              </dt>
 
-            <StatCard
-              label="Total Campaigns"
-              value={String(campaigns.length)}
-            />
-          </div>
+              <dd>{activeCampaignCount}</dd>
+              <p>Live and shareable</p>
+            </div>
 
-          <div className="dashboard-update-banner">
-            <div className="dashboard-update-banner__header">
-              <div className="dashboard-update-banner__icon">
+            <div className="dashboard-fundraising-v2__stat dashboard-fundraising-v2__stat--total">
+              <dt>Total campaigns</dt>
+              <dd>{campaigns.length}</dd>
+
+              <p>
+                {draftCampaigns.length}{" "}
+                {draftCampaigns.length === 1 ? "draft" : "drafts"},{" "}
+                {inactiveCampaigns.length} inactive
+              </p>
+            </div>
+          </dl>
+
+          {activeCampaigns.length > 0 && (
+            <div className="dashboard-fundraising-v2__prompt">
+              <div
+                className="dashboard-fundraising-v2__prompt-icon"
+                aria-hidden="true"
+              >
                 <Image
                   src="/images/dashboard/edit.svg"
                   alt=""
-                  width={18}
-                  height={18}
+                  width={20}
+                  height={20}
                 />
               </div>
 
-              <strong>Post updates to engage supporters!</strong>
-            </div>
+              <div className="dashboard-fundraising-v2__prompt-copy">
+                <strong>Post updates to engage supporters</strong>
 
-            <div className="dashboard-update-banner__copy">
-              <p>
-                Supporters send funds directly to your account. Share photos,
-                receipts, milestones, and thank-you notes to show them their
-                impact.
-              </p>
-            </div>
+                <p className="dashboard-fundraising-v2__desktop-copy">
+                  Supporters send funds straight to your account. Share photos,
+                  receipts, milestones and thank-you notes so they see their
+                  impact.
+                </p>
 
-            <button
-              type="button"
-              className="dashboard-orange-btn dashboard-update-banner__button"
-              onClick={handleGeneralPostUpdate}
-            >
-              Post Update
-            </button>
-          </div>
+                <p className="dashboard-fundraising-v2__mobile-copy">
+                  Photos, receipts and thank-you notes show your impact.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                className="dashboard-fundraising-v2__post-button"
+                onClick={handleGeneralPostUpdate}
+              >
+                Post update
+              </button>
+            </div>
+          )}
         </section>
 
-        {/* CAMPAIGNS */}
+        {/* CAMPAIGNS — SHARED CAMPAIGN CARD */}
 
         <section className="dashboard-section">
           <div className="dashboard-section-header">
             <div className="dashboard-section-header__title-group">
-              <h2>Your Campaigns</h2>
+              <h2>Your campaigns</h2>
 
               <CampaignStatusTabs
                 campaigns={campaigns}
@@ -1031,105 +1263,144 @@ function CreatorDashboard({
                 onFilterChange={setCampaignFilter}
               />
             </div>
-
-            <Link href="/campaigns">View all →</Link>
+            <Link href="/campaigns">View all campaigns</Link>{" "}
           </div>
 
-          {campaignCards.length > 0 ? (
-            <div className="dashboard-campaign-grid">
-              {campaignCards.map((campaign) => (
-                <CampaignCard
-                  key={campaign.id}
-                  campaign={campaign}
-                  variant="creator"
-                  onShare={handleShare}
-                  onPostUpdate={handlePostUpdate}
-                  onDelete={handleDelete}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="dashboard-empty-activity">
-              <strong>
-                {campaignFilter === "all"
-                  ? "No campaigns"
-                  : `No ${campaignFilter} campaigns`}
-              </strong>
-
-              <p>
-                You don&apos;t currently have any campaigns in this category.
-              </p>
-            </div>
-          )}
-        </section>
-
-        {/* ACTIVITY */}
-
-        <section className="dashboard-section">
-          <div className="dashboard-section-header">
-            <h2>Recent Activity</h2>
-
-            <Link href="/activity">View all →</Link>
-          </div>
-
-          {activity.length > 0 ? (
-            <div className="dashboard-activity-list">
-              {activity.map((item) => (
-                <div className="dashboard-activity-row" key={item.id}>
-                  <p>{item.description || item.title}</p>
-
-                  <span>{formatRelativeDate(item.created_at)}</span>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="dashboard-empty-activity">
-              <strong>No recent activity</strong>
-
-              <p>
-                Your campaign activity will appear here as you create, edit and
-                update campaigns.
-              </p>
-            </div>
-          )}
-        </section>
-
-        {/* BANK */}
-
-        <section className="dashboard-section">
-          <div className="dashboard-section-header dashboard-section-header--simple">
-            <h2>Your Bank Account</h2>
-          </div>
-
-          {bankAccount ? (
-            <BankAccountCard bankAccount={bankAccount} />
-          ) : (
-            <EmptyBankAccount />
-          )}
-        </section>
-
-        {/* CTA */}
-
-        <section className="dashboard-bottom-cta">
-          <div className="dashboard-bottom-cta__copy">
-            <h2>Keep your supporters updated</h2>
-
-            <p>Share progress, milestones, or how funds are being used.</p>
-          </div>
-
-          <button
-            type="button"
-            className="dashboard-orange-btn dashboard-bottom-cta__button"
-            onClick={handleGeneralPostUpdate}
+          <div
+            id="dashboard-campaign-panel"
+            className="dashboard-campaign-panel"
+            role="tabpanel"
+            aria-labelledby={`dashboard-campaign-tab-${campaignFilter}`}
+            tabIndex={0}
           >
-            Post an Update
-          </button>
+            {campaignCards.length > 0 ? (
+              <>
+                <div className="dashboard-campaign-grid">
+                  {campaignCards.map((campaign) => (
+                    <CampaignCard
+                      key={campaign.id}
+                      campaign={campaign}
+                      variant="creator"
+                      onShare={handleShare}
+                      onPostUpdate={handlePostUpdate}
+                      onDelete={handleDelete}
+                      onEnd={handleEndCampaign}
+                    />
+                  ))}
+                </div>
+
+                <Link href="/campaigns" className="dashboard-campaign-view-all">
+                  View all {campaigns.length}{" "}
+                  {campaigns.length === 1 ? "campaign" : "campaigns"}
+                </Link>
+              </>
+            ) : (
+              <div className="dashboard-empty-activity">
+                <strong>
+                  {campaignFilter === "all"
+                    ? "No campaigns"
+                    : `No ${campaignFilter} campaigns`}
+                </strong>
+
+                <p>
+                  You don&apos;t currently have any campaigns in this category.
+                </p>
+              </div>
+            )}
+          </div>
         </section>
+
+        {/* RECENT ACTIVITY AND BANK ACCOUNT */}
+
+        <div className="dashboard-lower-grid">
+          <section className="dashboard-lower-section">
+            <div className="dashboard-lower-heading">
+              <h2>Recent activity</h2>
+              <Link href="/activity">View all activity</Link>
+            </div>
+
+            {activity.length > 0 ? (
+              <ul className="dashboard-recent-list">
+                {activity.slice(0, 3).map((item) => {
+                  const isEnding = [
+                    "campaign_ended_early",
+                    "campaign_ended",
+                    "campaign_expired",
+                  ].includes(item.activity_type);
+
+                  return (
+                    <li className="dashboard-recent-row" key={item.id}>
+                      <span
+                        className={`dashboard-recent-icon ${
+                          isEnding ? "dashboard-recent-icon--ended" : ""
+                        }`}
+                        aria-hidden="true"
+                      >
+                        <img
+                          src={getDashboardActivityIcon(item.activity_type)}
+                          alt=""
+                          width={18}
+                          height={18}
+                        />
+                      </span>
+
+                      <p className="dashboard-recent-sentence">
+                        <ActivitySentence item={item} campaigns={campaigns} />
+                      </p>
+
+                      <time
+                        className="dashboard-recent-time"
+                        dateTime={item.created_at}
+                      >
+                        {formatRelativeDate(item.created_at)}
+                      </time>
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : (
+              <div className="dashboard-recent-empty">
+                Drafts, updates and campaign changes will show up here.
+              </div>
+            )}
+          </section>
+
+          <section className="dashboard-lower-section">
+            <div className="dashboard-lower-heading">
+              <h2>Your bank account</h2>
+
+              {bankAccount && <Link href="/settings">Manage</Link>}
+            </div>
+
+            {bankAccount ? (
+              <BankAccountCard bankAccount={bankAccount} />
+            ) : (
+              <EmptyBankAccount />
+            )}
+          </section>
+        </div>
+
+        {/* BOTTOM UPDATE PROMPT */}
+
+        {activeCampaigns.length > 0 && (
+          <section className="dashboard-followup">
+            <div>
+              <h2>Keep your supporters updated</h2>
+              <p>Share progress, milestones or how the funds are being used.</p>
+            </div>
+
+            <button
+              type="button"
+              className="dashboard-fundraising-v2__post-button"
+              onClick={handleGeneralPostUpdate}
+            >
+              Post an update
+            </button>
+          </section>
+        )}
       </div>
 
-      {/* =====================================================
-          POST UPDATE MODAL
-      ====================================================== */}
+      {/* POST UPDATE MODAL */}
 
       {showPostUpdateModal && selectedCampaign && (
         <div
@@ -1270,7 +1541,6 @@ function CreatorDashboard({
                     </span>
 
                     <strong>Upload photos</strong>
-
                     <span>JPG, PNG or WEBP</span>
                   </button>
                 )}
@@ -1344,7 +1614,7 @@ function CreatorDashboard({
 }
 
 /* =========================================================
-   STAT CARD
+   STAT CARD FOR THE EXISTING EMPTY STATE
 ========================================================= */
 
 function StatCard({ label, value, muted = false }) {
@@ -1378,45 +1648,70 @@ function CampaignStatusTabs({ campaigns, selectedFilter, onFilterChange }) {
   ).length;
 
   const items = [
-    {
-      key: "all",
-      label: "All",
-      count: campaigns.length,
-    },
-    {
-      key: "active",
-      label: "Active",
-      count: activeCount,
-    },
-    {
-      key: "draft",
-      label: "Draft",
-      count: draftCount,
-    },
-    {
-      key: "inactive",
-      label: "Inactive",
-      count: inactiveCount,
-    },
+    { key: "all", label: "All", count: campaigns.length },
+    { key: "active", label: "Active", count: activeCount },
+    { key: "draft", label: "Draft", count: draftCount },
+    { key: "inactive", label: "Inactive", count: inactiveCount },
   ];
+
+  function handleTabKeyDown(event, index) {
+    let nextIndex;
+
+    switch (event.key) {
+      case "ArrowRight":
+        nextIndex = (index + 1) % items.length;
+        break;
+
+      case "ArrowLeft":
+        nextIndex = (index - 1 + items.length) % items.length;
+        break;
+
+      case "Home":
+        nextIndex = 0;
+        break;
+
+      case "End":
+        nextIndex = items.length - 1;
+        break;
+
+      default:
+        return;
+    }
+
+    event.preventDefault();
+
+    const buttons =
+      event.currentTarget.parentElement.querySelectorAll('[role="tab"]');
+
+    buttons[nextIndex]?.focus();
+    onFilterChange(items[nextIndex].key);
+  }
 
   return (
     <div
       className="dashboard-campaign-tabs"
       role="tablist"
       aria-label="Filter campaigns"
+      aria-orientation="horizontal"
     >
-      {items.map((item) => {
+      {items.map((item, index) => {
         const isSelected = selectedFilter === item.key;
 
         return (
           <button
             key={item.key}
+            id={`dashboard-campaign-tab-${item.key}`}
             type="button"
             role="tab"
             aria-selected={isSelected}
+            aria-controls="dashboard-campaign-panel"
+            aria-label={`${item.label}, ${item.count} ${
+              item.count === 1 ? "campaign" : "campaigns"
+            }`}
+            tabIndex={isSelected ? 0 : -1}
             className={`dashboard-campaign-tab ${isSelected ? "active" : ""}`}
             onClick={() => onFilterChange(item.key)}
+            onKeyDown={(event) => handleTabKeyDown(event, index)}
           >
             <span>{item.label}</span>
 
@@ -1427,40 +1722,49 @@ function CampaignStatusTabs({ campaigns, selectedFilter, onFilterChange }) {
     </div>
   );
 }
-
 /* =========================================================
-   BANK ACCOUNT
+   BANK ACCOUNT — EXISTING LAYOUT
 ========================================================= */
 
 function BankAccountCard({ bankAccount }) {
+  const accountNumber = String(bankAccount.account_number || "");
+  const maskedNumber = accountNumber
+    ? `•••• ${accountNumber.slice(-4)}`
+    : "Not available";
+
   return (
-    <div className="dashboard-bank-card">
-      <div className="dashboard-bank-card__top">
-        <div className="dashboard-bank-card__icon">
-          <Image
-            src="/images/dashboard/bank-card.svg"
-            alt=""
-            width={24}
-            height={24}
-          />
-        </div>
+    <div className="dashboard-bank-v2">
+      <div className="dashboard-bank-v2__top">
+        <span className="dashboard-bank-v2__icon" aria-hidden="true">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="m3 9 9-6 9 6H3Z" />
+            <path d="M5 10v8M10 10v8M14 10v8M19 10v8M3 21h18M4 18h16" />
+          </svg>
+        </span>
 
-        <div className="dashboard-bank-card__info">
-          <strong>{bankAccount.bank_name}</strong>
-
-          <span>{bankAccount.account_holder_name}</span>
-
-          <span>{maskAccountNumber(bankAccount.account_number)}</span>
-        </div>
+        <span
+          className="dashboard-bank-v2__number"
+          aria-label={`Account ending in ${accountNumber.slice(-4) || "unknown"}`}
+        >
+          {maskedNumber}
+        </span>
       </div>
 
-      <div className="dashboard-bank-card__divider" />
-
-      <div className="dashboard-bank-card__footer">
-        <p>Supporters send contributions directly to this account.</p>
-
-        <Link href="/settings">Manage →</Link>
+      <div className="dashboard-bank-v2__details">
+        <h3>{bankAccount.bank_name}</h3>
+        <p>{bankAccount.account_holder_name}</p>
       </div>
+
+      <p className="dashboard-bank-v2__helper">
+        Supporters send contributions directly to this account.
+      </p>
     </div>
   );
 }
@@ -1503,23 +1807,17 @@ function EmptyBankAccount() {
 ========================================================= */
 
 function campaignHasExpired(campaign) {
-  if (!campaign?.end_date) {
-    return false;
-  }
+  if (!campaign?.end_date) return false;
 
   const endDate = new Date(campaign.end_date);
 
-  if (Number.isNaN(endDate.getTime())) {
-    return false;
-  }
+  if (Number.isNaN(endDate.getTime())) return false;
 
-  return endDate < new Date();
+  return endDate.getTime() <= Date.now();
 }
 
 function isCampaignInactive(campaign) {
-  if (!campaign) {
-    return false;
-  }
+  if (!campaign) return false;
 
   const status = campaign.status?.toLowerCase();
 
@@ -1532,9 +1830,7 @@ function isCampaignInactive(campaign) {
 }
 
 function isCampaignActive(campaign) {
-  if (!campaign) {
-    return false;
-  }
+  if (!campaign) return false;
 
   return (
     campaign.status?.toLowerCase() === "active" && !isCampaignInactive(campaign)
@@ -1556,18 +1852,17 @@ function formatMoney(value) {
 }
 
 function formatRelativeDate(date) {
-  if (!date) {
-    return "Not yet";
-  }
+  if (!date) return "Not yet";
 
   const target = new Date(date);
-  const now = new Date();
+  if (Number.isNaN(target.getTime())) return "Not yet";
 
-  const seconds = Math.floor((now.getTime() - target.getTime()) / 1000);
+  const seconds = Math.max(
+    0,
+    Math.floor((Date.now() - target.getTime()) / 1000),
+  );
 
-  if (seconds < 60) {
-    return "Just now";
-  }
+  if (seconds < 60) return "Just now";
 
   const minutes = Math.floor(seconds / 60);
 
@@ -1583,13 +1878,8 @@ function formatRelativeDate(date) {
 
   const days = Math.floor(hours / 24);
 
-  if (days === 1) {
-    return "Yesterday";
-  }
-
-  if (days < 7) {
-    return `${days} days ago`;
-  }
+  if (days === 1) return "Yesterday";
+  if (days < 7) return `${days} days ago`;
 
   return target.toLocaleDateString("en-NG", {
     day: "numeric",
@@ -1599,15 +1889,204 @@ function formatRelativeDate(date) {
 }
 
 function maskAccountNumber(accountNumber) {
-  if (!accountNumber) {
-    return "";
-  }
+  if (!accountNumber) return "";
 
   const value = String(accountNumber);
 
-  if (value.length <= 4) {
-    return value;
-  }
+  if (value.length <= 4) return value;
 
   return `••••••${value.slice(-4)}`;
+}
+function getDashboardActivityIcon(type) {
+  const icons = {
+    campaign_draft_created: "activity-file.svg",
+    campaign_published: "activity-rocket.svg",
+
+    campaign_edited: "activity-edit.svg",
+    campaign_story_updated: "activity-edit.svg",
+    campaign_images_updated: "activity-edit.svg",
+    campaign_end_date_changed: "activity-edit.svg",
+
+    campaign_ending_soon: "activity-bell.svg",
+    campaign_ended: "activity-bell.svg",
+    campaign_ended_early: "activity-bell.svg",
+    campaign_expired: "activity-bell.svg",
+
+    amount_raised_updated: "activity-trending-up.svg",
+    campaign_reached_25: "activity-trending-up.svg",
+    campaign_reached_50: "activity-trending-up.svg",
+    campaign_reached_75: "activity-trending-up.svg",
+    campaign_reached_100: "activity-trending-up.svg",
+
+    campaign_update_published: "activity-rocket.svg",
+    final_campaign_update_published: "activity-rocket.svg",
+    campaign_update_edited: "activity-edit.svg",
+    campaign_update_deleted: "activity-file.svg",
+
+    bank_account_added: "activity-bank.svg",
+    bank_account_updated: "activity-bank.svg",
+
+    comment_posted: "activity-comment.svg",
+    comment_received: "activity-comment.svg",
+
+    profile_updated: "activity-edit.svg",
+  };
+
+  return `/icons/activity/${icons[type] || "activity-file.svg"}`;
+}
+
+function ActivitySentence({ item, campaigns }) {
+  const metadata = item.metadata || {};
+
+  const campaign = campaigns.find((entry) => entry.id === item.campaign_id);
+
+  const campaignName =
+    metadata.campaign_title ||
+    metadata.campaign_name ||
+    campaign?.title ||
+    "your campaign";
+
+  const name = <strong>{campaignName}</strong>;
+
+  /*
+   * Older records store the update title in metadata.
+   * Some newer records store only the title in description.
+   */
+  let updateTitle = metadata.update_title || "";
+
+  if (!updateTitle && typeof item.description === "string") {
+    const description = item.description.trim();
+
+    const quotedTitle = description.match(
+      /^["“](.+?)["”]\s+was published to\b/i,
+    );
+
+    if (quotedTitle) {
+      updateTitle = quotedTitle[1];
+    } else if (
+      description &&
+      !/\b(was published to|update was published|update published to)\b/i.test(
+        description,
+      )
+    ) {
+      updateTitle = description;
+    }
+  }
+
+  switch (item.activity_type) {
+    case "campaign_draft_created":
+      return <>You created a draft for {name}</>;
+
+    case "campaign_published":
+      return <>You published {name}</>;
+
+    case "campaign_edited":
+      return <>You edited {name}</>;
+
+    case "campaign_story_updated":
+      return <>You updated the story for {name}</>;
+
+    case "campaign_images_updated":
+      return <>You updated the images for {name}</>;
+
+    case "campaign_end_date_changed":
+      return <>You changed the end date for {name}</>;
+
+    case "campaign_ending_soon":
+      return <>{name} is ending soon</>;
+
+    case "campaign_ended_early":
+      return <>{name} was ended early</>;
+
+    case "campaign_ended":
+    case "campaign_expired":
+      return <>{name} has ended</>;
+
+    case "amount_raised_updated": {
+      const previousAmount =
+        metadata.previous_amount ?? metadata.previous_amount_raised;
+
+      const newAmount = metadata.new_amount ?? metadata.amount_raised;
+
+      if (
+        previousAmount !== undefined &&
+        previousAmount !== null &&
+        newAmount !== undefined &&
+        newAmount !== null
+      ) {
+        return (
+          <>
+            You updated the recorded amount raised for {name} from{" "}
+            {formatMoney(previousAmount)} to {formatMoney(newAmount)}
+          </>
+        );
+      }
+
+      return <>You updated the recorded amount raised for {name}</>;
+    }
+
+    case "campaign_reached_25":
+    case "campaign_reached_50":
+    case "campaign_reached_75":
+    case "campaign_reached_100": {
+      const percentage = item.activity_type.split("_").pop();
+
+      return (
+        <>
+          {name} reached {percentage}% of its goal, based on your recorded
+          amount
+        </>
+      );
+    }
+
+    case "campaign_update_published":
+      return updateTitle ? (
+        <>
+          Update “{updateTitle}” posted to {name}
+        </>
+      ) : (
+        <>You posted an update to {name}</>
+      );
+
+    case "final_campaign_update_published":
+      return updateTitle ? (
+        <>
+          Final update “{updateTitle}” posted to {name}
+        </>
+      ) : (
+        <>You posted a final update to {name}</>
+      );
+
+    case "campaign_update_edited":
+      return <>You edited an update on {name}</>;
+
+    case "campaign_update_deleted":
+      return <>You deleted an update from {name}</>;
+
+    case "bank_account_added":
+      return item.campaign_id ? (
+        <>You added a bank account for {name}</>
+      ) : (
+        <>You added a bank account</>
+      );
+
+    case "bank_account_updated":
+      return item.campaign_id ? (
+        <>You updated the bank account for {name}</>
+      ) : (
+        <>You updated your bank account</>
+      );
+
+    case "comment_posted":
+      return <>You commented on {name}</>;
+
+    case "comment_received":
+      return <>{name} received a new comment</>;
+
+    case "profile_updated":
+      return <>You updated your profile information</>;
+
+    default:
+      return <>{item.description || item.title || "Campaign activity"}</>;
+  }
 }

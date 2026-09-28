@@ -1,5 +1,6 @@
 "use client";
 
+import { FirstLoadSplash } from "@/components/feedback/LoadingScreen";
 import { useEffect, useState } from "react";
 
 import { supabase } from "@/lib/supabase";
@@ -9,6 +10,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 
 import "@/styles/app-shell.css";
+import "./campaign-public.css";
 
 export default function CampaignPublicLayout({ children }) {
   const [checkingAuth, setCheckingAuth] = useState(true);
@@ -66,11 +68,7 @@ export default function CampaignPublicLayout({ children }) {
 
   if (checkingAuth) {
     return (
-      <div className="app-auth-loading">
-        <div className="app-auth-loading__spinner" />
-
-        <p>Loading campaign...</p>
-      </div>
+      <FirstLoadSplash />
     );
   }
 
@@ -84,7 +82,7 @@ export default function CampaignPublicLayout({ children }) {
 
   if (user) {
     return (
-      <div className="app-shell">
+      <div className="app-shell pc-app-shell">
         <SideNav />
 
         <div className="app-shell__content">
@@ -103,12 +101,12 @@ export default function CampaignPublicLayout({ children }) {
    */
 
   return (
-    <>
-      <Navbar />
+    <div className="pc-website">
+      <Navbar campaignPage />
 
       <main>{children}</main>
 
       <Footer />
-    </>
+    </div>
   );
 }

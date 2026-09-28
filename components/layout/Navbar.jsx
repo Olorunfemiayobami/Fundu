@@ -11,7 +11,7 @@ const NAV_ITEMS = [
   { label: "Explore", href: "/webexplore" },
 ];
 
-export default function Navbar() {
+export default function Navbar({ campaignPage = false }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -39,6 +39,28 @@ export default function Navbar() {
       setUser(session?.user ?? null);
       setLoading(false);
     });
+
+    if (campaignPage) {
+      return (
+        <header className="pc-public-header">
+          <div className="pc-public-header__inner">
+            <Link href="/" className="pc-public-logo" aria-label="Fundu home">
+              <img src="/logo.svg" alt="Fundu" />
+            </Link>
+            <nav aria-label="Public navigation">
+              <Link href="/webexplore">Explore campaigns</Link>
+              <Link href="/how-it-works">How it works</Link>
+            </nav>
+            <Link
+              href={fundraiserHref}
+              className="pc-button pc-button--teal pc-public-header__cta"
+            >
+              Start a fundraiser
+            </Link>
+          </div>
+        </header>
+      );
+    }
 
     return () => {
       subscription.unsubscribe();

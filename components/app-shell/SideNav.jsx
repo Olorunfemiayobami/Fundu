@@ -316,6 +316,8 @@ export default function SideNav() {
   ========================================================= */
 
   function isActive(href) {
+    if (href === "/campaigns" && pathname === "/create-campaign") return true;
+    if (href === "/explore" && pathname.startsWith("/campaign/")) return true;
     if (href === "/dashboard") {
       return pathname === "/dashboard";
     }
@@ -353,143 +355,166 @@ export default function SideNav() {
       setLoggingOut(false);
     }
   }
-
   /* =========================================================
-     PROFILE
+     RESPONSIVE SIDEBAR
   ========================================================= */
 
-  function ProfileSection({ mobile = false }) {
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 1279px)");
+
+    function updateSidebar() {
+      setCollapsed(media.matches);
+      setProfileOpen(false);
+    }
+
+    updateSidebar();
+    media.addEventListener("change", updateSidebar);
+
+    return () => {
+      media.removeEventListener("change", updateSidebar);
+    };
+  }, []);
+
+  useEffect(() => {
+    function handleEscape(event) {
+      if (event.key === "Escape") {
+        setProfileOpen(false);
+      }
+    }
+
+    document.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, []);
+
+  function renderAvatar() {
     return (
-      <div
-        className="app-sidebar__profile-wrap"
-        ref={mobile ? mobileProfileRef : profileRef}
-      >
+      <span className="app-sidebar__avatar">
+        {avatarUrl ? (
+          <img src={avatarUrl} alt="" />
+        ) : (
+          <Image
+            src="/icons/app-nav/profile-placeholder.svg"
+            alt=""
+            width={40}
+            height={40}
+          />
+        )}
+      </span>
+    );
+  }
+
+  function renderProfileMenu() {
+    return (
+      <>
+        <Link
+          href="/settings"
+          className="app-sidebar__profile-menu-item"
+          onClick={closeMobileMenu}
+        >
+          Settings
+        </Link>
+
+        <Link
+          href="/help"
+          className="app-sidebar__profile-menu-item"
+          onClick={closeMobileMenu}
+        >
+          Help
+        </Link>
+
         <button
           type="button"
-          className="app-sidebar__profile"
-          onClick={() => setProfileOpen((current) => !current)}
-          aria-expanded={profileOpen}
-          aria-label="Open profile menu"
+          className="app-sidebar__profile-menu-item"
+          onClick={handleLogout}
+          disabled={loggingOut}
         >
-          <span className="app-sidebar__avatar">
-            {avatarUrl ? (
-              <img src={avatarUrl} alt={displayName} />
-            ) : (
-              <Image
-                src="/icons/app-nav/profile-placeholder.svg"
-                alt=""
-                width={40}
-                height={40}
-              />
-            )}
-          </span>
-
-          <span className="app-sidebar__profile-info">
-            <span className="app-sidebar__profile-name">{displayName}</span>
-
-            <span className="app-sidebar__profile-meta">
-              {campaignCount} {campaignCount === 1 ? "Campaign" : "Campaigns"}
-            </span>
-          </span>
-
-          <Image
-            className={`app-sidebar__profile-chevron ${
-              profileOpen ? "app-sidebar__profile-chevron--open" : ""
-            }`}
-            src="/icons/app-nav/chevron-right.svg"
-            alt=""
-            width={24}
-            height={24}
-          />
+          {loggingOut ? "Signing out..." : "Sign out"}
         </button>
-
-        {profileOpen && (
-          <div className="app-sidebar__profile-menu">
-            <Link
-              href="/settings"
-              className="app-sidebar__profile-menu-item"
-              onClick={closeMobileMenu}
-            >
-              Profile
-            </Link>
-
-            <button
-              type="button"
-              className="app-sidebar__profile-menu-item"
-              onClick={handleLogout}
-              disabled={loggingOut}
-            >
-              {loggingOut ? "Logging out..." : "Logout"}
-            </button>
-          </div>
-        )}
-      </div>
+      </>
     );
   }
 
-  /* =========================================================
-     NAVIGATION
-  ========================================================= */
-
-  function NavigationLinks() {
+  function renderNavigationIcon(icon) {
     return (
-      <nav className="app-sidebar__nav">
-        {navItems.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            onClick={closeMobileMenu}
-            className={`app-sidebar__nav-item ${
-              isActive(item.href) ? "active" : ""
-            }`}
-          >
-            <span
-              className="app-sidebar__nav-icon"
-              style={{
-                WebkitMaskImage: `url(${item.icon})`,
-                maskImage: `url(${item.icon})`,
-              }}
-              aria-hidden="true"
-            />
-
-            <span className="app-sidebar__nav-label">{item.label}</span>
-
-            {item.showUnreadBadge && unreadActivityCount > 0 && (
-              <span
-                className="app-sidebar__activity-badge"
-                aria-label={`${unreadActivityCount} unread ${
-                  unreadActivityCount === 1 ? "notification" : "notifications"
-                }`}
-              >
-                {unreadActivityCount > 99 ? "99+" : unreadActivityCount}
-              </span>
-            )}
-          </Link>
-        ))}
-      </nav>
+      <span
+        className="app-sidebar__nav-icon"
+        style={{
+          WebkitMaskImage: `url(${icon})`,
+          maskImage: `url(${icon})`,
+        }}
+        aria-hidden="true"
+      />
     );
   }
+
+  function renderUnreadBadge() {
+    if (unreadActivityCount <= 0) {
+      return null;
+    }
+
+    return (
+      <span
+        className="app-sidebar__activity-badge"
+        aria-label={`${unreadActivityCount} unread ${
+          unreadActivityCount === 1 ? "notification" : "notifications"
+        }`}
+      >
+        {unreadActivityCount > 99 ? "99+" : unreadActivityCount}
+      </span>
+    );
+  }
+
+  const mobileItems = [
+    navItems[0],
+    navItems[1],
+    {
+      label: "Create",
+      href: "/create-campaign",
+      create: true,
+    },
+    navItems[2],
+    navItems[4],
+  ];
 
   return (
     <>
-      {/* =====================================================
-          DESKTOP SIDEBAR
-      ====================================================== */}
-
       <aside
         className={`app-sidebar ${collapsed ? "app-sidebar--collapsed" : ""}`}
       >
         <div className="app-sidebar__top">
-          <Link href="/dashboard" className="app-sidebar__logo">
-            <span>Fund</span>
-            <span>U</span>
+          <Link
+            href="/dashboard"
+            className="app-sidebar__logo"
+            aria-label="Fundu home"
+          >
+            {collapsed ? (
+              <Image
+                src="/boldlogo.svg"
+                alt=""
+                width={36}
+                height={36}
+                className="app-sidebar__emblem"
+              />
+            ) : (
+              <>
+                <span>Fund</span>
+                <span>U</span>
+              </>
+            )}
           </Link>
 
           <button
             type="button"
             className="app-sidebar__collapse"
-            onClick={() => setCollapsed((current) => !current)}
+            onClick={() => {
+              setCollapsed((current) => !current);
+              setProfileOpen(false);
+            }}
             aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
             <Image
               src="/icons/app-nav/sidebar-toggle.svg"
@@ -500,11 +525,82 @@ export default function SideNav() {
           </button>
         </div>
 
-        <ProfileSection />
+        <div className="app-sidebar__profile-wrap" ref={profileRef}>
+          <button
+            type="button"
+            className="app-sidebar__profile"
+            onClick={() => setProfileOpen((current) => !current)}
+            aria-expanded={profileOpen}
+            aria-controls="desktop-profile-menu"
+            aria-label={`Open account menu for ${displayName}`}
+            title={collapsed ? displayName : undefined}
+          >
+            {renderAvatar()}
 
-        <NavigationLinks />
+            <span className="app-sidebar__profile-info">
+              <span className="app-sidebar__profile-name" title={displayName}>
+                {displayName}
+              </span>
 
-        <Link href="/help" className="app-sidebar__help">
+              <span className="app-sidebar__profile-meta">
+                {campaignCount === 0
+                  ? "No campaigns"
+                  : `${campaignCount} ${
+                      campaignCount === 1 ? "campaign" : "campaigns"
+                    }`}
+              </span>
+            </span>
+
+            <Image
+              className={`app-sidebar__profile-chevron ${
+                profileOpen ? "app-sidebar__profile-chevron--open" : ""
+              }`}
+              src="/icons/app-nav/chevron-right.svg"
+              alt=""
+              width={18}
+              height={18}
+            />
+          </button>
+
+          {profileOpen && (
+            <div
+              id="desktop-profile-menu"
+              className="app-sidebar__profile-menu"
+            >
+              {renderProfileMenu()}
+            </div>
+          )}
+        </div>
+
+        <nav className="app-sidebar__nav" aria-label="Main navigation">
+          {navItems.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={closeMobileMenu}
+              aria-label={item.label}
+              aria-current={isActive(item.href) ? "page" : undefined}
+              title={collapsed ? item.label : undefined}
+              className={`app-sidebar__nav-item ${
+                isActive(item.href) ? "active" : ""
+              }`}
+            >
+              {renderNavigationIcon(item.icon)}
+
+              <span className="app-sidebar__nav-label">{item.label}</span>
+
+              {item.showUnreadBadge && renderUnreadBadge()}
+            </Link>
+          ))}
+        </nav>
+
+        <Link
+          href="/help"
+          className="app-sidebar__help"
+          aria-label="Help"
+          title={collapsed ? "Help" : undefined}
+          onClick={closeMobileMenu}
+        >
           <span
             className="app-sidebar__help-icon"
             style={{
@@ -517,97 +613,101 @@ export default function SideNav() {
           <span className="app-sidebar__help-label">Help</span>
         </Link>
 
-        <Link href="/create-campaign" className="app-sidebar__create">
-          Create Campaign
+        <Link
+          href="/create-campaign"
+          className="app-sidebar__create"
+          aria-label="Create campaign"
+          title={collapsed ? "Create campaign" : undefined}
+          onClick={closeMobileMenu}
+        >
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            aria-hidden="true"
+          >
+            <path
+              d="M12 5v14M5 12h14"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
+          </svg>
+
+          <span className="app-sidebar__create-label">Create campaign</span>
         </Link>
       </aside>
 
-      {/* =====================================================
-          MOBILE HEADER
-      ====================================================== */}
-
       <header className="app-mobile-header">
-        <Link href="/dashboard" className="app-sidebar__logo">
+        <Link
+          href="/dashboard"
+          className="app-sidebar__logo"
+          aria-label="Fundu home"
+        >
           <span>Fund</span>
           <span>U</span>
         </Link>
 
-        <button
-          type="button"
-          className="app-mobile-header__menu"
-          onClick={() => setMobileOpen(true)}
-          aria-label="Open menu"
-        >
-          <Image src="/icons/app-nav/menu.svg" alt="" width={24} height={24} />
-        </button>
+        <div className="app-mobile-profile" ref={mobileProfileRef}>
+          <button
+            type="button"
+            className="app-mobile-profile__button"
+            onClick={() => setProfileOpen((current) => !current)}
+            aria-expanded={profileOpen}
+            aria-controls="mobile-profile-menu"
+            aria-label={`Open account menu for ${displayName}`}
+          >
+            {renderAvatar()}
+          </button>
+
+          {profileOpen && (
+            <div id="mobile-profile-menu" className="app-mobile-profile__menu">
+              {renderProfileMenu()}
+            </div>
+          )}
+        </div>
       </header>
 
-      {/* =====================================================
-          MOBILE DRAWER
-      ====================================================== */}
-
-      {mobileOpen && (
-        <div className="app-mobile-overlay" onClick={closeMobileMenu}>
-          <aside
-            className="app-mobile-drawer"
-            onClick={(event) => event.stopPropagation()}
+      <nav className="app-mobile-bottom-nav" aria-label="Main navigation">
+        {mobileItems.map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            onClick={closeMobileMenu}
+            aria-label={item.label}
+            aria-current={isActive(item.href) ? "page" : undefined}
+            className={`app-mobile-bottom-nav__item ${
+              isActive(item.href) ? "active" : ""
+            } ${item.create ? "app-mobile-bottom-nav__item--create" : ""}`}
           >
-            <div className="app-sidebar__top">
-              <Link
-                href="/dashboard"
-                className="app-sidebar__logo"
-                onClick={closeMobileMenu}
-              >
-                <span>Fund</span>
-                <span>U</span>
-              </Link>
+            <span className="app-mobile-bottom-nav__icon">
+              {item.create ? (
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M12 5v14M5 12h14"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              ) : (
+                renderNavigationIcon(item.icon)
+              )}
 
-              <button
-                type="button"
-                className="app-mobile-drawer__close"
-                onClick={closeMobileMenu}
-                aria-label="Close menu"
-              >
-                <Image
-                  src="/icons/app-nav/sidebar-toggle.svg"
-                  alt=""
-                  width={18}
-                  height={18}
-                />
-              </button>
-            </div>
+              {item.showUnreadBadge && renderUnreadBadge()}
+            </span>
 
-            <ProfileSection mobile />
-
-            <NavigationLinks />
-
-            <Link
-              href="/help"
-              onClick={closeMobileMenu}
-              className="app-sidebar__help"
-            >
-              <span
-                className="app-sidebar__help-icon"
-                style={{
-                  WebkitMaskImage: "url(/icons/app-nav/help.svg)",
-                  maskImage: "url(/icons/app-nav/help.svg)",
-                }}
-                aria-hidden="true"
-              />
-
-              <span className="app-sidebar__help-label">Help</span>
-            </Link>
-
-            <Link
-              href="/create-campaign"
-              onClick={closeMobileMenu}
-              className="app-sidebar__create"
-            >
-              Create Campaign
-            </Link>
-          </aside>
-        </div>
-      )}
+            <span>{item.label}</span>
+          </Link>
+        ))}
+      </nav>
     </>
   );
 }

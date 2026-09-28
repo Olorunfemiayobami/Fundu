@@ -1,71 +1,69 @@
 "use client";
 
+import LoadingScreen from "@/components/feedback/LoadingScreen";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { saveCampaign } from "@/lib/saveCampaign";
 import CampaignCard from "@/components/campaigns/CampaignCard";
+import CampaignStorageImage from "@/components/campaigns/CampaignStorageImage";
+import ActionDialog from "@/components/feedback/ActionDialog";
 import "@/styles/campaigns-page.css";
 import "@/styles/campaign-detail.css";
-
+function campaignHasExpired(campaign) {
+  if (!campaign?.end_date) return false;
+  const endDate = new Date(campaign.end_date);
+  return !Number.isNaN(endDate.getTime()) && endDate.getTime() <= Date.now();
+}
+function getCampaignState(campaign) {
+  const status = campaign?.status?.toLowerCase() || "draft";
+  if (status === "draft") return "draft";
+  if (status === "inactive" || status === "ended" || status === "completed") {
+    return "inactive";
+  }
+  if (status === "active" && campaignHasExpired(campaign)) {
+    return "inactive";
+  }
+  return status;
+}
 export default function CampaignsPage() {
   const router = useRouter();
-
   const [campaigns, setCampaigns] = useState([]);
   const [activeFilter, setActiveFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
-
   const [loading, setLoading] = useState(true);
   const [pageError, setPageError] = useState("");
-
-  /*
-    ========================================
-    DELETE CAMPAIGN STATE
-    ========================================
-  */
-
   const [campaignToDelete, setCampaignToDelete] = useState(null);
   const [deletingCampaign, setDeletingCampaign] = useState(false);
-
-  /*
-    ========================================
-    POST UPDATE STATE
-    ========================================
-  */
-
   const [campaignToUpdate, setCampaignToUpdate] = useState(null);
-
   const [updateTitle, setUpdateTitle] = useState("");
   const [updateContent, setUpdateContent] = useState("");
   const [updateImages, setUpdateImages] = useState([]);
-
   const [postingUpdate, setPostingUpdate] = useState(false);
   const [updateError, setUpdateError] = useState("");
-
   const updateFileInputRef = useRef(null);
+  const endingCampaignRef = useRef(false);
+
+  /* =========================================================
+     LOAD CAMPAIGNS
+  ========================================================= */
 
   useEffect(() => {
     let mounted = true;
-
     async function loadCampaigns() {
       try {
         setLoading(true);
         setPageError("");
-
         const {
           data: { user },
           error: authError,
         } = await supabase.auth.getUser();
-
-        if (authError) {
-          throw authError;
-        }
-
+        if (authError) throw authError;
         if (!user) {
           router.replace("/signin");
           return;
         }
-
         const { data, error } = await supabase
           .from("campaigns")
           .select(
@@ -90,284 +88,548 @@ export default function CampaignsPage() {
           .order("created_at", {
             ascending: false,
           });
-
-        if (error) {
-          throw error;
-        }
-
+        if (error) throw error;
         if (!mounted) return;
-
         const campaignIds = (data || []).map((campaign) => campaign.id);
-
         let metricsByCampaign = {};
         let updatesCountByCampaign = {};
-
-        /*
-          ========================================
-          CAMPAIGN METRICS
-          ========================================
-        */
-
         if (campaignIds.length > 0) {
           const { data: metrics, error: metricsError } = await supabase
             .from("campaign_metrics")
             .select(
               `
-                campaign_id,
-                donation_clicks,
-                views_count,
-                total_donations_logged,
-                last_updated
-              `,
+              campaign_id,
+              donation_clicks,
+              views_count,
+              total_donations_logged,
+              last_updated
+            `,
             )
             .in("campaign_id", campaignIds);
-
           if (metricsError) {
             console.error("Campaign metrics error:", metricsError);
           }
-
           metricsByCampaign = (metrics || []).reduce((accumulator, metric) => {
             accumulator[metric.campaign_id] = metric;
-
             return accumulator;
           }, {});
-
-          /*
-            ========================================
-            CAMPAIGN UPDATE COUNTS
-            ========================================
-          */
-
           const { data: updatesData, error: updatesError } = await supabase
             .from("campaign_updates")
             .select("id, campaign_id")
             .in("campaign_id", campaignIds);
-
           if (updatesError) {
             console.error("Campaign updates count error:", updatesError);
           }
-
           updatesCountByCampaign = (updatesData || []).reduce(
             (accumulator, update) => {
               accumulator[update.campaign_id] =
                 (accumulator[update.campaign_id] || 0) + 1;
-
               return accumulator;
             },
             {},
           );
         }
-
-        const campaignsWithMetrics = (data || []).map((campaign) => ({
-          ...campaign,
-
-          metrics: metricsByCampaign[campaign.id] || null,
-
-          updates_count: updatesCountByCampaign[campaign.id] || 0,
-        }));
-
-        setCampaigns(campaignsWithMetrics);
+        if (!mounted) return;
+        setCampaigns(
+          (data || []).map((campaign) => ({
+            ...campaign,
+            metrics: metricsByCampaign[campaign.id] || null,
+            updates_count: updatesCountByCampaign[campaign.id] || 0,
+          })),
+        );
       } catch (error) {
         console.error("Campaigns page error:", error);
-
         if (mounted) {
           setPageError("We couldn't load your campaigns. Please try again.");
         }
       } finally {
-        if (mounted) {
-          setLoading(false);
-        }
+        if (mounted) setLoading(false);
       }
     }
-
     loadCampaigns();
-
     return () => {
       mounted = false;
     };
   }, [router]);
-
-  /*
-    ========================================
-    CAMPAIGN STATUS HELPERS
-    ========================================
-  */
-
-  function campaignHasExpired(campaign) {
-    if (!campaign?.end_date) {
-      return false;
+  const [draftSort, setDraftSort] = useState("recent");
+  const [selectedDrafts, setSelectedDrafts] = useState([]);
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [operationBusy, setOperationBusy] = useState(false);
+  const [operationMessage, setOperationMessage] = useState("");
+  const [operationError, setOperationError] = useState("");
+  const [listClock, setListClock] = useState(Date.now());
+  const operationLock = useRef(false),
+    selectAllRef = useRef(null),
+    modalStateRef = useRef(null);
+  useEffect(() => {
+    if (window.sessionStorage.getItem("fundu-campaign-deleted") === "1") {
+      window.sessionStorage.removeItem("fundu-campaign-deleted");
+      setOperationMessage("Campaign deleted");
     }
-
-    const endDate = new Date(campaign.end_date);
-
-    if (Number.isNaN(endDate.getTime())) {
-      return false;
+  }, []);
+  modalStateRef.current = {
+    busy: postingUpdate || deletingCampaign || bulkDeleting,
+    close() {
+      if (campaignToUpdate) handleClosePostUpdate();
+      else if (campaignToDelete) setCampaignToDelete(null);
+      else setBulkDeleteOpen(false);
+    },
+  };
+  useEffect(() => {
+    const timer = window.setInterval(() => setListClock(Date.now()), 30000);
+    return () => window.clearInterval(timer);
+  }, []);
+  useEffect(() => {
+    setSelectedDrafts([]);
+  }, [activeFilter, searchQuery]);
+  useEffect(() => {
+    setSelectedDrafts((current) =>
+      current.filter((id) =>
+        campaigns.some((row) => row.id === id && row.status === "draft"),
+      ),
+    );
+  }, [campaigns]);
+  useEffect(() => {
+    if (!campaignToUpdate && !campaignToDelete && !bulkDeleteOpen) return;
+    const dialog = document.querySelector(
+      ".campaign-update-modal, .campaigns-delete-modal",
+    );
+    if (!dialog) return;
+    const trigger = document.activeElement,
+      overflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const controls = () =>
+      [
+        ...dialog.querySelectorAll(
+          'button:not([disabled]), input:not([disabled]):not([type="hidden"]), textarea:not([disabled]), a[href], [tabindex="0"]',
+        ),
+      ].filter((element) => element.getClientRects().length);
+    (
+      dialog.querySelector("[data-initial-focus]") ||
+      controls()[0] ||
+      dialog
+    ).focus();
+    function key(event) {
+      if (event.key === "Escape" && !modalStateRef.current.busy) {
+        event.preventDefault();
+        modalStateRef.current.close();
+      }
+      if (event.key !== "Tab") return;
+      const list = controls(),
+        first = list[0],
+        last = list[list.length - 1];
+      if (!list.length) {
+        event.preventDefault();
+        dialog.focus();
+      } else if (
+        event.shiftKey &&
+        (document.activeElement === first ||
+          !dialog.contains(document.activeElement))
+      ) {
+        event.preventDefault();
+        last.focus();
+      } else if (
+        !event.shiftKey &&
+        (document.activeElement === last ||
+          !dialog.contains(document.activeElement))
+      ) {
+        event.preventDefault();
+        first.focus();
+      }
     }
-
-    return endDate < new Date();
+    document.addEventListener("keydown", key);
+    return () => {
+      document.removeEventListener("keydown", key);
+      document.body.style.overflow = overflow;
+      if (trigger?.isConnected) trigger.focus();
+    };
+  }, [campaignToUpdate, campaignToDelete, bulkDeleteOpen]);
+  const collectionRows = useMemo(() => {
+    const search = searchQuery.trim().toLowerCase();
+    return campaigns.filter(
+      (row) =>
+        (activeFilter === "all" || getCampaignState(row) === activeFilter) &&
+        (!search || (row.title || "").toLowerCase().includes(search)),
+    );
+  }, [campaigns, activeFilter, searchQuery, listClock]);
+  const liveRows = collectionRows.filter(
+    (row) => getCampaignState(row) === "active",
+  );
+  const draftRows = collectionRows
+    .filter((row) => getCampaignState(row) === "draft")
+    .sort((a, b) => {
+      const sort = activeFilter === "draft" ? draftSort : "recent";
+      if (sort === "attention") {
+        const missingA = !getCover(a),
+          missingB = !getCover(b);
+        if (missingA !== missingB) return missingA ? -1 : 1;
+      }
+      return sort === "oldest"
+        ? (Date.parse(a.created_at) || 0) - (Date.parse(b.created_at) || 0)
+        : (Date.parse(b.updated_at || b.created_at) || 0) -
+            (Date.parse(a.updated_at || a.created_at) || 0);
+    });
+  const endedRows = collectionRows.filter(
+    (row) => getCampaignState(row) === "inactive",
+  );
+  const missingCoverCount = campaigns.filter(
+    (row) => row.status === "draft" && !getCover(row),
+  ).length;
+  const visibleDraftIds = draftRows.map((row) => row.id);
+  const selectedVisible = visibleDraftIds.filter((id) =>
+    selectedDrafts.includes(id),
+  );
+  const allDraftsSelected =
+    visibleDraftIds.length > 0 &&
+    selectedVisible.length === visibleDraftIds.length;
+  useEffect(() => {
+    if (selectAllRef.current)
+      selectAllRef.current.indeterminate =
+        selectedVisible.length > 0 && !allDraftsSelected;
+  }, [selectedDrafts, draftRows.length, allDraftsSelected]);
+  function toggleDraft(id) {
+    setSelectedDrafts((current) =>
+      current.includes(id)
+        ? current.filter((item) => item !== id)
+        : [...current, id],
+    );
+  }
+  function toggleAllDrafts() {
+    setSelectedDrafts(allDraftsSelected ? [] : visibleDraftIds);
+  }
+  function openBulkDelete() {
+    if (!selectedVisible.length || operationBusy || bulkDeleting) return;
+    setOperationError("");
+    setBulkDeleteOpen(true);
+  }
+  async function handleBulkDelete() {
+    if (operationLock.current || !selectedVisible.length) return;
+    operationLock.current = true;
+    setBulkDeleting(true);
+    setOperationError("");
+    setOperationMessage("");
+    const ids = [...selectedVisible];
+    try {
+      const auth = await supabase.auth.getUser();
+      if (auth.error) throw auth.error;
+      if (!auth.data.user)
+        throw new Error("Please sign in again before deleting drafts.");
+      const result = await supabase
+        .from("campaigns")
+        .delete()
+        .eq("creator_id", auth.data.user.id)
+        .eq("status", "draft")
+        .in("id", ids)
+        .select("id");
+      if (result.error) throw result.error;
+      const deletedIds = (result.data || []).map((row) => row.id);
+      setCampaigns((current) =>
+        current.filter((row) => !deletedIds.includes(row.id)),
+      );
+      setSelectedDrafts((current) =>
+        current.filter((id) => !deletedIds.includes(id)),
+      );
+      setBulkDeleteOpen(false);
+      if (deletedIds.length !== ids.length)
+        setOperationError(
+          `${deletedIds.length} drafts deleted. Some selected drafts could not be deleted; they may have been published or changed. Refresh before trying again.`,
+        );
+      else
+        setOperationMessage(
+          `${deletedIds.length} ${deletedIds.length === 1 ? "draft" : "drafts"} deleted.`,
+        );
+    } catch (error) {
+      setOperationError(
+        error.message || "The drafts could not be deleted. Please try again.",
+      );
+    } finally {
+      operationLock.current = false;
+      setBulkDeleting(false);
+    }
+  }
+  async function handleDuplicate(campaign) {
+    if (operationLock.current || campaign.status !== "draft") return;
+    operationLock.current = true;
+    setOperationBusy(true);
+    setOperationError("");
+    setOperationMessage("");
+    let newId = null;
+    try {
+      const auth = await supabase.auth.getUser();
+      if (auth.error) throw auth.error;
+      const user = auth.data.user;
+      if (!user)
+        throw new Error("Please sign in again before duplicating a draft.");
+      const sourceResult = await supabase
+        .from("campaigns")
+        .select("*")
+        .eq("id", campaign.id)
+        .eq("creator_id", user.id)
+        .eq("status", "draft")
+        .maybeSingle();
+      if (sourceResult.error) throw sourceResult.error;
+      if (!sourceResult.data)
+        throw new Error("This draft is no longer available to duplicate.");
+      const source = sourceResult.data;
+      let blocks = source.story_blocks || [];
+      if (typeof blocks === "string") {
+        try {
+          blocks = JSON.parse(blocks);
+        } catch {
+          throw new Error(
+            "This draft's story could not be read. Open it in the editor before duplicating.",
+          );
+        }
+      }
+      // Use the app's existing save function. Publishing, hosting and banking stay in the existing create flow.
+      const saved = await saveCampaign({
+        userId: user.id,
+        status: "draft",
+        blocks: Array.isArray(blocks) ? blocks : [],
+        formData: {
+          title: `${source.title || "Untitled campaign"} (copy)`,
+          categoryId: source.category_id,
+          goal: String(source.goal_amount || 0),
+          currency: source.currency || "NGN",
+          country: source.country || "Nigeria",
+          shortDescription:
+            source.short_description || source.description || "",
+          isPublic: source.is_public !== false,
+          cover_image: getCover(source),
+          duration: "",
+        },
+      });
+      if (!saved.success || !saved.campaignId)
+        throw new Error(saved.error || "This draft could not be duplicated.");
+      newId = saved.campaignId;
+      const created = await supabase
+        .from("campaigns")
+        .select("*")
+        .eq("id", newId)
+        .eq("creator_id", user.id)
+        .single();
+      if (created.error) throw created.error;
+      const activityResult = await supabase
+        .from("activity_feed")
+        .insert({
+          user_id: user.id,
+          campaign_id: newId,
+          activity_type: "campaign_draft_created",
+          title: "Draft created",
+          description: `You duplicated ${source.title || "a campaign"}.`,
+          metadata: {
+            campaign_title: created.data.title,
+          },
+          is_notification: false,
+          is_read: true,
+          read_at: new Date().toISOString(),
+        })
+        .select("id, campaign_id, activity_type, title, created_at")
+        .maybeSingle();
+      if (activityResult.error)
+        console.error("Duplicate draft activity:", activityResult.error);
+      setCampaigns((current) => [
+        {
+          ...created.data,
+          metrics: null,
+          updates_count: 0,
+          latest_activity: activityResult.data || null,
+        },
+        ...current,
+      ]);
+      setActiveFilter("draft");
+      setSearchQuery("");
+      setSelectedDrafts([]);
+      setDraftSort("recent");
+      setOperationMessage(`Created ${created.data.title}.`);
+    } catch (error) {
+      setOperationError(
+        newId
+          ? "The duplicate was saved, but the list could not refresh. Reload this page before trying again."
+          : error.message || "This draft could not be duplicated.",
+      );
+    } finally {
+      operationLock.current = false;
+      setOperationBusy(false);
+    }
   }
 
-  function getCampaignState(campaign) {
-    const status = campaign?.status?.toLowerCase() || "draft";
-
-    if (status === "draft") {
-      return "draft";
-    }
-
-    if (status === "inactive" || status === "ended" || status === "completed") {
-      return "inactive";
-    }
-
-    if (status === "active" && campaignHasExpired(campaign)) {
-      return "inactive";
-    }
-
-    if (status === "active") {
-      return "active";
-    }
-
-    return status;
-  }
-
-  /*
-    ========================================
-    CAMPAIGN COUNTS
-    ========================================
-  */
+  /* =========================================================
+     COUNTS AND FILTERS
+  ========================================================= */
 
   const activeCount = useMemo(
     () =>
       campaigns.filter((campaign) => getCampaignState(campaign) === "active")
         .length,
-    [campaigns],
+    [campaigns, listClock],
   );
-
   const draftCount = useMemo(
     () =>
       campaigns.filter((campaign) => getCampaignState(campaign) === "draft")
         .length,
-    [campaigns],
+    [campaigns, listClock],
   );
-
   const inactiveCount = useMemo(
     () =>
       campaigns.filter((campaign) => getCampaignState(campaign) === "inactive")
         .length,
-    [campaigns],
+    [campaigns, listClock],
   );
-
-  /*
-    ========================================
-    FILTER CAMPAIGNS
-    ========================================
-  */
-
   const filteredCampaigns = useMemo(() => {
     const normalizedSearch = searchQuery.trim().toLowerCase();
-
     return campaigns.filter((campaign) => {
-      const campaignState = getCampaignState(campaign);
-
       const matchesFilter =
-        activeFilter === "all" || campaignState === activeFilter;
-
+        activeFilter === "all" || getCampaignState(campaign) === activeFilter;
       const matchesSearch =
         !normalizedSearch ||
-        campaign.title?.toLowerCase().includes(normalizedSearch);
-
+        (campaign.title || "").toLowerCase().includes(normalizedSearch);
       return matchesFilter && matchesSearch;
     });
   }, [campaigns, activeFilter, searchQuery]);
 
-  /*
-    ========================================
-    SHARE CAMPAIGN
-    ========================================
-  */
+  /* =========================================================
+     SHARE CAMPAIGN
+  ========================================================= */
 
   async function handleShare(campaign) {
+    if (!campaign?.id) return;
     const publicUrl = `${window.location.origin}/campaign/${campaign.id}`;
-
-    try {
-      if (navigator.share) {
+    if (navigator.share) {
+      try {
         await navigator.share({
           title: campaign.title,
           text: `Support ${campaign.title} on Fundu`,
           url: publicUrl,
         });
-
         return;
+      } catch (error) {
+        if (error?.name === "AbortError") return;
       }
-
+    }
+    try {
       await navigator.clipboard.writeText(publicUrl);
-
       alert("Campaign link copied.");
-    } catch (error) {
-      if (error?.name !== "AbortError") {
-        console.error("Share campaign error:", error);
-      }
+    } catch {
+      window.prompt("Copy this campaign link:", publicUrl);
     }
   }
 
-  /*
-    ========================================
-    OPEN POST UPDATE
-    ========================================
-  */
+  /* =========================================================
+     END CAMPAIGN
+  ========================================================= */
+
+  async function handleEndCampaign(campaign) {
+    if (
+      !campaign?.id ||
+      endingCampaignRef.current ||
+      getCampaignState(campaign) !== "active"
+    ) {
+      return;
+    }
+    const confirmed = window.confirm(
+      `End "${campaign.title || "this campaign"}" early? ` +
+        "Its public page will stop showing bank details for contributions.",
+    );
+    if (!confirmed) return;
+    endingCampaignRef.current = true;
+    try {
+      const {
+        data: { user },
+        error: authError,
+      } = await supabase.auth.getUser();
+      if (authError) throw authError;
+      if (!user) {
+        throw new Error("You need to sign in to end this campaign.");
+      }
+      if (campaign.creator_id !== user.id) {
+        throw new Error("You do not have permission to end this campaign.");
+      }
+      const endedAt = new Date().toISOString();
+      const { data: endedCampaign, error } = await supabase
+        .from("campaigns")
+        .update({
+          status: "ended",
+          end_date: endedAt,
+          updated_at: endedAt,
+        })
+        .eq("id", campaign.id)
+        .eq("creator_id", user.id)
+        .eq("status", "active")
+        .select("id, status, end_date, updated_at")
+        .maybeSingle();
+      if (error) throw error;
+      if (!endedCampaign) {
+        throw new Error(
+          "The campaign could not be ended. Refresh the page and try again.",
+        );
+      }
+      setCampaigns((currentCampaigns) =>
+        currentCampaigns.map((item) =>
+          item.id === campaign.id
+            ? {
+                ...item,
+                ...endedCampaign,
+              }
+            : item,
+        ),
+      );
+      const { error: activityError } = await supabase
+        .from("activity_feed")
+        .insert({
+          user_id: user.id,
+          campaign_id: campaign.id,
+          activity_type: "campaign_ended_early",
+          title: "Campaign ended early",
+          description: `${campaign.title || "Your campaign"} was ended early`,
+          metadata: {
+            campaign_title: campaign.title,
+            ended_at: endedAt,
+          },
+          is_notification: false,
+          is_read: true,
+          read_at: endedAt,
+        });
+      if (activityError) {
+        console.error("Campaign end activity error:", activityError);
+      }
+    } catch (error) {
+      console.error("End campaign error:", error);
+      alert(error?.message || "Unable to end this campaign.");
+    } finally {
+      endingCampaignRef.current = false;
+    }
+  }
+
+  /* =========================================================
+     OPEN AND CLOSE UPDATE FORM
+  ========================================================= */
 
   function handlePostUpdate(campaign) {
-    if (!campaign) {
-      return;
-    }
-
-    if (getCampaignState(campaign) === "draft") {
-      return;
-    }
-
+    if (!campaign || getCampaignState(campaign) === "draft") return;
     cleanupUpdatePreviews();
-
     setCampaignToUpdate(campaign);
-
     setUpdateTitle("");
     setUpdateContent("");
     setUpdateImages([]);
     setUpdateError("");
-
     if (updateFileInputRef.current) {
       updateFileInputRef.current.value = "";
     }
   }
-
-  /*
-    ========================================
-    CLOSE POST UPDATE
-    ========================================
-  */
-
   function handleClosePostUpdate() {
-    if (postingUpdate) {
-      return;
-    }
-
+    if (postingUpdate) return;
     cleanupUpdatePreviews();
-
     setCampaignToUpdate(null);
     setUpdateTitle("");
     setUpdateContent("");
     setUpdateImages([]);
     setUpdateError("");
-
     if (updateFileInputRef.current) {
       updateFileInputRef.current.value = "";
     }
   }
-
-  /*
-    ========================================
-    CLEAN IMAGE PREVIEWS
-    ========================================
-  */
-
   function cleanupUpdatePreviews() {
     updateImages.forEach((item) => {
       if (item?.previewUrl) {
@@ -376,96 +638,57 @@ export default function CampaignsPage() {
     });
   }
 
-  /*
-    ========================================
-    SELECT UPDATE PHOTOS
-    ========================================
-  */
+  /* =========================================================
+     UPDATE PHOTOS
+  ========================================================= */
 
   function handleUpdateImageSelect(event) {
     const files = Array.from(event.target.files || []);
-
-    if (!files.length) {
-      return;
-    }
-
+    if (!files.length) return;
     const availableSlots = Math.max(0, 4 - updateImages.length);
-
     const validFiles = files
       .filter((file) => file.type?.startsWith("image/"))
       .slice(0, availableSlots);
-
     const newImages = validFiles.map((file) => ({
       id:
         typeof crypto !== "undefined" && crypto.randomUUID
           ? crypto.randomUUID()
           : `${Date.now()}-${Math.random().toString(36).slice(2)}`,
-
       file,
-
       previewUrl: URL.createObjectURL(file),
     }));
-
     setUpdateImages((current) => [...current, ...newImages]);
-
     setUpdateError("");
-
     event.target.value = "";
   }
-
-  /*
-    ========================================
-    REMOVE UPDATE PHOTO
-    ========================================
-  */
-
   function handleRemoveUpdateImage(imageId) {
     setUpdateImages((current) => {
       const imageToRemove = current.find((item) => item.id === imageId);
-
       if (imageToRemove?.previewUrl) {
         URL.revokeObjectURL(imageToRemove.previewUrl);
       }
-
       return current.filter((item) => item.id !== imageId);
     });
   }
-
-  /*
-    ========================================
-    UPLOAD UPDATE PHOTOS
-    ========================================
-  */
-
   async function uploadUpdateImages(userId, campaignId) {
-    if (!updateImages.length) {
-      return [];
-    }
-
+    if (!updateImages.length) return [];
     const uploadedUrls = [];
-
     for (const item of updateImages) {
       const file = item.file;
-
-      if (!file) {
-        continue;
-      }
-
+      if (!file) continue;
       const originalExtension =
         file.name?.split(".").pop()?.toLowerCase() || "jpg";
-
       const safeExtension =
         originalExtension === "jpeg"
           ? "jpg"
           : originalExtension.replace(/[^a-z0-9]/g, "") || "jpg";
-
       const uniqueId =
         typeof crypto !== "undefined" && crypto.randomUUID
           ? crypto.randomUUID()
           : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-
-      const filePath = `campaign-updates/${userId}/${campaignId}/${uniqueId}.${safeExtension}`;
-
+      const filePath =
+        `campaign-updates/${userId}/${campaignId}/` +
+        `${uniqueId}.${safeExtension}`;
       const { error: uploadError } = await supabase.storage
         .from("campaign-images")
         .upload(filePath, file, {
@@ -473,108 +696,60 @@ export default function CampaignsPage() {
           upsert: false,
           contentType: file.type || "image/jpeg",
         });
-
-      if (uploadError) {
-        throw uploadError;
-      }
-
+      if (uploadError) throw uploadError;
       const { data: publicUrlData } = supabase.storage
         .from("campaign-images")
         .getPublicUrl(filePath);
-
       if (!publicUrlData?.publicUrl) {
         throw new Error(
           "A photo was uploaded, but its public URL could not be created.",
         );
       }
-
       uploadedUrls.push(publicUrlData.publicUrl);
     }
-
     return uploadedUrls;
   }
 
-  /*
-    ========================================
-    PUBLISH UPDATE
-    ========================================
-  */
+  /* =========================================================
+     PUBLISH UPDATE
+  ========================================================= */
 
   async function handlePublishUpdate(event) {
     event.preventDefault();
-
-    if (!campaignToUpdate?.id || postingUpdate) {
-      return;
-    }
-
+    if (!campaignToUpdate?.id || postingUpdate) return;
     const cleanTitle = updateTitle.trim();
     const cleanContent = updateContent.trim();
-
     if (!cleanTitle) {
       setUpdateError("Add a title for your update.");
-
       return;
     }
-
     if (!cleanContent) {
       setUpdateError("Tell supporters what has changed.");
-
       return;
     }
-
     setPostingUpdate(true);
     setUpdateError("");
-
     try {
-      /*
-       * Current user
-       */
-
       const {
         data: { user },
         error: authError,
       } = await supabase.auth.getUser();
-
-      if (authError) {
-        throw authError;
-      }
-
+      if (authError) throw authError;
       if (!user) {
         throw new Error("You need to sign in to post an update.");
       }
-
-      /*
-       * Confirm campaign ownership
-       */
-
       if (campaignToUpdate.creator_id !== user.id) {
         throw new Error(
           "You do not have permission to post an update to this campaign.",
         );
       }
-
-      /*
-       * Draft campaigns cannot receive updates
-       */
-
       if (getCampaignState(campaignToUpdate) === "draft") {
         throw new Error(
           "Publish this campaign before posting campaign updates.",
         );
       }
-
-      /*
-       * Upload selected photos
-       */
-
       const imageUrls = await uploadUpdateImages(user.id, campaignToUpdate.id);
-
       const isFinalUpdate = getCampaignState(campaignToUpdate) === "inactive";
-
-      /*
-       * Save campaign update
-       */
-
       const { data: newUpdate, error: insertError } = await supabase
         .from("campaign_updates")
         .insert({
@@ -587,94 +762,61 @@ export default function CampaignsPage() {
         })
         .select(
           `
-            id,
-            campaign_id,
-            user_id,
-            title,
-            content,
-            image_urls,
-            is_final_update,
-            created_at,
-            updated_at
-          `,
+          id,
+          campaign_id,
+          user_id,
+          title,
+          content,
+          image_urls,
+          is_final_update,
+          created_at,
+          updated_at
+        `,
         )
         .single();
-
-      if (insertError) {
-        throw insertError;
-      }
-
-      /*
-       * Add Campaign Activity record
-       */
-
+      if (insertError) throw insertError;
       const { error: activityError } = await supabase
         .from("activity_feed")
         .insert({
           user_id: user.id,
           campaign_id: campaignToUpdate.id,
-
           activity_type: isFinalUpdate
             ? "final_campaign_update_published"
             : "campaign_update_published",
-
           title: isFinalUpdate
             ? "Final campaign update published"
             : "Campaign update published",
-
           description: cleanTitle,
-
           metadata: {
             campaign_update_id: newUpdate.id,
             is_final_update: isFinalUpdate,
           },
         });
-
       if (activityError) {
         console.error("Campaign update activity error:", activityError);
       }
-
-      /*
-       * Update the card immediately.
-       *
-       * This increments the update count and
-       * changes "Last updated" to Today.
-       */
-
       setCampaigns((currentCampaigns) =>
-        currentCampaigns.map((campaign) => {
-          if (campaign.id !== campaignToUpdate.id) {
-            return campaign;
-          }
-
-          return {
-            ...campaign,
-
-            updates_count: Number(campaign.updates_count || 0) + 1,
-
-            updated_at: new Date().toISOString(),
-          };
-        }),
+        currentCampaigns.map((campaign) =>
+          campaign.id === campaignToUpdate.id
+            ? {
+                ...campaign,
+                updates_count: Number(campaign.updates_count || 0) + 1,
+                updated_at: new Date().toISOString(),
+              }
+            : campaign,
+        ),
       );
-
-      /*
-       * Close and reset modal
-       */
-
       cleanupUpdatePreviews();
-
       setUpdateImages([]);
       setUpdateTitle("");
       setUpdateContent("");
       setUpdateError("");
       setCampaignToUpdate(null);
-
       if (updateFileInputRef.current) {
         updateFileInputRef.current.value = "";
       }
     } catch (error) {
       console.error("Post campaign update error:", error);
-
       setUpdateError(
         error?.message || "We couldn't publish this update. Please try again.",
       );
@@ -683,117 +825,67 @@ export default function CampaignsPage() {
     }
   }
 
-  /*
-    ========================================
-    OPEN DELETE CONFIRMATION
-    ========================================
-  */
+  /* =========================================================
+     DELETE CAMPAIGN
+     Draft, live and ended campaigns use the same confirmation.
+  ========================================================= */
 
   function handleDelete(campaign) {
-    if (!campaign) {
-      return;
-    }
-
-    if (campaign.status?.toLowerCase() !== "draft") {
-      alert("Only draft campaigns can be deleted from this screen.");
-
-      return;
-    }
-
+    if (operationLock.current) return;
+    if (!campaign?.id) return;
+    setOperationError("");
     setCampaignToDelete(campaign);
   }
-
-  /*
-    ========================================
-    CLOSE DELETE CONFIRMATION
-    ========================================
-  */
-
   function handleCloseDelete() {
-    if (deletingCampaign) {
-      return;
-    }
-
+    if (deletingCampaign) return;
     setCampaignToDelete(null);
   }
-
-  /*
-    ========================================
-    CONFIRM DELETE
-    ========================================
-  */
-
   async function handleConfirmDelete() {
-    if (!campaignToDelete?.id || deletingCampaign) {
-      return;
-    }
-
+    if (!campaignToDelete?.id || deletingCampaign) return;
     setDeletingCampaign(true);
-
     try {
       const {
         data: { user },
         error: authError,
       } = await supabase.auth.getUser();
-
-      if (authError) {
-        throw authError;
-      }
-
+      if (authError) throw authError;
       if (!user) {
         throw new Error("You need to sign in to delete this campaign.");
       }
-
       if (campaignToDelete.creator_id !== user.id) {
         throw new Error("You do not have permission to delete this campaign.");
       }
-
-      if (campaignToDelete.status?.toLowerCase() !== "draft") {
-        throw new Error("Only draft campaigns can be deleted here.");
-      }
-
       const { data: deletedCampaign, error: deleteError } = await supabase
         .from("campaigns")
         .delete()
         .eq("id", campaignToDelete.id)
         .eq("creator_id", user.id)
-        .eq("status", "draft")
         .select("id")
         .maybeSingle();
-
-      if (deleteError) {
-        throw deleteError;
-      }
-
+      if (deleteError) throw deleteError;
       if (!deletedCampaign) {
         throw new Error(
           "The campaign could not be deleted. It may already have been removed or you may not have permission.",
         );
       }
-
       setCampaigns((currentCampaigns) =>
         currentCampaigns.filter(
           (campaign) => campaign.id !== campaignToDelete.id,
         ),
       );
-
       setCampaignToDelete(null);
+      setOperationMessage("Campaign deleted");
     } catch (error) {
       console.error("Delete campaign error:", error);
-
-      alert(
-        error?.message || "Unable to delete this campaign. Please try again.",
-      );
+      setOperationError("That didn't work. Nothing has changed yet. Try again.");
     } finally {
       setDeletingCampaign(false);
     }
   }
 
-  /*
-    ========================================
-    EMPTY STATES
-    ========================================
-  */
+  /* =========================================================
+     EMPTY STATES
+  ========================================================= */
 
   function getEmptyState() {
     if (campaigns.length === 0) {
@@ -804,7 +896,6 @@ export default function CampaignsPage() {
         showButton: true,
       };
     }
-
     if (searchQuery.trim()) {
       return {
         title: "No campaigns found",
@@ -812,7 +903,6 @@ export default function CampaignsPage() {
         showButton: false,
       };
     }
-
     if (activeFilter === "active") {
       return {
         title: "No active campaigns",
@@ -820,7 +910,6 @@ export default function CampaignsPage() {
         showButton: false,
       };
     }
-
     if (activeFilter === "draft") {
       return {
         title: "No draft campaigns",
@@ -828,7 +917,6 @@ export default function CampaignsPage() {
         showButton: false,
       };
     }
-
     if (activeFilter === "inactive") {
       return {
         title: "No inactive campaigns",
@@ -837,178 +925,303 @@ export default function CampaignsPage() {
         showButton: false,
       };
     }
-
     return {
       title: "No campaigns found",
       description: "Your campaigns will appear here.",
       showButton: false,
     };
   }
-
   const emptyState = getEmptyState();
-
   const selectedCampaignIsInactive = campaignToUpdate
     ? getCampaignState(campaignToUpdate) === "inactive"
     : false;
 
+  /* =========================================================
+     PAGE
+  ========================================================= */
+
   return (
     <>
       <div className="campaigns-page">
-        {/* ========================================
-            HEADER
-        ======================================== */}
-
         <header className="campaigns-page__header">
           <div className="campaigns-page__heading">
-            <h1>My Campaigns</h1>
-
+            <h1>My campaigns</h1>
             <p>
-              Manage, track, and update all your fundraising campaigns in one
-              place.
+              <span className="mc-desktop">
+                Manage, track and update all your fundraisers in one place.
+              </span>
+              <span className="mc-mobile">
+                All your fundraisers in one place.
+              </span>
             </p>
           </div>
-
-          <Link
-            href="/create-campaign"
-            className="campaigns-page__create-button"
-          >
-            Create Campaign
+          <Link href="/create-campaign" className="mc-button mc-button--teal">
+            <span aria-hidden="true">＋</span>
+            <span className="mc-desktop">Create campaign</span>
+            <span className="mc-mobile">New</span>
           </Link>
         </header>
-
-        {/* ========================================
-            FILTERS
-        ======================================== */}
-
-        <div className="campaigns-page__filters">
-          <button
-            type="button"
-            onClick={() => setActiveFilter("all")}
-            className={`campaigns-page__filter ${
-              activeFilter === "all" ? "campaigns-page__filter--active" : ""
-            }`}
-          >
-            All
-            <span>{campaigns.length}</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveFilter("active")}
-            className={`campaigns-page__filter ${
-              activeFilter === "active" ? "campaigns-page__filter--active" : ""
-            }`}
-          >
-            Active
-            <span>{activeCount}</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveFilter("draft")}
-            className={`campaigns-page__filter ${
-              activeFilter === "draft" ? "campaigns-page__filter--active" : ""
-            }`}
-          >
-            Draft
-            <span>{draftCount}</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveFilter("inactive")}
-            className={`campaigns-page__filter ${
-              activeFilter === "inactive"
-                ? "campaigns-page__filter--active"
-                : ""
-            }`}
-          >
-            Inactive
-            <span>{inactiveCount}</span>
-          </button>
-        </div>
-
-        {/* ========================================
-            SEARCH
-        ======================================== */}
-
-        <div className="campaigns-page__tools">
-          <div className="campaigns-page__search">
-            <span className="campaigns-page__search-icon" aria-hidden="true" />
-
-            <input
-              type="search"
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="Search campaigns"
-              aria-label="Search campaigns"
-            />
-          </div>
-
-          <p className="campaigns-page__count">
-            {filteredCampaigns.length}{" "}
-            {filteredCampaigns.length === 1 ? "campaign" : "campaigns"}
-          </p>
-        </div>
-
-        {/* ========================================
-            CAMPAIGNS
-        ======================================== */}
-
-        {loading ? (
-          <div className="campaigns-page__loading">
-            <div className="campaigns-page__spinner" />
-
-            <p>Loading your campaigns...</p>
-          </div>
-        ) : pageError ? (
-          <div className="campaigns-page__empty">
-            <h2>Unable to load campaigns</h2>
-
-            <p>{pageError}</p>
-
-            <button
-              type="button"
-              onClick={() => window.location.reload()}
-              className="campaigns-page__empty-button"
-            >
-              Try Again
-            </button>
-          </div>
-        ) : filteredCampaigns.length > 0 ? (
-          <div className="campaigns-page__grid">
-            {filteredCampaigns.map((campaign) => (
-              <CampaignCard
-                key={campaign.id}
-                campaign={campaign}
-                variant="creator"
-                onShare={handleShare}
-                onPostUpdate={handlePostUpdate}
-                onDelete={handleDelete}
-              />
+        <div className="mc-toolbar">
+          <div className="mc-tabs" aria-label="Filter your campaigns">
+            {[
+              ["all", "All", campaigns.length],
+              [
+                "active",
+                "Active",
+                campaigns.filter((row) => getCampaignState(row) === "active")
+                  .length,
+              ],
+              ["draft", "Draft", draftCount],
+              [
+                "inactive",
+                "Inactive",
+                campaigns.filter((row) => getCampaignState(row) === "inactive")
+                  .length,
+              ],
+            ].map(([value, label, count]) => (
+              <button
+                type="button"
+                key={value}
+                aria-pressed={activeFilter === value}
+                onClick={() => setActiveFilter(value)}
+              >
+                {label} <span>{loading ? "…" : count}</span>
+              </button>
             ))}
           </div>
-        ) : (
-          <div className="campaigns-page__empty">
-            <h2>{emptyState.title}</h2>
-
-            <p>{emptyState.description}</p>
-
-            {emptyState.showButton && (
+          <label className="mc-search">
+            <MCIcon name="search" />
+            <span className="mc-sr">
+              {activeFilter === "draft"
+                ? "Search drafts"
+                : "Search your campaigns"}
+            </span>
+            <input
+              type="search"
+              placeholder={
+                activeFilter === "draft"
+                  ? "Search drafts"
+                  : "Search your campaigns"
+              }
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+            />
+          </label>
+          {activeFilter === "draft" && (
+            <DraftSort value={draftSort} onChange={setDraftSort} mobile />
+          )}
+        </div>
+        {operationMessage && (
+          <p className="mc-feedback" role="status">
+            {operationMessage}
+          </p>
+        )}
+        {operationError && !bulkDeleteOpen && (
+          <p className="mc-error" role="alert">
+            {operationError}
+          </p>
+        )}
+        {operationBusy && <p role="status">Duplicating draft…</p>}
+        {loading ? (
+          <LoadingScreen variant="cards" label="Loading your campaigns" compact />
+        ) : pageError ? (
+          <div className="mc-empty">
+            <h2>Unable to load campaigns</h2>
+            <p>{pageError}</p>
+            <button
+              type="button"
+              className="mc-button"
+              onClick={() => window.location.reload()}
+            >
+              Try again
+            </button>
+          </div>
+        ) : !collectionRows.length ? (
+          <div className="mc-empty">
+            <MCIcon name="edit" />
+            <h2>
+              {searchQuery.trim()
+                ? "No campaigns found"
+                : activeFilter === "draft"
+                  ? "No drafts"
+                  : activeFilter === "active"
+                    ? "No active campaigns"
+                    : activeFilter === "inactive"
+                      ? "No ended campaigns"
+                      : "No campaigns yet"}
+            </h2>
+            <p>
+              {searchQuery.trim()
+                ? "Try another search term."
+                : activeFilter === "draft"
+                  ? "Campaigns you start but haven't published yet will wait here, so you can come back and finish them."
+                  : activeFilter === "inactive"
+                    ? "Your ended campaigns will appear here."
+                    : "Create a campaign to give your goal a place of its own."}
+            </p>
+            {searchQuery.trim() ? (
+              <button
+                type="button"
+                className="mc-button"
+                onClick={() => setSearchQuery("")}
+              >
+                Clear search
+              </button>
+            ) : (
               <Link
                 href="/create-campaign"
-                className="campaigns-page__empty-button"
+                className="mc-button mc-button--teal"
               >
-                Create Campaign
+                ＋ Create campaign
               </Link>
             )}
           </div>
+        ) : (
+          <>
+            {liveRows.length > 0 && (
+              <section className="mc-group" aria-labelledby="mc-live-title">
+                <header className="mc-group-heading">
+                  <h2 id="mc-live-title">
+                    Live <span>{liveRows.length}</span>
+                  </h2>
+                  <p>Accepting support now</p>
+                </header>
+                <div className="mc-grid">
+                  {liveRows.map((campaign) => (
+                    <CampaignCard
+                      key={campaign.id}
+                      campaign={campaign}
+                      appearance="collection"
+                      onPostUpdate={handlePostUpdate}
+                      onShare={handleShare}
+                      onDelete={handleDelete}
+                      onEnd={handleEndCampaign}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
+            {draftRows.length > 0 && (
+              <section className="mc-group" aria-labelledby="mc-drafts-title">
+                {activeFilter === "draft" ? (
+                  <div className="mc-reminder">
+                    <MCIcon name="eye" />
+                    <div>
+                      <strong>Only you can see drafts</strong>
+                      <p>
+                        Publish a draft to get its shareable link.
+                        {missingCoverCount > 0 &&
+                          ` ${missingCoverCount} of your drafts still ${missingCoverCount === 1 ? "needs" : "need"} a cover image.`}
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <header className="mc-group-heading">
+                    <h2 id="mc-drafts-title">
+                      Drafts <span>{draftRows.length}</span>
+                    </h2>
+                    <p>Only you can see these</p>
+                  </header>
+                )}
+                {activeFilter === "draft" && (
+                  <h2 id="mc-drafts-title" className="mc-sr">
+                    Your drafts
+                  </h2>
+                )}
+                <div
+                  className={`mc-row-list ${activeFilter === "all" ? "mc-row-list--preview" : ""}`}
+                >
+                  {activeFilter === "draft" && (
+                    <div className="mc-list-header">
+                      <label>
+                        <input
+                          type="checkbox"
+                          ref={selectAllRef}
+                          checked={allDraftsSelected}
+                          onChange={toggleAllDrafts}
+                          disabled={bulkDeleting || operationBusy}
+                          aria-label="Select all drafts in this search"
+                        />
+                        <span>
+                          {draftRows.length}{" "}
+                          {draftRows.length === 1 ? "draft" : "drafts"}
+                        </span>
+                      </label>
+                      <div>
+                        <DraftSort value={draftSort} onChange={setDraftSort} />
+                        <button
+                          type="button"
+                          className="mc-button"
+                          onClick={openBulkDelete}
+                          disabled={
+                            !selectedVisible.length ||
+                            bulkDeleting ||
+                            operationBusy
+                          }
+                        >
+                          {selectedVisible.length
+                            ? `Delete ${selectedVisible.length} ${selectedVisible.length === 1 ? "draft" : "drafts"}`
+                            : "Delete selected"}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  {draftRows.map((campaign) => (
+                    <CampaignCard
+                      key={campaign.id}
+                      campaign={campaign}
+                      variant="row"
+                      appearance="collection"
+                      selectable={activeFilter === "draft"}
+                      selected={selectedDrafts.includes(campaign.id)}
+                      onSelect={toggleDraft}
+                      onDelete={handleDelete}
+                      onDuplicate={handleDuplicate}
+                    />
+                  ))}
+                </div>
+                {activeFilter === "all" && draftRows.length > 4 && (
+                  <button
+                    type="button"
+                    className="mc-see-drafts"
+                    onClick={() => {
+                      setActiveFilter("draft");
+                      setDraftSort("recent");
+                    }}
+                  >
+                    See all {draftRows.length} drafts
+                  </button>
+                )}
+              </section>
+            )}
+            {endedRows.length > 0 && (
+              <section className="mc-group" aria-labelledby="mc-ended-title">
+                <header className="mc-group-heading">
+                  <h2 id="mc-ended-title">
+                    Ended <span>{endedRows.length}</span>
+                  </h2>
+                </header>
+                <div className="mc-row-list">
+                  {endedRows.map((campaign) => (
+                    <CampaignCard
+                      key={campaign.id}
+                      campaign={campaign}
+                      variant="row"
+                      appearance="collection"
+                      onDelete={handleDelete}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
+          </>
         )}
       </div>
 
-      {/* ========================================
-          POST UPDATE MODAL
-      ======================================== */}
+      <ActionDialog open={bulkDeleteOpen} onClose={() => setBulkDeleteOpen(false)} busy={bulkDeleting} error={bulkDeleteOpen ? operationError : ""} title={`Delete ${selectedVisible.length} ${selectedVisible.length === 1 ? "draft" : "drafts"}?`} description={`Only the ${selectedVisible.length} ${selectedVisible.length === 1 ? "draft" : "drafts"} you selected will be deleted. Your other drafts and campaigns aren't affected.`} icon="trash" tone="danger" safeLabel="Cancel" actionLabel={`Delete ${selectedVisible.length} ${selectedVisible.length === 1 ? "draft" : "drafts"}`} busyLabel="Deleting…" onAction={handleBulkDelete}>
+        <ul className="action-dialog-list">{draftRows.filter(row => selectedVisible.includes(row.id)).map(row => <li key={row.id}>{row.title || "Untitled campaign"}</li>)}</ul>
+      </ActionDialog>
+      {/* POST UPDATE MODAL */}
 
       {campaignToUpdate && (
         <div
@@ -1023,6 +1236,7 @@ export default function CampaignsPage() {
             className="campaign-update-modal"
             role="dialog"
             aria-modal="true"
+            tabIndex={-1}
             aria-labelledby="campaign-card-post-update-title"
           >
             <div className="campaign-update-modal__header">
@@ -1056,7 +1270,6 @@ export default function CampaignsPage() {
             >
               <div className="campaign-update-modal__campaign">
                 <span>Posting to</span>
-
                 <strong>{campaignToUpdate.title || "Untitled Campaign"}</strong>
               </div>
 
@@ -1095,13 +1308,10 @@ export default function CampaignsPage() {
                 <small>{updateContent.length}/3000</small>
               </label>
 
-              {/* PHOTOS */}
-
               <div className="campaign-update-modal__photos">
                 <div className="campaign-update-modal__photos-heading">
                   <div>
                     <span>Add photos</span>
-
                     <p>
                       Add up to 4 photos to help supporters see your progress.
                     </p>
@@ -1152,7 +1362,6 @@ export default function CampaignsPage() {
                     </span>
 
                     <strong>Upload photos</strong>
-
                     <span>JPG, PNG or WEBP</span>
                   </button>
                 )}
@@ -1180,8 +1389,6 @@ export default function CampaignsPage() {
                 )}
               </div>
 
-              {/* FINAL UPDATE MESSAGE */}
-
               {selectedCampaignIsInactive && (
                 <div className="campaign-update-final-note">
                   <strong>Final campaign update</strong>
@@ -1193,13 +1400,9 @@ export default function CampaignsPage() {
                 </div>
               )}
 
-              {/* ERROR */}
-
               {updateError && (
                 <p className="campaign-update-modal__error">{updateError}</p>
               )}
-
-              {/* ACTIONS */}
 
               <div className="campaign-update-modal__actions">
                 <button
@@ -1228,77 +1431,63 @@ export default function CampaignsPage() {
         </div>
       )}
 
-      {/* ========================================
-          DELETE CAMPAIGN MODAL
-      ======================================== */}
-
-      {campaignToDelete && (
-        <div
-          className="campaigns-delete-modal-overlay"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget && !deletingCampaign) {
-              handleCloseDelete();
-            }
-          }}
-        >
-          <div
-            className="campaigns-delete-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="delete-campaign-title"
-          >
-            <div className="campaigns-delete-modal__header">
-              <div>
-                <h2 id="delete-campaign-title">Delete Campaign?</h2>
-
-                <p>
-                  This will permanently delete
-                  <strong> {campaignToDelete.title || "this campaign"}</strong>.
-                </p>
-              </div>
-
-              <button
-                type="button"
-                className="campaigns-delete-modal__close"
-                onClick={handleCloseDelete}
-                disabled={deletingCampaign}
-                aria-label="Close"
-              >
-                ×
-              </button>
-            </div>
-
-            <div className="campaigns-delete-modal__warning">
-              <strong>This action cannot be undone.</strong>
-
-              <p>
-                Your draft and its campaign data will be permanently removed
-                from Fundu.
-              </p>
-            </div>
-
-            <div className="campaigns-delete-modal__actions">
-              <button
-                type="button"
-                className="campaigns-delete-modal__cancel"
-                onClick={handleCloseDelete}
-                disabled={deletingCampaign}
-              >
-                Cancel
-              </button>
-
-              <button
-                type="button"
-                className="campaigns-delete-modal__confirm"
-                onClick={handleConfirmDelete}
-                disabled={deletingCampaign}
-              >
-                {deletingCampaign ? "Deleting..." : "Delete Campaign"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </>
+      <ActionDialog open={Boolean(campaignToDelete)} onClose={handleCloseDelete} busy={deletingCampaign} error={campaignToDelete ? operationError : ""} title="Delete this campaign?" description="Deleting removes the campaign and makes its link unavailable." icon="trash" tone="danger" safeLabel="Cancel" actionLabel="Delete campaign" busyLabel="Deleting…" onAction={handleConfirmDelete}>
+        {campaignToDelete && <div className="action-dialog-campaign">{getCover(campaignToDelete) && <CampaignStorageImage src={getCover(campaignToDelete)} alt="" />}<div><small>Campaign</small><strong>{campaignToDelete.title || "Untitled campaign"}</strong></div></div>}
+      </ActionDialog>    </>
+  );
+}
+function getCover(campaign) {
+  return (
+    campaign.cover_image || campaign.image_url || campaign.preview_image || ""
+  );
+}
+function DraftSort({ value, onChange, mobile = false }) {
+  return (
+    <label
+      className={`mc-sort ${mobile ? "mc-sort--mobile" : "mc-sort--desktop"}`}
+    >
+      <MCIcon name="sort" />
+      <span className="mc-sr">Sort drafts</span>
+      <select
+        aria-label="Sort drafts"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+      >
+        <option value="recent">Recently edited</option>
+        <option value="oldest">Oldest first</option>
+        <option value="attention">Needs attention</option>
+      </select>
+    </label>
+  );
+}
+function MCIcon({ name }) {
+  const paths = {
+    search: (
+      <>
+        <circle cx="10" cy="10" r="7" />
+        <path d="m15 15 6 6" />
+      </>
+    ),
+    sort: <path d="M8 3v18m-4-4 4 4 4-4M16 21V3m-4 4 4-4 4 4" />,
+    eye: (
+      <>
+        <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" />
+        <circle cx="12" cy="12" r="3" />
+      </>
+    ),
+    edit: <path d="m15 5 4 4M4 20l4-1L20 7a2.8 2.8 0 0 0-4-4L4 15l-1 5Z" />,
+  };
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      {paths[name]}
+    </svg>
   );
 }

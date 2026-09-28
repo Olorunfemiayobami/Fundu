@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { TERMS_VERSION } from "@/lib/legalVersion";
 import "@/styles/auth.css";
 
 const TESTIMONIALS = [
@@ -78,6 +79,8 @@ export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [consentError, setConsentError] = useState("");
 
   const [errors, setErrors] = useState({
     name: "",
@@ -115,6 +118,10 @@ export default function SignupPage() {
   };
 
   const validateForm = () => {
+    if (!termsAccepted) {
+      setConsentError("Accept the Terms before creating an account.");
+      return false;
+    }
     const nextErrors = {
       name: "",
       email: "",
@@ -164,6 +171,8 @@ export default function SignupPage() {
       options: {
         data: {
           full_name: fullName,
+          fundu_terms_accepted: true,
+          fundu_terms_version: TERMS_VERSION,
         },
         emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
@@ -203,6 +212,11 @@ export default function SignupPage() {
   };
 
   const handleGoogleSignup = async () => {
+    if (!termsAccepted) {
+      setConsentError("Accept the Terms before continuing with Google.");
+      return;
+    }
+    sessionStorage.setItem("fundu-google-signup-consent", TERMS_VERSION);
     setGoogleLoading(true);
 
     setErrors((current) => ({
@@ -218,6 +232,7 @@ export default function SignupPage() {
     });
 
     if (googleError) {
+      sessionStorage.removeItem("fundu-google-signup-consent");
       setErrors((current) => ({
         ...current,
         general: googleError.message,
@@ -343,38 +358,6 @@ export default function SignupPage() {
                 </div>
               )}
 
-              <button
-                type="button"
-                className="gbtn"
-                onClick={handleGoogleSignup}
-                disabled={googleLoading || loading}
-              >
-                <span aria-hidden="true">
-                  <svg viewBox="0 0 48 48">
-                    <path
-                      fill="#4285F4"
-                      d="M45.1 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h11.8c-.5 2.8-2 5.1-4.4 6.7v5.6h7.1c4.2-3.8 6.6-9.5 6.6-16.3z"
-                    />
-                    <path
-                      fill="#34A853"
-                      d="M24 46c6 0 11-2 14.6-5.4l-7.1-5.6c-2 1.3-4.5 2.1-7.5 2.1-5.8 0-10.7-3.9-12.4-9.1H4.3v5.8C7.9 41.1 15.4 46 24 46z"
-                    />
-                    <path
-                      fill="#FBBC05"
-                      d="M11.6 28c-.4-1.3-.7-2.6-.7-4s.3-2.7.7-4v-5.8H4.3C2.8 17.1 2 20.4 2 24s.8 6.9 2.3 9.8L11.6 28z"
-                    />
-                    <path
-                      fill="#EA4335"
-                      d="M24 10.8c3.3 0 6.2 1.1 8.5 3.3l6.3-6.3C35 4.1 30 2 24 2 15.4 2 7.9 6.9 4.3 14.2l7.3 5.8c1.7-5.2 6.6-9.2 12.4-9.2z"
-                    />
-                  </svg>
-                </span>
-
-                {googleLoading ? "One moment" : "Continue with Google"}
-              </button>
-
-              <p className="author">or</p>
-
               <form noValidate onSubmit={handleSignup}>
                 <div className="field">
                   <label htmlFor="suName">Full name</label>
@@ -455,6 +438,20 @@ export default function SignupPage() {
                   </p>
                 </div>
 
+                <div className="auth-consent auth-signup-consent">
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={termsAccepted}
+                      onChange={(event) => { setTermsAccepted(event.target.checked); setConsentError(""); }}
+                      aria-invalid={Boolean(consentError)}
+                      aria-describedby={consentError ? "signup-consent-error" : undefined}
+                    />
+                    <span>I agree to Fundu&apos;s <Link href="/terms" target="_blank" rel="noopener noreferrer">Terms of Service</Link> and acknowledge the <Link href="/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</Link>.</span>
+                  </label>
+                  {consentError && <p id="signup-consent-error" role="alert" className="auth-consent-error">{consentError}</p>}
+                </div>
+
                 <button
                   className="btn btn--primary authsubmit"
                   type="submit"
@@ -463,12 +460,26 @@ export default function SignupPage() {
                   <span>{loading ? "One moment" : "Create my account"}</span>
                 </button>
 
-                <p className="authterms">
-                  By creating an account you agree to Fundu&apos;s terms and
-                  privacy policy, and to the rules about what campaigns are
-                  allowed.
-                </p>
               </form>
+
+              <p className="author">or</p>
+
+              <button
+                type="button"
+                className="gbtn"
+                onClick={handleGoogleSignup}
+                disabled={googleLoading || loading}
+              >
+                <span aria-hidden="true">
+                  <svg viewBox="0 0 48 48">
+                    <path fill="#4285F4" d="M45.1 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h11.8c-.5 2.8-2 5.1-4.4 6.7v5.6h7.1c4.2-3.8 6.6-9.5 6.6-16.3z" />
+                    <path fill="#34A853" d="M24 46c6 0 11-2 14.6-5.4l-7.1-5.6c-2 1.3-4.5 2.1-7.5 2.1-5.8 0-10.7-3.9-12.4-9.1H4.3v5.8C7.9 41.1 15.4 46 24 46z" />
+                    <path fill="#FBBC05" d="M11.6 28c-.4-1.3-.7-2.6-.7-4s.3-2.7.7-4v-5.8H4.3C2.8 17.1 2 20.4 2 24s.8 6.9 2.3 9.8L11.6 28z" />
+                    <path fill="#EA4335" d="M24 10.8c3.3 0 6.2 1.1 8.5 3.3l6.3-6.3C35 4.1 30 2 24 2 15.4 2 7.9 6.9 4.3 14.2l7.3 5.8c1.7-5.2 6.6-9.2 12.4-9.2z" />
+                  </svg>
+                </span>
+                {googleLoading ? "One moment" : "Continue with Google"}
+              </button>
 
               <p className="authswap">
                 Already have an account?{" "}

@@ -1,938 +1,1073 @@
-* {
+/* Fundu public campaign pages. Scoped styles; Urbanist only. */
+.pc-page,
+.pc-website {
+  font-family: var(--font-urbanist), "Urbanist", sans-serif;
+  color: #101828;
+  background: #fff;
+}
+.pc-page {
+  width: min(100%, 1264px);
+  margin: 0 auto;
+  padding: 32px;
+}
+.pc-page *,
+.pc-website .pc-public-header * {
   box-sizing: border-box;
 }
-
-/* =========================================================
-   PAGE
-========================================================= */
-
-.public-campaign-page-shell {
-  min-height: 100vh;
-  padding: 32px;
-  background: #f8fafa;
+.pc-page :where(h1, h2, h3, p) {
+  margin: 0;
 }
-
-.public-campaign-page {
-  width: 100%;
-  max-width: 1320px;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  gap: 32px;
-  font-family: var(--font-body);
-  color: #333;
+.pc-page :where(button, input, textarea) {
+  font-family: inherit;
 }
-
-/* =========================================================
-   LOADING / ERROR
-========================================================= */
-
-.public-campaign-loading,
-.public-campaign-error-page {
-  min-height: 70vh;
-  padding: 48px 24px;
-  display: flex;
-  flex-direction: column;
+.pc-page :where(a, button, input, textarea, [tabindex]):focus-visible,
+.pc-public-header a:focus-visible {
+  outline: 2px solid #f28c28;
+  outline-offset: 2px;
+}
+.pc-page svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+.pc-button {
+  min-height: 40px;
+  padding: 8px 14px;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  text-align: center;
-}
-
-.public-campaign-error-page h1,
-.public-campaign-error-page p {
-  margin: 0;
-}
-
-.public-campaign-error-page a {
-  color: #1e807f;
-  font-weight: 600;
-}
-
-.public-campaign-back {
-  width: fit-content;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: #1e807f;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-/* =========================================================
-   HEADER
-========================================================= */
-
-.public-campaign-header-card {
-  padding: 16px;
-  border: 1px solid #d1d1d1;
-  border-radius: 16px;
+  gap: 8px;
+  border: 1px solid #d5e4e3;
+  border-radius: 12px;
   background: #fff;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.public-campaign-title-block {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.public-campaign-title-block h1 {
-  margin: 0;
-  color: #1b2022;
-  font-size: 24px;
-  line-height: 1.3;
+  color: #344054;
+  font-size: 14px;
+  line-height: 20px;
   font-weight: 700;
-}
-
-.public-campaign-meta-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-.public-campaign-badges {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.public-campaign-category {
-  padding: 6px 10px;
-  border: 1px solid #e5e7eb;
-  border-radius: 999px;
-  background: #f3f6f6;
-  color: #374151;
-  font-size: 12px;
-}
-
-.public-campaign-status {
-  padding: 4px 8px;
-  border-radius: 8px;
-  background: #069f43;
-  color: #fff;
-  font-size: 12px;
-}
-
-.public-campaign-dates {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  color: #888;
-  font-size: 13px;
-}
-
-/* =========================================================
-   ORGANIZER
-========================================================= */
-
-.public-campaign-organizer-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-}
-
-.public-campaign-organizer {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.public-campaign-avatar {
-  width: 40px;
-  height: 40px;
-  flex-shrink: 0;
-  border-radius: 50%;
-  background: #e9f2f2;
-  color: #1e807f;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.public-campaign-organizer > div:last-child {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.public-campaign-organizer strong {
-  font-size: 14px;
-}
-
-.public-campaign-organizer span {
-  color: #888;
-  font-size: 12px;
-}
-
-.public-campaign-header-actions {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-/* =========================================================
-   EDIT / SHARE ACTIONS
-========================================================= */
-
-.public-campaign-edit-button {
-  height: 48px;
-  padding: 0 24px;
-  border: 0;
-  border-radius: 8px;
-  background: #1e807f;
-  color: #fff;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.public-campaign-edit-button:hover {
-  opacity: 0.92;
-}
-
-.public-campaign-share-button {
-  height: 48px;
-  padding: 0 24px;
-  border: 1px solid #1e807f;
-  border-radius: 8px;
-  background: #fff;
-  color: #1e807f;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.public-campaign-copy-link {
-  height: 48px;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: #1e807f;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-/* =========================================================
-   COVER IMAGE
-========================================================= */
-
-.public-campaign-cover {
-  width: 100%;
-  aspect-ratio: 16 / 7;
-  overflow: hidden;
-  border-radius: 16px;
-  background: #eaeaea;
-}
-
-.public-campaign-cover img {
-  width: 100%;
-  height: 100%;
-  display: block;
-  object-fit: cover;
-}
-
-.public-campaign-cover--empty {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #888;
-  font-size: 14px;
-}
-
-/* =========================================================
-   MAIN TWO-COLUMN LAYOUT
-========================================================= */
-
-.public-campaign-columns {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 380px;
-  align-items: start;
-  gap: 32px;
-}
-
-.public-campaign-primary-column,
-.public-campaign-side-column {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.public-campaign-side-column {
-  position: sticky;
-  top: 24px;
-}
-
-/* =========================================================
-   CARDS
-========================================================= */
-
-.public-campaign-card,
-.public-campaign-side-card {
-  padding: 16px;
-  border: 1px solid #d1d1d1;
-  border-radius: 16px;
-  background: #fff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-}
-
-.public-campaign-card {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.public-campaign-card h2,
-.public-campaign-support-card h2 {
-  margin: 0;
-  color: #1b2022;
-  font-size: 20px;
-  line-height: 1.3;
-  font-weight: 600;
-}
-
-.public-campaign-side-card h3 {
-  margin: 0;
-  color: #1b2022;
-  font-size: 18px;
-  line-height: 1.3;
-  font-weight: 600;
-}
-
-/* =========================================================
-   STORY
-========================================================= */
-
-.public-campaign-story,
-.public-campaign-story-fallback {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.public-story-section {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.public-story-section h3 {
-  margin: 0;
-  color: #1b2022;
-  font-size: 17px;
-}
-
-.public-story-section p,
-.public-story-text,
-.public-campaign-story-fallback p {
-  margin: 0;
-  color: #333;
-  font-size: 16px;
-  line-height: 1.6;
-  white-space: pre-wrap;
-}
-
-.public-story-media-grid {
-  width: 100%;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-}
-
-.public-story-media-item {
-  overflow: hidden;
-  border-radius: 8px;
-  background: #f2f2f2;
-}
-
-.public-story-media-item img {
-  width: 100%;
-  aspect-ratio: 1;
-  display: block;
-  object-fit: cover;
-}
-
-/* =========================================================
-   EMPTY STATES
-========================================================= */
-
-.public-campaign-section-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.public-campaign-section-heading span {
-  padding: 4px 8px;
-  border-radius: 999px;
-  background: #e9f2f2;
-  color: #1e807f;
-  font-size: 12px;
-}
-
-.public-campaign-updates {
-  display: grid;
-  gap: 20px;
-}
-
-.public-campaign-update {
-  min-width: 0;
-  padding: 16px;
-  border: 1px solid #e6e6e6;
-  border-radius: 12px;
-  overflow-wrap: anywhere;
-}
-
-.public-campaign-update h3 {
-  margin: 12px 0 8px;
-  color: #0f172a;
-}
-
-.public-campaign-update-meta {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  color: #666;
-  font-size: 12px;
-}
-
-.public-campaign-update-meta span {
-  padding: 4px 8px;
-  border-radius: 999px;
-  background: #e9f2f2;
-  color: #1e807f;
-}
-
-.public-campaign-update-content {
-  margin: 0;
-  white-space: pre-wrap;
-  line-height: 1.6;
-}
-
-.public-campaign-update-images {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
-  gap: 10px;
-  margin-top: 16px;
-}
-
-.public-campaign-update-images img {
-  display: block;
-  width: 100%;
-  aspect-ratio: 4 / 3;
-  object-fit: cover;
-  border-radius: 8px;
-}
-
-.public-campaign-update-images a:focus-visible {
-  outline: 2px solid #1e807f;
-  outline-offset: 3px;
-}
-
-.public-campaign-empty-state {
-  padding: 16px;
-  border: 1px solid #e6e6e6;
-  border-radius: 12px;
-}
-
-.public-campaign-empty-state strong {
-  display: block;
-  margin-bottom: 4px;
-}
-
-.public-campaign-empty-state p {
-  margin: 0;
-  color: #888;
-  font-size: 13px;
-  line-height: 1.5;
-}
-
-/* =========================================================
-   COMMENTS
-========================================================= */
-
-.public-campaign-comments {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-}
-
-.public-campaign-comment {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-}
-
-.public-campaign-comment-avatar {
-  width: 40px;
-  height: 40px;
-  flex-shrink: 0;
-  border-radius: 50%;
-  background: #e9f2f2;
-  color: #1e807f;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.public-campaign-comment-content {
-  min-width: 0;
-  flex: 1;
-}
-
-.public-campaign-comment-meta {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.public-campaign-comment-meta strong {
-  font-size: 14px;
-}
-
-.public-campaign-comment-meta span {
-  color: #888;
-  font-size: 12px;
-}
-
-.public-campaign-comment-content p {
-  margin: 5px 0 0;
-  font-size: 14px;
-  line-height: 1.5;
-}
-
-.public-campaign-comment-form textarea {
-  width: 100%;
-  min-height: 90px;
-  padding: 14px;
-  border: 0;
-  border-radius: 8px;
-  outline: none;
-  resize: vertical;
-  background: #f2f2f2;
-  font: inherit;
-}
-
-.public-campaign-comment-actions {
-  margin-top: 12px;
-  display: flex;
-  justify-content: flex-end;
-}
-
-.public-campaign-comment-actions button {
-  height: 48px;
-  padding: 0 24px;
-  border: 0;
-  border-radius: 8px;
-  background: #1e807f;
-  color: #fff;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.public-campaign-comment-actions button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.public-campaign-signin-comment {
-  padding: 16px;
-  border-radius: 8px;
-  background: #f2f2f2;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.public-campaign-signin-comment p {
-  margin: 0;
-  font-size: 14px;
-}
-
-.public-campaign-signin-comment a {
-  color: #1e807f;
-  font-weight: 600;
   text-decoration: none;
-}
-
-/* =========================================================
-   SUPPORT / BANK ACCOUNT
-========================================================= */
-
-.public-campaign-support-card {
-  padding: 16px;
-  border: 1.5px solid #1e807f;
-  border-radius: 16px;
-  background: #e9f2f2;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.public-campaign-support-card h2 {
-  color: #1e807f;
-}
-
-.public-campaign-support-card > div:first-child p {
-  margin: 5px 0 0;
-  font-size: 14px;
-  line-height: 1.5;
-}
-
-.public-campaign-support-card small,
-.public-campaign-side-card small {
-  color: #777;
-  font-size: 12px;
-  line-height: 1.5;
-}
-
-.public-campaign-bank-box {
-  padding: 16px;
-  border: 1px solid #ccb4c5;
-  border-radius: 12px;
-  background: #fff;
-}
-
-.public-campaign-bank-row {
-  min-height: 68px;
-  padding: 12px 0;
-  border-bottom: 1px solid #e6e6e6;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.public-campaign-bank-row:first-child {
-  padding-top: 0;
-}
-
-.public-campaign-bank-row:last-child {
-  padding-bottom: 0;
-  border-bottom: 0;
-}
-
-.public-campaign-bank-row > div {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.public-campaign-bank-row span {
-  color: #888;
-  font-size: 11px;
-}
-
-.public-campaign-bank-row strong {
-  font-size: 14px;
-}
-
-.public-campaign-bank-row strong.public-campaign-bank-accent {
-  color: #1e807f;
-  font-size: 17px;
-}
-
-.public-campaign-bank-row button {
-  padding: 6px 9px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  background: #fff;
-  color: #1e807f;
   cursor: pointer;
 }
-
-.public-campaign-bank-row:last-child button {
+.pc-button:hover {
+  background: #eff6f6;
+}
+.pc-button--teal {
   border-color: #1e807f;
   background: #1e807f;
   color: #fff;
 }
-
-.public-campaign-bank-unavailable {
-  padding: 16px;
-  border-radius: 12px;
-  background: #fff;
-  font-size: 13px;
+.pc-button--teal:hover {
+  background: #16615f;
 }
-
-/* =========================================================
-   CAMPAIGN PROGRESS
-========================================================= */
-
-.public-campaign-raised {
-  color: #1b2022;
-  font-size: 24px;
+.pc-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.pc-back {
+  margin-bottom: 20px;
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  color: #16615f;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.pc-owner {
+  margin-bottom: 24px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-radius: 14px;
+  background: #0f172a;
+  color: #fff;
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 600;
+}
+.pc-owner > span {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.pc-owner svg {
+  color: #70c4c2;
+}
+.pc-owner a {
+  flex-shrink: 0;
+  color: #fff;
+  text-underline-offset: 3px;
+}
+.pc-owner__mobile {
+  display: none;
+}
+.pc-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 392px;
+  grid-template-areas: "title title" "cover support" "tabs support" "about support" "updates support" "comments support" "how support";
+  align-items: start;
+  gap: 28px 40px;
+}
+.pc-grid > * {
+  min-width: 0;
+}
+.pc-title {
+  grid-area: title;
+}
+.pc-category,
+.pc-ended-pill {
+  margin-right: 8px;
+  padding: 5px 10px;
+  display: inline-flex;
+  border-radius: 999px;
+  background: #f7f3ea;
+  color: #9a4a06;
+  font-size: 12px;
+  line-height: 18px;
   font-weight: 700;
 }
-
-.public-campaign-goal {
-  margin: 4px 0 16px;
-  color: #888;
-  font-size: 14px;
+.pc-ended-pill {
+  background: #eff6f6;
+  color: #475467;
 }
-
-.public-campaign-progress-track {
-  width: 100%;
-  height: 8px;
-  overflow: hidden;
-  border-radius: 999px;
-  background: #e9f2f2;
+.pc-title h1 {
+  margin: 12px 0 16px;
+  font-size: 40px;
+  line-height: 1.15;
+  font-weight: 800;
+  letter-spacing: -1.2px;
+  overflow-wrap: anywhere;
 }
-
-.public-campaign-progress-fill {
-  height: 100%;
-  border-radius: 999px;
-  background: #1e807f;
+.pc-page--signed-in .pc-title h1 {
+  font-size: 34px;
 }
-
-.public-campaign-progress-labels {
-  margin-top: 8px;
+.pc-organizer-row {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+.pc-organizer {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.pc-avatar {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #1e807f;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+}
+.pc-organizer strong {
+  font-size: 14px;
+  line-height: 1.4;
+}
+.pc-organizer p {
+  margin-top: 4px;
+  color: #475467;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.pc-cover {
+  grid-area: cover;
+  width: 100%;
+  aspect-ratio: 16 / 7;
+  overflow: hidden;
+  border-radius: 20px;
+  background: #f7f3ea;
+}
+.pc-cover img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+.pc-cover__fallback {
+  height: 100%;
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #475467;
+  text-align: center;
+  font-size: 24px;
+  line-height: 1.3;
+  font-weight: 700;
+}
+.pc-support {
+  grid-area: support;
+  position: sticky;
+  top: 24px;
+  padding: 16px;
+  border: 1px solid #d5e4e3;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgb(16 24 40 / 7%);
+  scroll-margin-top: 80px;
+}
+.pc-raised {
+  display: flex;
+  align-items: baseline;
   justify-content: space-between;
   gap: 12px;
-  color: #888;
+}
+.pc-raised strong {
+  font-size: 34px;
+  line-height: 1.2;
+  font-weight: 800;
+  letter-spacing: -0.8px;
+  overflow-wrap: anywhere;
+}
+.pc-raised > span {
+  color: #16615f;
+  font-size: 14px;
+  font-weight: 700;
+}
+.pc-goal {
+  margin-top: 6px !important;
+  color: #475467;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.pc-progress {
+  height: 8px;
+  margin: 12px 0;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e4eeed;
+}
+.pc-progress > div {
+  height: 100%;
+  border-radius: inherit;
+  background: #1e807f;
+}
+.pc-progress-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: #475467;
   font-size: 12px;
+  line-height: 1.5;
 }
-
-.public-campaign-progress-labels span:first-child {
-  color: #1e807f;
+.pc-progress-meta > span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
 }
-
-.public-campaign-side-divider {
-  height: 1px;
-  margin: 16px 0;
-  background: #e6e6e6;
+.pc-progress-meta svg {
+  width: 14px;
+  height: 14px;
 }
-
-/* =========================================================
-   SIDE CARDS
-========================================================= */
-
-.public-campaign-side-card {
+.pc-progress-meta strong {
+  color: #101828;
+}
+.pc-support__give {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e4eeed;
+}
+.pc-support h2 {
+  font-size: 18px;
+  line-height: 1.4;
+  font-weight: 700;
+}
+.pc-support__give > p {
+  margin-top: 8px;
+  color: #475467;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.pc-give-steps {
+  margin: 12px 0 16px;
+  padding: 0;
+  list-style: none;
+  counter-reset: give;
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
-
-.public-campaign-side-card p {
-  margin: 0;
-  font-size: 14px;
-  line-height: 1.5;
+.pc-give-steps li {
+  position: relative;
+  padding-left: 34px;
+  counter-increment: give;
 }
-
-.public-campaign-update-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: #e9f2f2;
-  color: #1e807f;
+.pc-give-steps li::before {
+  content: counter(give);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 24px;
+  height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
+  border-radius: 50%;
+  background: #f7f3ea;
+  color: #9a4a06;
+  font-size: 12px;
+  font-weight: 700;
 }
-
-.public-campaign-side-card input {
-  width: 100%;
-  height: 48px;
-  padding: 0 14px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
+.pc-give-steps strong,
+.pc-give-steps a {
+  display: block;
+  color: #101828;
+  font-size: 14px;
+  line-height: 1.4;
+  font-weight: 700;
+  text-underline-offset: 3px;
 }
-
-.public-campaign-subscribe-button {
-  width: 100%;
-  height: 48px;
-  border: 0;
-  border-radius: 8px;
-  background: #1e807f;
-  color: #fff;
-  font-weight: 600;
+.pc-give-steps span {
+  display: block;
+  margin-top: 2px;
+  color: #475467;
+  font-size: 12px;
+  line-height: 1.4;
 }
-
-.public-campaign-subscribe-button:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
+.pc-bank {
+  border: 1px solid #d5e4e3;
+  border-radius: 14px;
+  background: #f7fbfb;
 }
-
-.public-campaign-social-row {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
+.pc-bank-row {
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: 12px;
 }
-
-.public-campaign-social-row button {
-  height: 42px;
-  border: 1px solid #e6e6e6;
-  border-radius: 8px;
-  background: #fff;
+.pc-bank-row + .pc-bank-row {
+  border-top: 1px solid #e4eeed;
+}
+.pc-bank-row > div {
+  min-width: 0;
+}
+.pc-bank-row span {
+  display: block;
+  margin-bottom: 4px;
+  color: #475467;
+  font-size: 12px;
+  line-height: 1.4;
+}
+.pc-bank-row strong {
+  display: block;
+  color: #101828;
+  font-size: 14px;
+  line-height: 1.4;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.pc-bank-row--number strong {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+.pc-bank-row button {
+  flex-shrink: 0;
+  padding: 8px 10px;
+  font-size: 12px;
+}
+.pc-funds-note {
+  margin-top: 12px !important;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  color: #475467;
+  font-size: 12px !important;
+  line-height: 1.5;
+}
+.pc-funds-note svg {
+  width: 14px;
+  height: 14px;
+  color: #1e807f;
+  margin-top: 2px;
+}
+.pc-share {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e4eeed;
+}
+.pc-share h3 {
+  margin-bottom: 12px;
+  font-size: 16px;
+  line-height: 1.4;
+}
+.pc-share__buttons {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.pc-share__buttons button {
+  padding: 8px;
+  font-size: 13px;
+}
+.pc-report-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: 14px auto 0;
+  border: 0;
+  background: transparent;
+  color: #536075;
+  font-size: 13px;
+  font-weight: 700;
   cursor: pointer;
 }
-
-/* =========================================================
-   COPY TOAST
-========================================================= */
-
-.public-campaign-copy-toast {
-  position: fixed;
-  right: 24px;
-  bottom: 24px;
-  z-index: 1000;
-  padding: 12px 16px;
-  border-radius: 8px;
-  background: #1b2022;
-  color: #fff;
-  font-size: 13px;
-  font-weight: 600;
+.pc-report-link .action-icon{width:15px;height:15px}
+.report-dialog-fields{margin-top:20px}.report-dialog-fields fieldset{border:0;margin:0;padding:0}.report-dialog-fields legend,.report-details{font-size:14px;font-weight:700;color:#111a30}.report-reason{display:flex;align-items:center;gap:10px;min-height:44px;padding:8px 12px;margin-top:6px;border:1px solid #cfe2e1;border-radius:9px;font-size:14px;font-weight:500;cursor:pointer}.report-reason--selected{border:2px solid #1c8180;background:#f1faf9}.report-reason input{accent-color:#1c8180;width:18px;height:18px}.report-details{display:block;margin-top:16px}.report-details span{color:#536075;font-weight:400}.report-details textarea{display:block;width:100%;margin-top:8px;padding:12px;border:1px solid #cfe2e1;border-radius:9px;font:inherit;font-weight:400;resize:vertical}.report-dialog-sent{margin:22px 0 4px;color:#4c596e}
+.pc-tabs {
+  grid-area: tabs;
+  display: flex;
+  gap: 24px;
+  border-bottom: 1px solid #d5e4e3;
 }
-
-/* =========================================================
-   TABLET
-========================================================= */
-
-@media (min-width: 769px) and (max-width: 1199px) {
-  .public-campaign-page-shell {
+.pc-tabs a {
+  padding: 12px 0;
+  display: inline-flex;
+  align-items: center;
+  border-bottom: 2px solid transparent;
+  color: #475467;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.pc-tabs a[aria-current="location"] {
+  border-bottom-color: #1e807f;
+  color: #101828;
+  font-weight: 700;
+}
+.pc-section {
+  scroll-margin-top: 80px;
+}
+.pc-section > h2 {
+  margin-bottom: 16px;
+  font-size: 22px;
+  line-height: 1.3;
+  font-weight: 700;
+  letter-spacing: -0.4px;
+}
+.pc-section > h2 span {
+  color: #475467;
+  font-size: 14px;
+}
+.pc-about {
+  grid-area: about;
+}
+.pc-updates {
+  grid-area: updates;
+}
+.pc-comments {
+  grid-area: comments;
+}
+.public-campaign-story,
+.public-story-section,
+.public-campaign-story-fallback {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.pc-page .public-story-section h3 {
+  font-size: 16px;
+  line-height: 1.4;
+  font-weight: 700;
+}
+.pc-page .public-story-section p,
+.pc-page .public-story-text,
+.pc-page .public-campaign-story-fallback p {
+  margin: 0;
+  color: #344054;
+  font-size: 14px;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.pc-page .public-story-media-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.pc-page .public-story-media-item {
+  min-width: 0;
+  aspect-ratio: 16 / 9;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid #e4eeed;
+  border-radius: 14px;
+  background: #eff6f6;
+  cursor: pointer;
+}
+.pc-page .public-story-media-item img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+.public-story-video {
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 14px;
+}
+.public-story-video iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+.pc-story-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid #d5e4e3;
+  border-radius: 14px;
+}
+.pc-story-list li {
+  padding: 12px;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  color: #344054;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.pc-story-list li + li {
+  border-top: 1px solid #e4eeed;
+}
+.pc-story-list strong {
+  flex-shrink: 0;
+  color: #101828;
+}
+.pc-empty {
+  padding: 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  border: 1px solid #d5e4e3;
+  border-radius: 16px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.pc-empty > svg {
+  width: 32px;
+  height: 32px;
+  padding: 7px;
+  border-radius: 10px;
+  background: #eff6f6;
+  color: #475467;
+}
+.pc-empty p {
+  margin-top: 4px;
+  color: #475467;
+}
+.pc-update-list,
+.pc-comments__card {
+  border: 1px solid #d5e4e3;
+  border-radius: 16px;
+}
+.pc-update {
+  padding: 16px;
+}
+.pc-update + .pc-update {
+  border-top: 1px solid #e4eeed;
+}
+.pc-update h3 {
+  margin: 8px 0;
+  font-size: 16px;
+  line-height: 1.4;
+}
+.pc-update > p,
+.pc-comment p {
+  color: #344054;
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.pc-update time {
+  display: block;
+  margin-top: 12px;
+  color: #475467;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.pc-update__photos {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(4, 72px);
+  gap: 8px;
+}
+.pc-update__photos button {
+  width: 72px;
+  height: 72px;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid #e4eeed;
+  border-radius: 10px;
+  background: #eff6f6;
+  cursor: pointer;
+}
+.pc-update__photos img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+.pc-comments__card {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.pc-comments__card > p,
+.pc-sign-in p {
+  color: #475467;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.pc-comment {
+  padding: 12px 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.pc-comment + .pc-comment {
+  border-top: 1px solid #e4eeed;
+}
+.pc-comment > div {
+  min-width: 0;
+  flex: 1;
+}
+.pc-comment__meta {
+  margin-bottom: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 13px;
+}
+.pc-comment__meta time {
+  color: #475467;
+  font-size: 12px;
+}
+.pc-comment-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.pc-commenting-as {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #475467;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.pc-commenting-as img,
+.pc-commenting-as .pc-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.pc-commenting-as strong {
+  color: #101828;
+}
+.pc-comment-form label {
+  font-size: 13px;
+  font-weight: 700;
+}
+.pc-comment-form textarea {
+  width: 100%;
+  min-height: 100px;
+  padding: 12px;
+  border: 1px solid #d5e4e3;
+  border-radius: 12px;
+  background: #fff;
+  color: #344054;
+  font-size: 14px;
+  line-height: 1.5;
+  resize: vertical;
+}
+.pc-comment-form textarea::placeholder {
+  color: #475467;
+}
+.pc-comment-form > button {
+  align-self: flex-end;
+}
+.pc-sign-in {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+.pc-how {
+  grid-area: how;
+  padding: 20px;
+  border-radius: 18px;
+  background: #e3f1f0;
+}
+.pc-how h2 {
+  margin-bottom: 16px;
+  font-size: 18px;
+  line-height: 1.4;
+}
+.pc-how > div {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+.pc-how article > svg {
+  width: 32px;
+  height: 32px;
+  padding: 7px;
+  border-radius: 10px;
+  background: #fff;
+  color: #16615f;
+}
+.pc-how h3 {
+  margin: 8px 0;
+  font-size: 14px;
+  line-height: 1.4;
+}
+.pc-how p {
+  color: #344054;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.pc-fundraiser {
+  margin-top: 40px;
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  border-radius: 18px;
+  background: #f7f3ea;
+}
+.pc-fundraiser h2 {
+  font-size: 22px;
+  line-height: 1.3;
+}
+.pc-fundraiser p {
+  margin-top: 8px;
+  color: #475467;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.pc-quick-give {
+  display: none;
+}
+.pc-announcement {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.pc-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(15 23 42 / 85%);
+}
+.pc-lightbox > div {
+  position: relative;
+  max-width: min(1100px, 100%);
+  max-height: 90vh;
+}
+.pc-lightbox img {
+  max-width: 100%;
+  max-height: 85vh;
+  object-fit: contain;
+}
+.pc-lightbox__close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: #fff;
+  color: #101828;
+  font-size: 28px;
+  cursor: pointer;
+}
+.public-campaign-loading,
+.public-campaign-error-page {
+  min-height: 50vh;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  font-family: var(--font-urbanist), "Urbanist", sans-serif;
+  color: #475467;
+}
+.public-campaign-error-page a {
+  color: #16615f;
+}
+.pc-app-shell .app-shell__main {
+  overflow: visible;
+}
+.pc-public-header {
+  min-height: 64px;
+  border-bottom: 1px solid #e4eeed;
+  background: #fff;
+}
+.pc-public-header__inner {
+  width: min(100%, 1328px);
+  margin: auto;
+  padding: 12px 32px;
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+.pc-public-logo img {
+  display: block;
+  width: 80px;
+  height: 32px;
+  object-fit: contain;
+}
+.pc-public-header nav {
+  display: flex;
+  gap: 24px;
+}
+.pc-public-header nav a {
+  color: #344054;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.pc-public-header__cta {
+  margin-left: auto;
+}
+.pc-website .footer {
+  padding: 32px;
+  background: #0f172a;
+  color: #e4eeed;
+}
+.pc-website .footer .wrap {
+  max-width: 1200px;
+  margin: auto;
+}
+.pc-website .footer__grid {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+.pc-website .footer :where(a, p) {
+  color: #e4eeed;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.pc-website .footer a {
+  margin-right: 16px;
+}
+.pc-website .footer__logo {
+  width: 70px;
+  height: 24px;
+}
+.pc-website .footer__bottom {
+  margin-top: 24px;
+  font-size: 12px;
+}
+.pc-website .footer [data-mo] {
+  opacity: 1;
+  transform: none;
+}
+@media (min-width: 768px) and (max-width: 1279px) {
+  .pc-page {
     padding: 24px;
   }
-
-  .public-campaign-columns {
-    grid-template-columns: minmax(0, 1fr) 320px;
-    gap: 24px;
+  .pc-grid {
+    grid-template-columns: minmax(0, 1fr) 340px;
+    column-gap: 24px;
   }
-
-  .public-campaign-header-card,
-  .public-campaign-card,
-  .public-campaign-side-card,
-  .public-campaign-support-card {
-    padding: 16px;
+  .pc-title h1,
+  .pc-page--signed-in .pc-title h1 {
+    font-size: 34px;
+  }
+  .pc-how > div {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
-
-/* =========================================================
-   MOBILE
-========================================================= */
-
-@media (max-width: 768px) {
-  .public-campaign-page-shell {
-    padding: 20px 16px 40px;
+@media (min-width: 768px) and (max-width: 1023px) {
+  .pc-grid {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "title" "cover" "support" "tabs" "about" "updates" "comments" "how";
   }
-
-  .public-campaign-page {
-    gap: 24px;
-  }
-
-  .public-campaign-header-card,
-  .public-campaign-card,
-  .public-campaign-side-card,
-  .public-campaign-support-card {
-    padding: 16px;
-    border-radius: 14px;
-  }
-
-  .public-campaign-title-block h1 {
-    font-size: 24px;
-  }
-
-  .public-campaign-meta-row,
-  .public-campaign-organizer-row {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .public-campaign-dates {
-    flex-wrap: wrap;
-  }
-
-  .public-campaign-header-actions {
-    width: 100%;
-  }
-
-  .public-campaign-edit-button,
-  .public-campaign-share-button,
-  .public-campaign-copy-link {
-    flex: 1;
-  }
-
-  .public-campaign-copy-link {
-    border: 1px solid #ddd;
-    border-radius: 8px;
-  }
-
-  .public-campaign-columns {
-    grid-template-columns: 1fr;
-  }
-
-  .public-campaign-side-column {
+  .pc-support {
     position: static;
   }
-
-  .public-story-media-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
 }
-
-/* =========================================================
-   SMALL MOBILE
-========================================================= */
-
-@media (max-width: 480px) {
-  .public-campaign-page-shell {
-    padding-left: 12px;
-    padding-right: 12px;
-  }
-
-  .public-campaign-header-card,
-  .public-campaign-card,
-  .public-campaign-side-card,
-  .public-campaign-support-card {
+@media (max-width: 767px) {
+  .pc-page {
     padding: 16px;
   }
-
-  .public-campaign-title-block h1 {
-    font-size: 22px;
+  .pc-grid {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "cover" "title" "support" "tabs" "about" "updates" "comments" "how";
+    gap: 24px;
   }
-
-  .public-campaign-header-actions {
-    flex-direction: column;
+  .pc-button {
+    min-height: 44px;
   }
-
-  .public-campaign-edit-button,
-  .public-campaign-share-button,
-  .public-campaign-copy-link {
+  .pc-title h1,
+  .pc-page--signed-in .pc-title h1 {
+    margin: 12px 0;
+    font-size: 24px;
+    letter-spacing: -0.6px;
+  }
+  .pc-title__share {
+    display: none;
+  }
+  .pc-cover {
+    aspect-ratio: 16 / 7;
+    border-radius: 16px;
+  }
+  .pc-support {
+    position: static;
+  }
+  .pc-raised strong {
+    font-size: 28px;
+  }
+  .pc-organizer strong {
+    font-size: 13px;
+  }
+  .pc-organizer p {
+    font-size: 12px;
+  }
+  .pc-owner {
+    margin-bottom: 16px;
+    padding: 12px;
+    gap: 10px;
+    font-size: 12px;
+  }
+  .pc-owner__desktop {
+    display: none;
+  }
+  .pc-owner__mobile {
+    display: inline;
+  }
+  .pc-owner > span {
+    gap: 6px;
+  }
+  .pc-owner svg {
+    width: 14px;
+    height: 14px;
+  }
+  .pc-tabs {
+    gap: 16px;
+  }
+  .pc-tabs a {
+    min-height: 44px;
+    font-size: 12px;
+  }
+  .pc-section > h2 {
+    font-size: 20px;
+  }
+  .pc-update__photos {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .pc-update__photos button {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1;
+  }
+  .pc-comment-form > button {
     width: 100%;
   }
-
-  .public-story-media-grid {
-    grid-template-columns: 1fr;
+  .pc-how {
+    padding: 16px;
   }
-
-  .public-campaign-progress-labels {
+  .pc-how > div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+  }
+  .pc-fundraiser {
+    margin-top: 32px;
+    padding: 20px 16px;
     flex-direction: column;
-    gap: 4px;
+    align-items: stretch;
+    gap: 16px;
   }
-
-  .public-campaign-signin-comment {
-    align-items: flex-start;
-    flex-direction: column;
+  .pc-fundraiser h2 {
+    font-size: 20px;
   }
-
-  .public-campaign-copy-toast {
-    right: 12px;
-    bottom: 12px;
-    left: 12px;
-    text-align: center;
+  .pc-quick-give {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 120;
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border-top: 1px solid #d5e4e3;
+    background: #fff;
+    box-shadow: 0 -4px 16px rgb(16 24 40 / 6%);
+  }
+  .pc-quick-give strong {
+    display: block;
+    font-size: 14px;
+  }
+  .pc-quick-give span {
+    display: block;
+    margin-top: 3px;
+    color: #475467;
+    font-size: 12px;
+  }
+  .pc-quick-give button {
+    flex-shrink: 0;
+    font-size: 13px;
+  }
+  .pc-public-header__inner {
+    padding: 12px 16px;
+    gap: 16px;
+  }
+  .pc-public-header nav {
+    display: none;
+  }
+  .pc-public-logo img {
+    width: 70px;
+    height: 28px;
+  }
+  .pc-public-header__cta {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+  .pc-website .footer {
+    padding: 24px 16px calc(100px + env(safe-area-inset-bottom, 0px));
+  }
+  .pc-lightbox {
+    padding: 12px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pc-page * {
+    scroll-behavior: auto;
   }
 }

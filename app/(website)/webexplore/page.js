@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import CampaignCard from "@/components/campaigns/CampaignCard";
+import LoadingScreen from "@/components/feedback/LoadingScreen";
 
 const PAGE_SIZE = 9;
 
@@ -315,15 +316,7 @@ export default function PublicExplorePage() {
           {/* LOADING */}
 
           {loading && (
-            <div
-              className="web-explore__state"
-              role="status"
-              aria-live="polite"
-            >
-              <div className="web-explore__spinner" aria-hidden="true" />
-
-              <p>Loading fundraisers...</p>
-            </div>
+            <LoadingScreen variant="cards" label="Loading fundraisers" compact />
           )}
 
           {/* ERROR */}

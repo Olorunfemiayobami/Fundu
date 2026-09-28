@@ -1,268 +1,79 @@
 "use client";
 
-import React from "react";
-import CampaignStorageImage from "@/components/campaigns/CampaignStorageImage";
+import { useEffect, useState } from "react";
+import { StoryBlocks, CampaignCover, CampaignFundingProgress } from "@/components/campaigns/PublicCampaignContent";
+import { supabase } from "@/lib/supabase";
+import { PreviewTips } from "./CreateCampaignLayout";
+import "@/app/campaign/[id]/campaign-public.css";
 
-import Badge from "@/components/ui/Badge";
-import CategoryBadge from "@/components/ui/CategoryBadge";
+export default function PreviewCampaign({ campaignData, blocks = [], campaignId, creatorProfile, onEditStep, onNext, onBack, isSaving }) {
+  const [mode, setMode] = useState("desktop");
+  const [failedCover, setFailedCover] = useState(null);
+  const [bank, setBank] = useState(null);
+  const [bankState, setBankState] = useState(campaignId ? "loading" : "ready");
+  const [bankRetry, setBankRetry] = useState(0);
 
-export default function PreviewCampaign({
-  campaignData,
-  blocks,
-  onNext,
-  onBack,
-  onSaveAndExit,
-  isSaving,
-}) {
-  const renderImageRow = (imageArray) => {
-    if (!imageArray || imageArray.length === 0) {
-      return null;
+  useEffect(() => {
+    let cancelled = false;
+    async function loadBank() {
+      if (!campaignId) {
+        if (!cancelled) { setBank(null); setBankState("ready"); }
+        return;
+      }
+      setBankState("loading");
+      try {
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        if (authError) throw authError;
+        if (!user) throw new Error("Sign in to check your bank account.");
+        const { data, error } = await supabase.from("campaign_bank_accounts")
+          .select("account_holder_name,account_number,bank_name")
+          .eq("campaign_id", campaignId).eq("user_id", user.id).eq("is_active", true).maybeSingle();
+        if (error) throw error;
+        if (!cancelled) { setBank(data); setBankState("ready"); }
+      } catch {
+        if (!cancelled) { setBank(null); setBankState("error"); }
+      }
     }
+    loadBank();
+    return () => { cancelled = true; };
+  }, [campaignId, bankRetry]);
 
-    return (
-      <div className="preview-media-row">
-        {imageArray.map((url, idx) => (
-          <div key={`${url}-${idx}`} className="preview-media-item">
-            <CampaignStorageImage src={url} alt={`Campaign image ${idx + 1}`} />
-          </div>
-        ))}
-      </div>
-    );
-  };
+  const title = campaignData.title?.trim() || "Untitled campaign";
+  const organizer = campaignData.organiser?.trim() || creatorProfile?.name || "Organizer";
+  const initials = organizer.split(/\s+/).slice(0, 2).map(part => part[0]).join("").toUpperCase();
+  const goal = Number(String(campaignData.goal || "0").replace(/,/g, "")) || 0;
+  const cover = campaignData.imagePreview || campaignData.cover_image || campaignData.image_url || campaignData.preview_image || campaignData.coverImage || "";
+  const end = campaignData.duration ? new Date(`${campaignData.duration}T00:00:00+01:00`) : null;
+  const validEnd = end && !Number.isNaN(end.getTime());
+  const date = validEnd ? end.toLocaleDateString("en-NG", { timeZone: "Africa/Lagos", day: "numeric", month: "short", year: "numeric" }) : "";
+  const days = validEnd ? Math.max(0, Math.ceil((end.getTime() - Date.now()) / 86400000)) : null;
+  const checks = [
+    { text: "Title, goal and end date", done: Boolean(campaignData.title?.trim() && goal > 0 && validEnd), step: 1 },
+    { text: "Cover image", done: Boolean(cover), step: 1 },
+    { text: `Story with ${blocks.length} ${blocks.length === 1 ? "block" : "blocks"}`, done: blocks.some(block => block.content?.trim() || block.media?.length || block.url?.trim()), step: 2 },
+    { text: bankState === "loading" ? "Checking bank account…" : bankState === "error" ? "Couldn't check bank account" : "Bank account", done: Boolean(bank), step: 4 },
+  ];
 
-  const renderVideo = (videoUrl, blockId) => {
-    const embedUrl = getVideoEmbedUrl(videoUrl);
-
-    if (!embedUrl) {
-      return null;
-    }
-
-    return (
-      <div className="preview-video-embed">
-        <iframe
-          src={embedUrl}
-          title={`Campaign video ${blockId}`}
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-          allowFullScreen
-        />
-      </div>
-    );
-  };
-
-  const goalAmount = Number(campaignData.goal || 0);
-
-  const coverImage =
-    campaignData.imagePreview ||
-    campaignData.coverImage ||
-    campaignData.cover_image ||
-    campaignData.image_url ||
-    campaignData.preview_image ||
-    "";
-
-  const formatEndDate = (dateString) => {
-    if (!dateString) {
-      return "No end date selected";
-    }
-
-    const date = new Date(`${dateString}T00:00:00`);
-
-    return date.toLocaleDateString("en-US", {
-      month: "long",
-      day: "numeric",
-      year: "numeric",
-    });
-  };
-
-  return (
-    <div className="form-container-main">
-      <div className="preview-web-wrapper">
-        {/* COVER IMAGE */}
-
-        {coverImage && (
-          <div className="preview-hero-container">
-            <CampaignStorageImage
-              src={coverImage}
-              alt={
-                campaignData.title
-                  ? `${campaignData.title} cover`
-                  : "Campaign cover"
-              }
-              className="preview-hero-img"
-            />
-          </div>
-        )}
-
-        {/* META */}
-
-        <div className="preview-meta-row">
-          <CategoryBadge category={campaignData.category} />
-
-          <Badge status="Draft" />
-        </div>
-
-        {/* HEADER */}
-
-        <div className="preview-header-flex">
-          <div className="header-left">
-            <h1 className="preview-title-text">
-              {campaignData.title || "Untitled Campaign"}
-            </h1>
-
-            <p className="preview-author-text">
-              by {campaignData.organiser || "Organizer Name"}
-            </p>
-          </div>
-
-          <div className="header-right">
-            <h2 className="preview-amount-text">
-              ₦{goalAmount.toLocaleString("en-NG")}
-            </h2>
-
-            <p className="preview-goal-label">Fundraising goal</p>
-          </div>
-        </div>
-
-        <hr className="preview-divider" />
-
-        {/* STORY */}
-
-        <div className="preview-story-container">
-          {blocks.length === 0 ? (
-            <div className="preview-empty-story">
-              <p>No story content has been added yet.</p>
-            </div>
-          ) : (
-            blocks.map((block) => (
-              <div key={block.id} className="block-spacing">
-                {block.type === "section" && (
-                  <div className="section-block">
-                    {block.title && (
-                      <h3 className="section-block-title">{block.title}</h3>
-                    )}
-
-                    {block.content && (
-                      <p className="section-block-body">{block.content}</p>
-                    )}
-
-                    {renderImageRow(block.media)}
-                  </div>
-                )}
-
-                {block.type === "text" && block.content && (
-                  <p className="text-block-style">{block.content}</p>
-                )}
-
-                {(block.type === "image" || block.type === "media") &&
-                  renderImageRow(block.media)}
-
-                {block.type === "video" && renderVideo(block.url, block.id)}
-              </div>
-            ))
-          )}
-        </div>
-
-        {/* END DATE */}
-
-        <div className="preview-end-date-card">
-          <p className="preview-end-date-label">Campaign end date</p>
-
-          <p className="preview-end-date-value">
-            {formatEndDate(campaignData.duration)}
-          </p>
-        </div>
-
-        {/* ACTIONS */}
-
-        <div className="campaign-bottom-actions">
-          <button
-            type="button"
-            className="campaign-action-save-exit"
-            onClick={onSaveAndExit}
-            disabled={isSaving}
-          >
-            {isSaving ? "Saving..." : "Save & Exit"}
-          </button>
-
-          <div className="campaign-bottom-actions__right">
-            <button
-              type="button"
-              className="campaign-action-secondary"
-              onClick={onBack}
-              disabled={isSaving}
-            >
-              Edit Story
-            </button>
-
-            <button
-              type="button"
-              className="campaign-action-primary"
-              onClick={onNext}
-              disabled={isSaving}
-            >
-              {isSaving ? "Saving..." : "Continue to Publish"}
-            </button>
-          </div>
-        </div>
+  return <section className="cw-preview">
+    <div className="cw-preview-heading"><div><h2>Preview your page</h2><p>This is what supporters will see when you share your link.</p></div>
+      <div className="cw-preview-switch" role="group" aria-label="Preview size">
+        <button type="button" aria-pressed={mode === "desktop"} onClick={() => setMode("desktop")}>▱ Desktop</button>
+        <button type="button" aria-pressed={mode === "mobile"} onClick={() => setMode("mobile")}>▯ Mobile</button>
       </div>
     </div>
-  );
-}
-
-/* =========================================================
-   VIDEO URL HELPER
-========================================================= */
-
-function getVideoEmbedUrl(value) {
-  if (!value) {
-    return null;
-  }
-
-  try {
-    const url = new URL(value.trim());
-
-    const hostname = url.hostname.replace(/^www\./, "").toLowerCase();
-
-    if (hostname === "youtu.be") {
-      const videoId = url.pathname.split("/").filter(Boolean)[0];
-
-      return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
-    }
-
-    if (hostname === "youtube.com" || hostname === "m.youtube.com") {
-      if (url.pathname === "/watch") {
-        const videoId = url.searchParams.get("v");
-
-        return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
-      }
-
-      const parts = url.pathname.split("/").filter(Boolean);
-
-      if (
-        parts[0] === "embed" ||
-        parts[0] === "shorts" ||
-        parts[0] === "live"
-      ) {
-        const videoId = parts[1];
-
-        return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
-      }
-    }
-
-    if (hostname === "vimeo.com" || hostname === "player.vimeo.com") {
-      const parts = url.pathname.split("/").filter(Boolean);
-
-      const videoId =
-        hostname === "player.vimeo.com" && parts[0] === "video"
-          ? parts[1]
-          : parts[0];
-
-      if (videoId && /^\d+$/.test(videoId)) {
-        return `https://player.vimeo.com/video/${videoId}`;
-      }
-    }
-
-    return null;
-  } catch {
-    return null;
-  }
+    <div className="cw-preview-columns"><div className="cw-preview-main">
+      <div className={`cw-preview-browser cw-preview--${mode}`}>
+        <div className="cw-preview-browser-bar"><span className="cw-preview-dots" aria-hidden="true">● ● ●</span><span className="cw-preview-address">fundu-jade.vercel.app/campaign/{campaignId || "…"}</span><span className="cw-preview-mobile-label">◉ Supporters will see this</span></div>
+        <div className="pc-page cw-preview-public"><div className="pc-grid">
+          <header className="pc-title"><span className="pc-category">{campaignData.category || "Campaign"}</span><h1>{title}</h1><div className="pc-organizer"><span className="pc-avatar" aria-hidden="true">{initials}</span><div><strong>{organizer} is organizing this fundraiser</strong><p>Not published yet. {date ? `Ends ${date}.` : "No end date."}</p></div></div></header>
+          <CampaignCover src={failedCover !== cover ? cover : null} title={title} onError={() => setFailedCover(cover)} />
+          <aside className="pc-support" aria-label="Preview fundraising details"><CampaignFundingProgress amountRaised={0} goalAmount={goal} percentage={0} statusText={days === null ? "No end date" : `${days} ${days === 1 ? "day" : "days"} left`} />
+            {bankState === "loading" ? <p className="cw-preview-bank-status" role="status">Checking bank details…</p> : bankState === "error" ? <div className="cw-preview-bank-placeholder"><strong>Couldn&apos;t load bank details</strong><button type="button" onClick={() => setBankRetry(value => value + 1)}>Retry</button></div> : bank ? <div className="pc-bank">{[["Account number", bank.account_number], ["Account name", bank.account_holder_name], ["Bank", bank.bank_name]].map(([label, value]) => <div className="cw-preview-bank-row" key={label}><span>{label}</span><strong>{value}</strong></div>)}</div> : <div className="cw-preview-bank-placeholder"><strong>Bank details will show here</strong><p>Add a bank account in the next step so supporters know where to send money.</p></div>}
+          </aside>
+          <section className="pc-section pc-about"><h2>About this campaign</h2><StoryBlocks blocks={blocks} fallbackText={campaignData.shortDescription} /></section>
+        </div></div>
+      </div>
+    </div><aside className="cw-preview-checks"><section className="cw-quick-check"><h2>Quick check</h2><ul>{checks.map((check, index) => <li key={index}><span className={check.done ? "cw-check--done" : "cw-check--missing"} aria-label={check.done ? "Complete" : "Incomplete"}>{check.done ? "✓" : "×"}</span><span>{check.text}</span><button type="button" disabled={isSaving || (index === 3 && bankState === "loading")} onClick={() => onEditStep(check.step)}>{check.step === 4 ? bank ? "Edit" : "Add in next step" : "Edit"}</button></li>)}</ul>{bankState === "error" && <button type="button" onClick={() => setBankRetry(value => value + 1)}>Retry bank check</button>}</section><PreviewTips /></aside></div>
+    <div className="campaign-bottom-actions"><div className="campaign-bottom-actions__right"><button type="button" className="campaign-action-secondary" aria-label="Back to story" disabled={isSaving} onClick={onBack}>← Back to story</button><button type="button" className="campaign-action-primary" disabled={isSaving} onClick={onNext}>Continue to publish</button></div></div>
+  </section>;
 }

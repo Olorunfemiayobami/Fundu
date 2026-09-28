@@ -1,10 +1,14 @@
 "use client";
 
+import LoadingScreen, { NotFoundScreen } from "@/components/feedback/LoadingScreen";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import CampaignStorageImage from "@/components/campaigns/CampaignStorageImage";
+import ReportCampaignDialog from "@/components/campaigns/ReportCampaignDialog";
+import { ActionIcon } from "@/components/feedback/ActionDialog";
+import { StoryBlocks, CampaignCover, CampaignFundingProgress } from "@/components/campaigns/PublicCampaignContent";
 import "./campaign-public.css";
 
 export default function PublicCampaignPage() {
@@ -31,6 +35,75 @@ export default function PublicCampaignPage() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [copyMessage, setCopyMessage] = useState("");
+  const [reportOpen, setReportOpen] = useState(false);
+
+  const [viewerProfile, setViewerProfile] = useState(null);
+  const [commentsError, setCommentsError] = useState("");
+  const [failedCover, setFailedCover] = useState(null);
+  const [viewingPhoto, setViewingPhoto] = useState(null);
+  const [supportVisible, setSupportVisible] = useState(true);
+  const [activeSection, setActiveSection] = useState("about");
+  const [clockNow, setClockNow] = useState(Date.now());
+  const supportRef = useRef(null);
+  const photoDialogRef = useRef(null);
+  const photoTriggerRef = useRef(null);
+  const copyTimerRef = useRef(null);
+  const loadRequestRef = useRef(0);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setClockNow(Date.now()), 30000);
+    return () => {
+      window.clearInterval(timer);
+      window.clearTimeout(copyTimerRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    setViewerProfile(null);
+    if (!viewer?.id) return;
+    supabase
+      .from("users")
+      .select("id, display_name, full_name, avatar_url")
+      .eq("id", viewer.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!cancelled) setViewerProfile(data || null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [viewer?.id]);
+
+  function openPhoto(url, alt = "Campaign photo") {
+    photoTriggerRef.current = document.activeElement;
+    setViewingPhoto({ url, alt });
+  }
+
+  useEffect(() => {
+    if (!viewingPhoto) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const dialog = photoDialogRef.current;
+    const closeButton = dialog?.querySelector("button");
+    closeButton?.focus();
+    function onKey(event) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setViewingPhoto(null);
+      }
+      if (event.key === "Tab") {
+        event.preventDefault();
+        closeButton?.focus();
+      }
+    }
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = previousOverflow;
+      if (photoTriggerRef.current?.isConnected) photoTriggerRef.current.focus();
+    };
+  }, [viewingPhoto]);
 
   /* CHECK WHETHER VIEWER IS LOGGED IN */
 
@@ -63,178 +136,137 @@ export default function PublicCampaignPage() {
     };
   }, []);
 
-  /* LOAD CAMPAIGN */
-
+  /* LOAD CAMPAIGN — existing tables and public access rules */
   useEffect(() => {
-    if (!campaignId) return;
-
+    if (!campaignId || !authChecked) return;
     loadCampaignPage();
-  }, [campaignId]);
+    return () => {
+      loadRequestRef.current += 1;
+    };
+  }, [campaignId, authChecked, viewer?.id]);
 
   async function loadCampaignPage() {
+    const request = ++loadRequestRef.current;
     setLoading(true);
     setLoadError("");
-    setCampaignUpdates([]);
+    setCampaign(null);
+    setBankAccount(null);
+    setCommentsError("");
     setUpdatesError("");
-
     try {
-      const { data: campaignRow, error: campaignError } = await supabase
+      let { data: row, error } = await supabase
         .from("campaigns")
         .select("*")
         .eq("id", campaignId)
         .in("status", ["active", "ended"])
         .maybeSingle();
-
-      if (campaignError) {
-        throw campaignError;
+      if (error) throw error;
+      const previewRequested =
+        new URLSearchParams(window.location.search).get("preview") === "true";
+      if (!row && viewer?.id && previewRequested) {
+        const result = await supabase
+          .from("campaigns")
+          .select("*")
+          .eq("id", campaignId)
+          .eq("creator_id", viewer.id)
+          .eq("status", "draft")
+          .maybeSingle();
+        if (result.error) throw result.error;
+        row = result.data;
       }
-
-      if (!campaignRow) {
-        setLoadError(
+      if (!row)
+        throw new Error(
           "This campaign could not be found or is not publicly available.",
         );
-        return;
-      }
-
-      setCampaign(campaignRow);
-
-      /* CREATOR */
-
-      if (campaignRow.creator_id) {
-        const { data: creatorRow, error: creatorError } = await supabase
-          .from("users")
-          .select("id, full_name, display_name, avatar_url")
-          .eq("id", campaignRow.creator_id)
-          .maybeSingle();
-
-        if (creatorError) {
-          console.error("Creator load error:", creatorError);
-        }
-
-        setCreator(creatorRow || null);
-      }
-
-      /* CATEGORY */
-
-      if (campaignRow.category_id) {
-        const { data: categoryRow, error: categoryError } = await supabase
-          .from("categories")
-          .select("id, name, slug")
-          .eq("id", campaignRow.category_id)
-          .maybeSingle();
-
-        if (categoryError) {
-          console.error("Category load error:", categoryError);
-        }
-
-        setCategory(categoryRow || null);
-      }
-
-      /* BANK ACCOUNT */
-
-      const { data: bankRows, error: bankError } = await supabase
-        .from("campaign_bank_accounts")
-        .select(
-          `
-            id,
-            campaign_id,
-            user_id,
-            account_holder_name,
-            account_number,
-            bank_name,
-            is_active
-          `,
-        )
-        .eq("campaign_id", campaignRow.id)
-        .eq("is_active", true)
-        .order("updated_at", {
-          ascending: false,
-        })
-        .limit(1);
-
-      if (bankError) {
-        console.error("Bank load error:", bankError);
-      }
-
-      setBankAccount(bankRows?.[0] || null);
-
-      /* PUBLIC CAMPAIGN UPDATES */
-
-      const { data: updateRows, error: updateError } = await supabase
-        .from("campaign_updates")
-        .select("id, title, content, image_urls, is_final_update, created_at")
-        .eq("campaign_id", campaignRow.id)
-        .order("created_at", {
-          ascending: false,
-        });
-
-      if (updateError) {
-        setUpdatesError(
-          "We couldn't load campaign updates right now. Please refresh to try again.",
-        );
-      } else {
-        setCampaignUpdates(updateRows || []);
-      }
-
-      /* COMMENTS */
-
-      const { data: commentRows, error: commentsError } = await supabase
-        .from("comments")
-        .select(
-          `
-            id,
-            campaign_id,
-            user_id,
-            content,
-            created_at
-          `,
-        )
-        .eq("campaign_id", campaignRow.id)
-        .order("created_at", {
-          ascending: true,
-        });
-
-      if (commentsError) {
-        console.error("Comments load error:", commentsError);
-      }
-
-      const safeComments = commentRows || [];
-
-      setComments(safeComments);
-
-      /* LOAD COMMENT AUTHORS */
-
-      const userIds = [
+      const ended = campaignHasEnded(row, Date.now());
+      const results = await Promise.all([
+        row.creator_id
+          ? supabase
+              .from("users")
+              .select("id, full_name, display_name, avatar_url")
+              .eq("id", row.creator_id)
+              .maybeSingle()
+          : Promise.resolve({ data: null }),
+        row.category_id
+          ? supabase
+              .from("categories")
+              .select("id, name, slug")
+              .eq("id", row.category_id)
+              .maybeSingle()
+          : Promise.resolve({ data: null }),
+        !ended && row.status === "active"
+          ? supabase
+              .from("campaign_bank_accounts")
+              .select(
+                "id, campaign_id, user_id, account_holder_name, account_number, bank_name, is_active",
+              )
+              .eq("campaign_id", row.id)
+              .eq("is_active", true)
+              .order("updated_at", { ascending: false })
+              .limit(1)
+          : Promise.resolve({ data: [] }),
+        supabase
+          .from("campaign_updates")
+          .select("id, title, content, image_urls, is_final_update, created_at")
+          .eq("campaign_id", row.id)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("comments")
+          .select("id, campaign_id, user_id, content, created_at")
+          .eq("campaign_id", row.id)
+          .order("created_at", { ascending: true }),
+      ]);
+      const [
+        creatorResult,
+        categoryResult,
+        bankResult,
+        updateResult,
+        commentResult,
+      ] = results;
+      const safeComments = commentResult.error ? [] : commentResult.data || [];
+      const ids = [
         ...new Set(
           safeComments.map((comment) => comment.user_id).filter(Boolean),
         ),
       ];
-
-      if (userIds.length > 0) {
-        const { data: commentUserRows, error: commentUsersError } =
-          await supabase
-            .from("users")
-            .select("id, full_name, display_name, avatar_url")
-            .in("id", userIds);
-
-        if (commentUsersError) {
-          console.error("Comment users load error:", commentUsersError);
-        }
-
-        const nextMap = {};
-
-        for (const user of commentUserRows || []) {
-          nextMap[user.id] = user;
-        }
-
-        setCommentUsers(nextMap);
+      let authors = [];
+      if (ids.length) {
+        const result = await supabase
+          .from("users")
+          .select("id, full_name, display_name, avatar_url")
+          .in("id", ids);
+        if (!result.error) authors = result.data || [];
       }
+      if (request !== loadRequestRef.current) return;
+      setCampaign(row);
+      setCreator(creatorResult.data || null);
+      setCategory(categoryResult.data || null);
+      setBankAccount(bankResult.data?.[0] || null);
+      setCampaignUpdates(updateResult.error ? [] : updateResult.data || []);
+      setUpdatesError(
+        updateResult.error
+          ? "We couldn't load updates. Refresh the page to try again."
+          : "",
+      );
+      setComments(safeComments);
+      setCommentsError(
+        commentResult.error
+          ? "We couldn't load words of support. Refresh the page to try again."
+          : "",
+      );
+      setCommentUsers(
+        Object.fromEntries(authors.map((author) => [author.id, author])),
+      );
+      for (const result of results)
+        if (result.error)
+          console.error("Campaign detail data error:", result.error);
     } catch (error) {
-      console.error("Campaign page load error:", error);
-
-      setLoadError("We couldn't load this campaign right now.");
+      if (request === loadRequestRef.current)
+        setLoadError(
+          error?.message || "We couldn't load this campaign right now.",
+        );
     } finally {
-      setLoading(false);
+      if (request === loadRequestRef.current) setLoading(false);
     }
   }
 
@@ -273,23 +305,51 @@ export default function PublicCampaignPage() {
     campaign?.preview_image ||
     "";
 
-  const amountRaised = Number(campaign?.amount_raised || 0);
+  const amountRaised = Math.max(0, Number(campaign?.amount_raised) || 0);
 
-  const goalAmount = Number(campaign?.goal_amount || 0);
+  const goalAmount = Math.max(0, Number(campaign?.goal_amount) || 0);
 
   const progressPercentage =
     goalAmount > 0
       ? Math.min(100, Math.round((amountRaised / goalAmount) * 100))
       : 0;
 
-  const daysRemaining = getDaysRemaining(campaign?.end_date);
+  const daysRemaining = getDaysRemaining(campaign?.end_date, clockNow);
 
-  const isCampaignEnded =
-    campaign?.status === "ended" ||
-    (campaign?.end_date && new Date(campaign.end_date).getTime() <= Date.now());
+  const isCampaignEnded = campaignHasEnded(campaign, clockNow);
 
   const isCampaignOwner =
     Boolean(viewer?.id) && viewer.id === campaign?.creator_id;
+
+  useEffect(() => {
+    if (loading || !supportRef.current) return;
+    if (!("IntersectionObserver" in window)) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setSupportVisible(entry.isIntersecting),
+      { threshold: 0 },
+    );
+    observer.observe(supportRef.current);
+    return () => observer.disconnect();
+  }, [loading, campaign?.id, isCampaignEnded]);
+
+  useEffect(() => {
+    if (loading || !campaign) return;
+    if (!("IntersectionObserver" in window)) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+        if (visible[0]) setActiveSection(visible[0].target.id);
+      },
+      { rootMargin: "-80px 0px -55% 0px", threshold: 0 },
+    );
+    for (const id of ["about", "updates", "comments"]) {
+      const section = document.getElementById(id);
+      if (section) observer.observe(section);
+    }
+    return () => observer.disconnect();
+  }, [loading, campaign?.id]);
 
   /* COPY */
 
@@ -301,7 +361,8 @@ export default function PublicCampaignPage() {
 
       setCopyMessage(label);
 
-      window.setTimeout(() => {
+      window.clearTimeout(copyTimerRef.current);
+      copyTimerRef.current = window.setTimeout(() => {
         setCopyMessage("");
       }, 1800);
     } catch {
@@ -310,13 +371,16 @@ export default function PublicCampaignPage() {
   }
 
   async function copyCampaignLink() {
-    await copyText(window.location.href, "Campaign link copied");
+    await copyText(
+      `${window.location.origin}/campaign/${campaignId}`,
+      "Campaign link copied",
+    );
   }
 
   /* SHARE */
 
   async function shareCampaign() {
-    const url = window.location.href;
+    const url = `${window.location.origin}/campaign/${campaignId}`;
 
     if (navigator.share) {
       try {
@@ -340,7 +404,9 @@ export default function PublicCampaignPage() {
   }
 
   function shareTo(platform) {
-    const url = encodeURIComponent(window.location.href);
+    const url = encodeURIComponent(
+      `${window.location.origin}/campaign/${campaignId}`,
+    );
 
     const text = encodeURIComponent(
       campaign?.title
@@ -451,13 +517,15 @@ export default function PublicCampaignPage() {
 
   if (!authChecked || loading) {
     return (
-      <div className="public-campaign-loading">
-        <p>Loading campaign...</p>
-      </div>
+      <LoadingScreen variant="detail" label="Loading campaign" />
     );
   }
 
   /* ERROR */
+
+  if (loadError === "This campaign could not be found or is not publicly available.") {
+    return <NotFoundScreen homeHref={viewer ? "/dashboard" : "/"} exploreHref={viewer ? "/explore" : "/webexplore"} />;
+  }
 
   if (loadError || !campaign) {
     return (
@@ -471,604 +539,588 @@ export default function PublicCampaignPage() {
     );
   }
 
-  /* PAGE */
-
+  /* PUBLIC CAMPAIGN */
+  const viewerName =
+    viewerProfile?.display_name ||
+    viewerProfile?.full_name ||
+    viewer?.user_metadata?.full_name ||
+    "Fundu supporter";
+  const viewerAvatar =
+    viewerProfile?.avatar_url || viewer?.user_metadata?.avatar_url || "";
+  const preview = campaign.status === "draft" && isCampaignOwner;
   return (
-    <div className="public-campaign-page-shell">
-      <div className="public-campaign-page">
-        <button
-          type="button"
-          className="public-campaign-back"
-          onClick={() => router.back()}
-        >
-          ← Back
-        </button>
-
-        {/* HEADER */}
-
-        <section className="public-campaign-header-card">
-          <div className="public-campaign-title-block">
-            <h1>{campaign.title}</h1>
-
-            <div className="public-campaign-meta-row">
-              <div className="public-campaign-badges">
-                <span className="public-campaign-category">
-                  {category?.name || "Campaign"}
-                </span>
-
-                <span className="public-campaign-status">
-                  {isCampaignEnded ? "Campaign ended" : "Active"}
-                </span>
-              </div>
-
-              <div className="public-campaign-dates">
-                <span>
-                  Published{" "}
-                  {formatDate(campaign.start_date || campaign.created_at)}
-                </span>
-
-                <span>·</span>
-
-                <span>Ends {formatDate(campaign.end_date)}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* ORGANIZER */}
-
-          <div className="public-campaign-organizer-row">
-            <div className="public-campaign-organizer">
-              <div className="public-campaign-avatar">{organizerInitials}</div>
-
+    <div
+      className={`pc-page ${viewer ? "pc-page--signed-in" : "pc-page--visitor"}`}
+    >
+      {viewer && (
+        <Link href="/explore" className="pc-back">
+          ← Back to Explore
+        </Link>
+      )}
+      {isCampaignOwner && (
+        <div className="pc-owner">
+          <span>
+            <PCIcon name="eye" />
+            <span className="pc-owner__desktop">
+              {preview
+                ? "This is a preview. Publish to share it."
+                : "This is your campaign. You're seeing what supporters see."}
+            </span>
+            <span className="pc-owner__mobile">
+              {preview ? "Preview: publish to share" : "This is your campaign"}
+            </span>
+          </span>
+          <Link href={`/campaigns/${campaign.id}`}>Manage campaign</Link>
+        </div>
+      )}
+      <div className="pc-grid">
+        <header className="pc-title">
+          <span className="pc-category">{category?.name || "Campaign"}</span>
+          {isCampaignEnded && (
+            <span className="pc-ended-pill">
+              Ended
+              {campaign.end_date ? ` ${formatDate(campaign.end_date)}` : ""}
+            </span>
+          )}
+          <h1>{campaign.title || "Untitled campaign"}</h1>
+          <div className="pc-organizer-row">
+            <div className="pc-organizer">
+              <span className="pc-avatar" aria-hidden="true">
+                {organizerInitials}
+              </span>
               <div>
-                <strong>{organizerName}</strong>
-
-                <span>Campaign Organizer</span>
+                <strong>{organizerName} is organizing this fundraiser</strong>
+                <p>
+                  {preview
+                    ? "Not published yet."
+                    : `Published ${formatDate(campaign.start_date || campaign.created_at)}.`}{" "}
+                  {campaign.end_date
+                    ? `${isCampaignEnded ? "Ended" : "Ends"} ${formatDate(campaign.end_date)}.`
+                    : "No end date."}
+                </p>
               </div>
             </div>
-
-            <div className="public-campaign-header-actions">
-              {isCampaignOwner && (
-                <button
-                  type="button"
-                  className="public-campaign-edit-button"
-                  onClick={() =>
-                    router.push(`/create-campaign?campaign=${campaign.id}`)
-                  }
-                >
-                  Edit Campaign
-                </button>
-              )}
-
+            {!preview && (
               <button
                 type="button"
-                className="public-campaign-share-button"
+                className="pc-button pc-title__share"
                 onClick={shareCampaign}
               >
-                Share Campaign
+                <PCIcon name="share" />
+                Share
               </button>
-
-              <button
-                type="button"
-                className="public-campaign-copy-link"
-                onClick={copyCampaignLink}
-              >
-                Copy Link
-              </button>
-            </div>
+            )}
           </div>
-
-          {/* COVER */}
-
-          {coverImage ? (
-            <div className="public-campaign-cover">
-              <CampaignStorageImage src={coverImage} alt={campaign.title} />
+        </header>
+        <CampaignCover src={failedCover !== coverImage ? coverImage : null} title={campaign.title} onError={() => setFailedCover(coverImage)} />
+        <aside
+          className="pc-support"
+          id="campaign-support"
+          ref={supportRef}
+          tabIndex={-1}
+          aria-label="Campaign support details"
+        >
+          <CampaignFundingProgress amountRaised={amountRaised} goalAmount={goalAmount} percentage={progressPercentage} infoIcon={<PCIcon name="info" />} statusText={preview ? "Draft preview" : isCampaignEnded ? "Campaign ended" : daysRemaining === null ? "No end date" : `${daysRemaining} ${daysRemaining === 1 ? "day" : "days"} left`} />
+          <div className="pc-support__give">
+            {preview ? (
+              <>
+                <h2>This is a draft preview</h2>
+                <p>
+                  Publish the campaign before supporters can give by transfer.
+                </p>
+              </>
+            ) : isCampaignEnded ? (
+              <>
+                <h2>This campaign has ended</h2>
+                <p>
+                  Contributions are closed. You can still read the story and
+                  updates and share the campaign.
+                </p>
+              </>
+            ) : (
+              <>
+                <h2>Give by bank transfer</h2>
+                <ol className="pc-give-steps">
+                  <li>
+                    <strong>Copy the account number</strong>
+                    <span>It&apos;s at the top of the details below.</span>
+                  </li>
+                  <li>
+                    <strong>Send a transfer from your bank app</strong>
+                    <span>
+                      Any amount helps. It goes straight to the organizer.
+                    </span>
+                  </li>
+                  <li>
+                    <a href="#comments">Leave a word of support</a>
+                    <span>So the organizer knows you gave.</span>
+                  </li>
+                </ol>
+                {bankAccount ? (
+                  <div className="pc-bank">
+                    <PublicBankRow
+                      label="Account number"
+                      value={bankAccount.account_number}
+                      accent
+                      copied={copyMessage === "Account number copied"}
+                      onCopy={() =>
+                        copyText(
+                          bankAccount.account_number,
+                          "Account number copied",
+                        )
+                      }
+                    />
+                    <PublicBankRow
+                      label="Account name"
+                      value={bankAccount.account_holder_name}
+                      copied={copyMessage === "Account name copied"}
+                      onCopy={() =>
+                        copyText(
+                          bankAccount.account_holder_name,
+                          "Account name copied",
+                        )
+                      }
+                    />
+                    <PublicBankRow
+                      label="Bank"
+                      value={bankAccount.bank_name}
+                      copied={copyMessage === "Bank copied"}
+                      onCopy={() =>
+                        copyText(bankAccount.bank_name, "Bank copied")
+                      }
+                    />
+                  </div>
+                ) : (
+                  <p className="pc-bank-unavailable">
+                    Bank details are not currently available. Please check back
+                    before sending money.
+                  </p>
+                )}
+                <p className="pc-funds-note">
+                  <PCIcon name="shield" />
+                  Money goes directly to the organizer&apos;s account. Fundu
+                  never receives or holds campaign funds.
+                </p>
+              </>
+            )}
+          </div>
+          {!preview && (
+            <div className="pc-share">
+              <h3>Can&apos;t give right now? Share it</h3>
+              <div className="pc-share__buttons">
+                <button
+                  type="button"
+                  className="pc-button"
+                  onClick={() => shareTo("whatsapp")}
+                >
+                  WhatsApp
+                </button>
+                <button
+                  type="button"
+                  className="pc-button"
+                  onClick={() => shareTo("facebook")}
+                >
+                  Facebook
+                </button>
+                <button
+                  type="button"
+                  className="pc-button"
+                  onClick={() => shareTo("x")}
+                >
+                  X
+                </button>
+                <button
+                  type="button"
+                  className="pc-button"
+                  onClick={copyCampaignLink}
+                >
+                  <PCIcon name="link" />
+                  {copyMessage === "Campaign link copied"
+                    ? "Copied"
+                    : "Copy link"}
+                </button>
+              </div>
+              <button type="button" className="pc-report-link" onClick={() => setReportOpen(true)}><ActionIcon name="flag" />Report campaign</button>
+            </div>
+          )}
+        </aside>
+        <nav className="pc-tabs" aria-label="Campaign sections">
+          <a
+            href="#about"
+            aria-current={activeSection === "about" ? "location" : undefined}
+          >
+            About
+          </a>
+          <a
+            href="#updates"
+            aria-current={activeSection === "updates" ? "location" : undefined}
+          >
+            Updates {updatesError ? "" : campaignUpdates.length}
+          </a>
+          <a
+            href="#comments"
+            aria-current={activeSection === "comments" ? "location" : undefined}
+          >
+            Words of support {commentsError ? "" : comments.length}
+          </a>
+        </nav>
+        <section id="about" className="pc-section pc-about" tabIndex={-1}>
+          <h2>About this campaign</h2>
+          <StoryBlocks
+            blocks={storyBlocks}
+            fallbackText={campaign.story_content || campaign.description}
+            onViewImage={openPhoto}
+          />
+        </section>
+        <section id="updates" className="pc-section pc-updates" tabIndex={-1}>
+          <h2>
+            Updates {!updatesError && <span>{campaignUpdates.length}</span>}
+          </h2>
+          {updatesError ? (
+            <p role="status">{updatesError}</p>
+          ) : campaignUpdates.length ? (
+            <div className="pc-update-list">
+              {campaignUpdates.map((update) => (
+                <article className="pc-update" key={update.id}>
+                  {update.is_final_update && (
+                    <span className="pc-category">Final update</span>
+                  )}
+                  <h3>{update.title || "Campaign update"}</h3>
+                  {update.content && <p>{update.content}</p>}
+                  {Array.isArray(update.image_urls) &&
+                    update.image_urls.length > 0 && (
+                      <div className="pc-update__photos">
+                        {update.image_urls
+                          .filter(
+                            (url) => typeof url === "string" && url.trim(),
+                          )
+                          .map((url, index) => (
+                            <button
+                              type="button"
+                              key={`${url}-${index}`}
+                              onClick={() =>
+                                openPhoto(
+                                  url,
+                                  `${update.title || "Update"} photo ${index + 1}`,
+                                )
+                              }
+                              aria-label={`View ${update.title || "update"} photo ${index + 1}`}
+                            >
+                              <CampaignStorageImage
+                                src={url}
+                                alt={`${update.title || "Update"} photo ${index + 1}`}
+                                loading="lazy"
+                              />
+                            </button>
+                          ))}
+                      </div>
+                    )}
+                  <time dateTime={update.created_at}>
+                    Posted {formatDate(update.created_at)}
+                  </time>
+                </article>
+              ))}
             </div>
           ) : (
-            <div className="public-campaign-cover public-campaign-cover--empty">
-              No campaign cover image
+            <div className="pc-empty">
+              <PCIcon name="message" />
+              <div>
+                <strong>No updates yet</strong>
+                <p>
+                  When the organizer shares progress, photos or receipts,
+                  they&apos;ll appear here.
+                </p>
+              </div>
             </div>
           )}
         </section>
-
-        {/* COPY MESSAGE */}
-
-        {copyMessage && (
-          <div className="public-campaign-copy-toast">{copyMessage}</div>
-        )}
-
-        {/* BODY */}
-
-        <div className="public-campaign-columns">
-          <div className="public-campaign-primary-column">
-            <section className="public-campaign-card">
-              <h2>About This Campaign</h2>
-
-              <StoryBlocks
-                blocks={storyBlocks}
-                fallbackText={campaign.story_content || campaign.description}
-              />
-            </section>
-
-            {/* UPDATES */}
-
-            <section className="public-campaign-card">
-              <div className="public-campaign-section-heading">
-                <h2>Campaign Updates</h2>
-
-                {!updatesError && (
-                  <span>
-                    {campaignUpdates.length}{" "}
-                    {campaignUpdates.length === 1 ? "update" : "updates"}
-                  </span>
-                )}
-              </div>
-
-              {updatesError ? (
-                <p role="status">{updatesError}</p>
-              ) : campaignUpdates.length > 0 ? (
-                <div className="public-campaign-updates">
-                  {campaignUpdates.map((update) => (
-                    <article className="public-campaign-update" key={update.id}>
-                      <div className="public-campaign-update-meta">
-                        <time dateTime={update.created_at}>
-                          {formatDate(update.created_at)}
-                        </time>
-
-                        {update.is_final_update && <span>Final update</span>}
+        <section id="comments" className="pc-section pc-comments" tabIndex={-1}>
+          <h2>
+            Words of support {!commentsError && <span>{comments.length}</span>}
+          </h2>
+          <div className="pc-comments__card">
+            {commentsError ? (
+              <p role="status">{commentsError}</p>
+            ) : comments.length ? (
+              <div className="pc-comment-list">
+                {comments.map((comment) => {
+                  const author = commentUsers[comment.user_id];
+                  const name =
+                    author?.display_name || author?.full_name || "Supporter";
+                  return (
+                    <article className="pc-comment" key={comment.id}>
+                      <span className="pc-avatar" aria-hidden="true">
+                        {getInitials(name)}
+                      </span>
+                      <div>
+                        <div className="pc-comment__meta">
+                          <strong>{name}</strong>
+                          <time dateTime={comment.created_at}>
+                            {formatRelativeDate(comment.created_at)}
+                          </time>
+                        </div>
+                        <p>{comment.content}</p>
                       </div>
-
-                      <h3>{update.title}</h3>
-
-                      <p className="public-campaign-update-content">
-                        {update.content}
-                      </p>
-
-                      {Array.isArray(update.image_urls) &&
-                        update.image_urls.length > 0 && (
-                          <div className="public-campaign-update-images">
-                            {update.image_urls
-                              .filter(
-                                (url) =>
-                                  typeof url === "string" &&
-                                  /^https?:\/\//i.test(url),
-                              )
-                              .map((url, index) => (
-                                <a
-                                  key={`${url}-${index}`}
-                                  href={url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  aria-label={`Open ${
-                                    update.title || "campaign update"
-                                  } photo ${index + 1}`}
-                                >
-                                  <CampaignStorageImage
-                                    src={url}
-                                    alt={`${
-                                      update.title || "Campaign update"
-                                    } photo ${index + 1}`}
-                                    loading="lazy"
-                                  />
-                                </a>
-                              ))}
-                          </div>
-                        )}
                     </article>
-                  ))}
-                </div>
-              ) : (
-                <div className="public-campaign-empty-state">
-                  <strong>No updates yet</strong>
-
-                  <p>
-                    The organizer has not posted any public campaign updates
-                    yet.
-                  </p>
-                </div>
-              )}
-            </section>
-
-            {/* COMMENTS */}
-
-            <section className="public-campaign-card">
-              <h2>Comments ({comments.length})</h2>
-
-              <div className="public-campaign-comments">
-                {comments.length === 0 ? (
-                  <div className="public-campaign-empty-state">
-                    <strong>No comments yet</strong>
-
-                    <p>Be the first person to leave a supportive comment.</p>
-                  </div>
-                ) : (
-                  comments.map((comment) => {
-                    const author = commentUsers[comment.user_id];
-
-                    const authorName =
-                      author?.display_name || author?.full_name || "Fundu User";
-
-                    return (
-                      <div className="public-campaign-comment" key={comment.id}>
-                        <div className="public-campaign-comment-avatar">
-                          {getInitials(authorName)}
-                        </div>
-
-                        <div className="public-campaign-comment-content">
-                          <div className="public-campaign-comment-meta">
-                            <strong>{authorName}</strong>
-
-                            <span>
-                              {formatRelativeDate(comment.created_at)}
-                            </span>
-                          </div>
-
-                          <p>{comment.content}</p>
-                        </div>
-                      </div>
-                    );
-                  })
-                )}
+                  );
+                })}
               </div>
-
-              {/* COMMENT FORM */}
-
-              <div className="public-campaign-comment-form">
-                {isCampaignEnded ? (
-                  <p>This campaign has ended, so comments are closed.</p>
-                ) : viewer ? (
-                  <>
-                    <textarea
-                      value={commentText}
-                      onChange={(event) => setCommentText(event.target.value)}
-                      placeholder="Leave a supportive comment..."
-                      maxLength={800}
-                    />
-
-                    <div className="public-campaign-comment-actions">
-                      <button
-                        type="button"
-                        onClick={postComment}
-                        disabled={!commentText.trim() || postingComment}
-                      >
-                        {postingComment ? "Posting..." : "Post Comment"}
-                      </button>
-                    </div>
-                  </>
-                ) : (
-                  <div className="public-campaign-signin-comment">
-                    <p>Sign in to leave a supportive comment.</p>
-
-                    <Link href={`/signin?redirect=/campaign/${campaign.id}`}>
-                      Sign In
-                    </Link>
-                  </div>
-                )}
-              </div>
-            </section>
-          </div>
-
-          {/* RIGHT */}
-
-          <aside className="public-campaign-side-column">
-            {/* BANK */}
-
-            <section className="public-campaign-support-card">
-              <div>
-                <h2>{isCampaignEnded ? "Campaign Ended" : "Support This Campaign"}</h2>
-
-                {isCampaignEnded ? (
-                  <p>This campaign has ended. Contributions are closed.</p>
-                ) : (
-                  <p>
-                    Send your contribution directly to the organizer&apos;s bank
-                    account.
-                  </p>
-                )}
-              </div>
-
-              {!isCampaignEnded && (bankAccount ? (
-                <div className="public-campaign-bank-box">
-                  <BankRow
-                    label="BANK"
-                    value={bankAccount.bank_name}
-                    onCopy={() =>
-                      copyText(bankAccount.bank_name, "Bank copied")
-                    }
-                  />
-
-                  <BankRow
-                    label="ACCOUNT NAME"
-                    value={bankAccount.account_holder_name}
-                    onCopy={() =>
-                      copyText(
-                        bankAccount.account_holder_name,
-                        "Account name copied",
-                      )
-                    }
-                  />
-
-                  <BankRow
-                    label="ACCOUNT NUMBER"
-                    value={bankAccount.account_number}
-                    accent
-                    onCopy={() =>
-                      copyText(
-                        bankAccount.account_number,
-                        "Account number copied",
-                      )
-                    }
-                  />
-                </div>
-              ) : (
-                <div className="public-campaign-bank-unavailable">
-                  Bank details are not currently available.
-                </div>
-              ))}
-
-              {!isCampaignEnded && (
-                <small>
-                  Your contribution goes directly to the campaign organizer. Fundu
-                  does not receive or hold campaign funds.
-                </small>
-              )}
-            </section>
-
-            {/* PROGRESS */}
-
-            <section className="public-campaign-side-card">
-              <div className="public-campaign-raised">
-                {formatMoney(amountRaised)}
-              </div>
-
-              <p className="public-campaign-goal">
-                of {formatMoney(goalAmount)} goal
-              </p>
-
-              <div className="public-campaign-progress-track">
-                <div
-                  className="public-campaign-progress-fill"
-                  style={{
-                    width: `${progressPercentage}%`,
-                  }}
-                />
-              </div>
-
-              <div className="public-campaign-progress-labels">
-                <span>{progressPercentage}% complete</span>
-
-                <span>
-                  {daysRemaining === null
-                    ? "No end date"
-                    : `${daysRemaining} ${
-                        daysRemaining === 1 ? "day" : "days"
-                      } remaining`}
-                </span>
-              </div>
-
-              <div className="public-campaign-side-divider" />
-
-              <small>Amount reported by the campaign organizer.</small>
-            </section>
-
-            {/* STAY UPDATED */}
-
-            <section className="public-campaign-side-card">
-              <div className="public-campaign-update-icon">✉</div>
-
-              <h3>Stay Updated</h3>
-
+            ) : (
               <p>
-                Get notified when the organizer posts updates about this
-                campaign&apos;s progress.
+                No comments yet. Gave something, or just want to cheer them on?
+                Be the first.
               </p>
-
-              <input
-                type="email"
-                placeholder="Enter your email address"
-                disabled
-              />
-
-              <button
-                type="button"
-                className="public-campaign-subscribe-button"
-                disabled
+            )}
+            {preview ? (
+              <p>Comments will be available after publishing.</p>
+            ) : isCampaignEnded ? (
+              <p>This campaign has ended, so comments are closed.</p>
+            ) : viewer ? (
+              <form
+                className="pc-comment-form"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  postComment();
+                }}
               >
-                Subscribe to Updates
-              </button>
-            </section>
-
-            {/* SHARE */}
-
-            <section className="public-campaign-side-card">
-              <h3>Help spread the word</h3>
-
-              <div className="public-campaign-social-row">
-                <button type="button" onClick={() => shareTo("whatsapp")}>
-                  WA
+                <div className="pc-commenting-as">
+                  {viewerAvatar ? (
+                    <img src={viewerAvatar} alt="" />
+                  ) : (
+                    <span className="pc-avatar" aria-hidden="true">
+                      {getInitials(viewerName)}
+                    </span>
+                  )}
+                  <span>
+                    Commenting as <strong>{viewerName}</strong>
+                  </span>
+                </div>
+                <label htmlFor="public-comment-message">Your message</label>
+                <textarea
+                  id="public-comment-message"
+                  value={commentText}
+                  onChange={(event) => setCommentText(event.target.value)}
+                  placeholder="Leave a kind word for the organizer"
+                  maxLength={800}
+                  required
+                  disabled={postingComment}
+                />
+                <button
+                  type="submit"
+                  className="pc-button pc-button--teal"
+                  disabled={!commentText.trim() || postingComment}
+                >
+                  {postingComment ? "Posting..." : "Post comment"}
                 </button>
-
-                <button type="button" onClick={() => shareTo("facebook")}>
-                  f
-                </button>
-
-                <button type="button" onClick={() => shareTo("x")}>
-                  X
-                </button>
-
-                <button type="button" onClick={() => shareTo("copy")}>
-                  ↗
-                </button>
+              </form>
+            ) : (
+              <div className="pc-sign-in">
+                <p>Sign in to leave a word of support.</p>
+                <Link
+                  href={`/signin?redirect=${encodeURIComponent(`/campaign/${campaign.id}#comments`)}`}
+                  className="pc-button pc-button--teal"
+                >
+                  Sign in to comment
+                </Link>
               </div>
-            </section>
-          </aside>
-        </div>
+            )}
+          </div>
+        </section>
+        <section className="pc-how">
+          <h2>How giving on Fundu works</h2>
+          <div>
+            <article>
+              <PCIcon name="shield" />
+              <h3>Direct to the organizer</h3>
+              <p>
+                Transfers go straight to their bank account. Fundu is the page,
+                not the middleman.
+              </p>
+            </article>
+            <article>
+              <PCIcon name="info" />
+              <h3>Totals come from the organizer</h3>
+              <p>
+                The amount raised is updated by the organizer, not verified by
+                Fundu.
+              </p>
+            </article>
+            <article>
+              <PCIcon name="link" />
+              <h3>One link, always current</h3>
+              <p>Updates, photos and progress stay on this page.</p>
+            </article>
+          </div>
+        </section>
       </div>
+      {!viewer && (
+        <section className="pc-fundraiser">
+          <div>
+            <h2>Raising money for something?</h2>
+            <p>Give your goal a page of its own and share one link.</p>
+          </div>
+          <Link href="/signup" className="pc-button pc-button--teal">
+            Start a fundraiser
+          </Link>
+        </section>
+      )}
+      {!viewer && !isCampaignEnded && !preview && !supportVisible && (
+        <div className="pc-quick-give">
+          <div>
+            <strong>{formatMoney(amountRaised)} raised</strong>
+            <span>
+              {progressPercentage}% of {formatMoney(goalAmount)}
+            </span>
+          </div>
+          <button
+            type="button"
+            className="pc-button pc-button--teal"
+            onClick={() => {
+              supportRef.current?.scrollIntoView({
+                behavior: window.matchMedia("(prefers-reduced-motion: reduce)")
+                  .matches
+                  ? "auto"
+                  : "smooth",
+                block: "start",
+              });
+              supportRef.current?.focus({ preventScroll: true });
+            }}
+          >
+            Give by transfer
+          </button>
+        </div>
+      )}
+      <span className="pc-announcement" role="status" aria-live="polite">
+        {copyMessage}
+      </span>
+      <ReportCampaignDialog open={reportOpen} campaignId={campaign?.id} onClose={() => setReportOpen(false)} />
+      {viewingPhoto && (
+        <div
+          className="pc-lightbox"
+          onClick={(event) => {
+            if (event.target === event.currentTarget) setViewingPhoto(null);
+          }}
+        >
+          <div
+            ref={photoDialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label={viewingPhoto.alt}
+            tabIndex={-1}
+          >
+            <button
+              type="button"
+              className="pc-lightbox__close"
+              onClick={() => setViewingPhoto(null)}
+              aria-label="Close photo"
+            >
+              ×
+            </button>
+            <CampaignStorageImage
+              src={viewingPhoto.url}
+              alt={viewingPhoto.alt}
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PCIcon({ name }) {
+  const paths = {
+    eye: (
+      <>
+        <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" />
+        <circle cx="12" cy="12" r="3" />
+      </>
+    ),
+    info: (
+      <>
+        <circle cx="12" cy="12" r="9" />
+        <path d="M12 11v6M12 7h.01" />
+      </>
+    ),
+    shield: (
+      <>
+        <path d="m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6Z" />
+        <path d="m8 12 3 3 5-6" />
+      </>
+    ),
+    message: (
+      <path d="M21 11a8 8 0 0 1-8 8H5l-3 3V11a8 8 0 0 1 8-8h3a8 8 0 0 1 8 8Z" />
+    ),
+    link: (
+      <>
+        <path d="m10 13 4-4M8 16H6a4 4 0 0 1-3-7l4-4a4 4 0 0 1 6 0M16 8h2a4 4 0 0 1 3 7l-4 4a4 4 0 0 1-6 0" />
+      </>
+    ),
+    copy: (
+      <>
+        <rect x="8" y="8" width="12" height="13" rx="2" />
+        <path d="M16 8V3H3v13h5" />
+      </>
+    ),
+    share: (
+      <>
+        <circle cx="18" cy="5" r="3" />
+        <circle cx="6" cy="12" r="3" />
+        <circle cx="18" cy="19" r="3" />
+        <path d="m8.6 10.5 6.8-4M8.6 13.5l6.8 4" />
+      </>
+    ),
+  };
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      {paths[name]}
+    </svg>
+  );
+}
+function PublicBankRow({ label, value, accent = false, copied, onCopy }) {
+  return (
+    <div className={`pc-bank-row ${accent ? "pc-bank-row--number" : ""}`}>
+      <div>
+        <span>{label}</span>
+        <strong>{value || "Not available"}</strong>
+      </div>
+      {value && (
+        <button
+          type="button"
+          className={`pc-button ${accent ? "pc-button--teal" : ""}`}
+          aria-label={`Copy ${label.toLowerCase()}`}
+          onClick={onCopy}
+        >
+          {accent && <PCIcon name="copy" />}
+          {copied ? "Copied" : "Copy"}
+        </button>
+      )}
     </div>
   );
 }
 
 /* STORY COMPONENT */
 
-function StoryBlocks({ blocks, fallbackText }) {
-  if (!blocks || blocks.length === 0) {
-    return (
-      <div className="public-campaign-story-fallback">
-        <p>{fallbackText || "The organizer has not added a story yet."}</p>
-      </div>
-    );
-  }
 
-  return (
-    <div className="public-campaign-story">
-      {blocks.map((block) => {
-        if (block.type === "section") {
-          return (
-            <div className="public-story-section" key={block.id}>
-              {block.title && <h3>{block.title}</h3>}
-
-              {block.content && <p>{block.content}</p>}
-
-              {Array.isArray(block.media) && block.media.length > 0 && (
-                <StoryImages images={block.media} />
-              )}
-            </div>
-          );
-        }
-
-        if (block.type === "text") {
-          return block.content ? (
-            <p className="public-story-text" key={block.id}>
-              {block.content}
-            </p>
-          ) : null;
-        }
-
-        /*
-         * Retain support for older campaigns using
-         * the "media" block type.
-         */
-
-        if (block.type === "image" || block.type === "media") {
-          return (
-            <StoryImages
-              key={block.id}
-              images={Array.isArray(block.media) ? block.media : []}
-            />
-          );
-        }
-
-        if (block.type === "video") {
-          return (
-            <StoryVideo
-              key={block.id}
-              url={block.url || ""}
-              blockId={block.id}
-            />
-          );
-        }
-
-        return null;
-      })}
-    </div>
-  );
-}
 
 /* STORY IMAGES */
 
-function StoryImages({ images }) {
-  if (!images?.length) {
-    return null;
-  }
 
-  return (
-    <div className="public-story-media-grid">
-      {images.map((url, index) => (
-        <div className="public-story-media-item" key={`${url}-${index}`}>
-          <CampaignStorageImage src={url} alt={`Campaign story image ${index + 1}`} />
-        </div>
-      ))}
-    </div>
-  );
-}
 
 /* STORY VIDEO */
 
-function StoryVideo({ url, blockId }) {
-  const embedUrl = getVideoEmbedUrl(url);
 
-  if (!embedUrl) {
-    return null;
-  }
-
-  return (
-    <div className="public-story-video">
-      <iframe
-        src={embedUrl}
-        title={`Campaign video ${blockId}`}
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-        allowFullScreen
-      />
-    </div>
-  );
-}
 
 /* VIDEO URL HELPER */
 
-function getVideoEmbedUrl(value) {
-  if (!value) {
-    return null;
-  }
 
-  try {
-    const url = new URL(value.trim());
-
-    const hostname = url.hostname.replace(/^www\./, "").toLowerCase();
-
-    if (hostname === "youtu.be") {
-      const videoId = url.pathname.split("/").filter(Boolean)[0];
-
-      return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
-    }
-
-    if (hostname === "youtube.com" || hostname === "m.youtube.com") {
-      if (url.pathname === "/watch") {
-        const videoId = url.searchParams.get("v");
-
-        return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
-      }
-
-      const parts = url.pathname.split("/").filter(Boolean);
-
-      if (
-        parts[0] === "embed" ||
-        parts[0] === "shorts" ||
-        parts[0] === "live"
-      ) {
-        const videoId = parts[1];
-
-        return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
-      }
-    }
-
-    if (hostname === "vimeo.com" || hostname === "player.vimeo.com") {
-      const parts = url.pathname.split("/").filter(Boolean);
-
-      const videoId =
-        hostname === "player.vimeo.com" && parts[0] === "video"
-          ? parts[1]
-          : parts[0];
-
-      if (videoId && /^\d+$/.test(videoId)) {
-        return `https://player.vimeo.com/video/${videoId}`;
-      }
-    }
-
-    return null;
-  } catch {
-    return null;
-  }
-}
 
 /* BANK ROW */
 
@@ -1153,25 +1205,19 @@ function formatRelativeDate(value) {
   return formatDate(value);
 }
 
-function getDaysRemaining(endDate) {
-  if (!endDate) {
-    return null;
-  }
+function getDaysRemaining(endDate, now = Date.now()) {
+  if (!endDate) return null;
+  const end = new Date(endDate).getTime();
+  return Number.isFinite(end)
+    ? Math.max(0, Math.ceil((end - now) / 86400000))
+    : null;
+}
 
-  const end = new Date(endDate);
-  const today = new Date();
-
-  end.setHours(23, 59, 59, 999);
-  today.setHours(0, 0, 0, 0);
-
-  if (Number.isNaN(end.getTime())) {
-    return null;
-  }
-
-  return Math.max(
-    0,
-    Math.ceil((end.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)),
-  );
+function campaignHasEnded(campaign, now = Date.now()) {
+  if (!campaign) return false;
+  if (["ended", "inactive", "completed"].includes(campaign.status)) return true;
+  const end = campaign.end_date ? new Date(campaign.end_date).getTime() : NaN;
+  return Number.isFinite(end) && end <= now;
 }
 
 function getInitials(name) {

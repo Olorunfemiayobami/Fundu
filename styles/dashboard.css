@@ -1,980 +1,429 @@
-/* =========================================================
-   CREATOR DASHBOARD
-========================================================= */
+/* Fundu dashboard — consolidated replacement.
+   Shared campaign-card styling stays in campaign-card.css. */
+
+/* Dashboard components and Post Update dialog */
 
 .creator-dashboard {
+  --teal: #1e807f;
+  --teal-dark: #16615f;
+  --teal-darker: #0f4948;
+  --teal-tint: #d9eceb;
+  --teal-soft: #e3f1f0;
+  --page: #eff6f6;
+  --orange: #f28c28;
+  --orange-dark: #9a4a06;
+  --orange-soft: #fce3c8;
+  --cream: #f7f3ea;
+  --charcoal: #0f172a;
+  --text-2: #475467;
+  --text-3: #344054;
+  --border: #d5e4e3;
+  --divider: #e4eeed;
+  --border-strong: #c9dcda;
+  --dashboard-greeting-size: 26px;
+  --dashboard-hero-size: 30px;
+  --dashboard-section-size: 18px;
+  --dashboard-card-title-size: 15px;
+  --dashboard-total-raised-size: 30px;
+  --dashboard-stat-size: 24px;
+  --dashboard-card-amount-size: 22px;
+  --dashboard-body-size: 14px;
+  --dashboard-helper-size: 13px;
+  --dashboard-weight-medium: 500;
+  --dashboard-weight-semibold: 600;
+  --dashboard-weight-bold: 700;
+  --dashboard-weight-extrabold: 800;
+  --dashboard-greeting-tracking: -1.2px;
+  --dashboard-section-tracking: -0.4px;
+  --dashboard-panel-margin: 12px;
+  --dashboard-panel-padding: 26px 32px;
+  --dashboard-section-gap: 28px;
+  --dashboard-panel-radius: 20px;
+  --dashboard-card-radius: 16px;
+  --dashboard-large-card-radius: 18px;
+  --dashboard-image-radius: 14px;
+  --dashboard-button-radius: 12px;
+  --dashboard-pill-radius: 999px;
+  --dashboard-button-height: 40px;
+  --dashboard-nav-height: 40px;
+  --dashboard-rail-button-size: 44px;
+  --dashboard-nav-icon-size: 20px;
+  --dashboard-small-icon-size: 16px;
+  --dashboard-button-icon-size: 18px;
+  --dashboard-icon-stroke: 2;
   width: 100%;
-  padding: 32px;
-
   display: flex;
   flex-direction: column;
-  gap: 32px;
-
-  color: #333333;
+  font-family: var(--font-urbanist), "Urbanist", sans-serif;
   background: #ffffff;
+  padding: var(--dashboard-panel-padding);
+  gap: var(--dashboard-section-gap);
+  color: var(--charcoal);
+}
+
+.creator-dashboard
+  :where(h1, h2, h3, h4, h5, h6, button, input, select, textarea) {
+  font-family: inherit;
 }
 
 .creator-dashboard--loading {
   min-height: 500px;
-
   align-items: center;
   justify-content: center;
 }
 
 .creator-dashboard--loading p {
   margin: 0;
-
-  color: #888888;
-
+  color: #475467;
   font-size: 14px;
 }
 
-/* =========================================================
-   HEADER
-========================================================= */
-
-.dashboard-header {
+.creator-dashboard .dashboard-header {
   width: 100%;
-
   display: flex;
   align-items: center;
   justify-content: space-between;
-
   gap: 24px;
 }
 
-.dashboard-header__copy {
+.creator-dashboard .dashboard-header__copy {
   flex: 1;
   min-width: 0;
 }
 
-.dashboard-header h1 {
+.creator-dashboard .dashboard-header h1 {
   margin: 0 0 6px;
-
-  color: #111827;
-
-  font-size: 24px;
   line-height: 1.3;
+  font-size: var(--dashboard-greeting-size);
   font-weight: 700;
+  letter-spacing: var(--dashboard-greeting-tracking);
+  color: var(--charcoal);
 }
 
-.dashboard-header p {
+.creator-dashboard .dashboard-header p {
   margin: 0;
-
-  color: #6b7280;
-
-  font-size: 16px;
   line-height: 1.3;
   font-weight: 400;
+  font-size: var(--dashboard-body-size);
+  color: var(--text-2);
 }
 
-/* =========================================================
-   PRIMARY BUTTON
-========================================================= */
-
-.dashboard-primary-btn {
-  min-height: 48px;
-
-  padding: 13.5px 24px;
-
+.creator-dashboard .dashboard-primary-btn {
   border: 0;
-  border-radius: 8px;
-
   background: #1e807f;
   color: #ffffff;
-
   display: inline-flex;
   align-items: center;
   justify-content: center;
-
   gap: 8px;
-
   text-decoration: none;
   text-align: center;
-
-  font-size: 16px;
   line-height: 1.3;
   font-weight: 600;
-
   transition: background-color 0.15s ease;
+  min-height: var(--dashboard-button-height);
+  padding: 10px 16px;
+  border-radius: var(--dashboard-button-radius);
+  font-size: var(--dashboard-body-size);
 }
 
-.dashboard-primary-btn:hover {
+.creator-dashboard .dashboard-primary-btn:hover {
   background: #1b7474;
 }
 
-.dashboard-button-plus {
+.creator-dashboard .dashboard-button-plus {
   font-size: 20px;
   line-height: 1;
   font-weight: 400;
 }
 
-/* =========================================================
-   BANK DETAILS NOTICE
-========================================================= */
-
-.dashboard-bank-notice {
+.creator-dashboard .dashboard-bank-notice {
   width: 100%;
-
   padding: 12px 16px;
-
   border-radius: 16px;
-
   background: #fef3c7;
-
   display: flex;
   align-items: center;
-
   gap: 12px;
-
   color: #92710e;
 }
 
-.dashboard-bank-notice__icon {
+.creator-dashboard .dashboard-bank-notice__icon {
   width: 20px;
   height: 20px;
   flex-shrink: 0;
-
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.dashboard-bank-notice__content {
+.creator-dashboard .dashboard-bank-notice__content {
   flex: 1;
   min-width: 0;
-
   display: flex;
   align-items: center;
-
   gap: 20px;
 }
 
-.dashboard-bank-notice__copy {
+.creator-dashboard .dashboard-bank-notice__copy {
   flex: 1;
   min-width: 0;
-
   display: flex;
   flex-direction: column;
-
   gap: 2px;
 }
 
-.dashboard-bank-notice__copy strong {
+.creator-dashboard .dashboard-bank-notice__copy strong {
   color: #92710e;
-
   font-size: 14px;
   line-height: 1.3;
   font-weight: 700;
 }
 
-.dashboard-bank-notice__copy span {
+.creator-dashboard .dashboard-bank-notice__copy span {
   color: #92710e;
-
   font-size: 12px;
   line-height: 1.3;
   font-weight: 500;
 }
 
-.dashboard-bank-notice__link {
+.creator-dashboard .dashboard-bank-notice__link {
   flex-shrink: 0;
-
   color: #92710e;
-
   text-decoration: none;
-
   font-size: 16px;
   line-height: 1.3;
   font-weight: 600;
-
   white-space: nowrap;
 }
 
-/* =========================================================
-   FUNDRAISING
-========================================================= */
-
-.dashboard-fundraising {
+.creator-dashboard .dashboard-section {
   width: 100%;
-
-  padding: 24px;
-
-  border: 1px solid #e5e7eb;
-  border-radius: 20px;
-
-  background: #eff6f6;
-
   display: flex;
   flex-direction: column;
-
   gap: 20px;
 }
 
-.dashboard-fundraising__header {
+.creator-dashboard .dashboard-section-header {
   width: 100%;
-
   display: flex;
   align-items: center;
   justify-content: space-between;
-
+  flex-wrap: wrap;
   gap: 16px;
 }
 
-.dashboard-fundraising__header h2 {
+.creator-dashboard .dashboard-section-header h2 {
   margin: 0;
-
-  color: #333333;
-
-  font-size: 20px;
   line-height: 1.3;
-  font-weight: 600;
+  font-size: var(--dashboard-section-size);
+  font-weight: 700;
+  color: var(--charcoal);
 }
 
-.dashboard-fundraising__header > span {
-  color: #888888;
-
-  font-size: 12px;
-  line-height: 1.3;
-  font-weight: 500;
-}
-
-/* =========================================================
-   STATS
-========================================================= */
-
-.dashboard-stats {
-  width: 100%;
-
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-
-  gap: 16px;
-}
-
-.dashboard-stat-card {
-  min-width: 0;
-
-  padding: 16px;
-
-  border: 1px solid #e5e7eb;
-  border-radius: 16px;
-
-  background: #ffffff;
-
-  display: flex;
-  flex-direction: column;
-
-  gap: 4px;
-}
-
-.dashboard-stat-card--muted {
-  opacity: 0.6;
-}
-
-.dashboard-stat-card span {
-  color: #6b7280;
-
-  font-size: 12px;
-  line-height: 1.3;
-  font-weight: 500;
-}
-
-.dashboard-stat-card strong {
-  color: #111827;
-
-  font-size: 20px;
-  line-height: 1.3;
-  font-weight: 600;
-
-  overflow-wrap: anywhere;
-}
-
-/* =========================================================
-   UPDATE BANNER
-========================================================= */
-
-.dashboard-update-banner {
-  width: 100%;
-
-  padding: 16px;
-
-  border: 1px solid #fed7aa;
-  border-radius: 16px;
-
-  background: #fff7ed;
-
-  display: flex;
-  align-items: center;
-
-  gap: 12px;
-}
-
-.dashboard-update-banner__header {
-  display: contents;
-}
-
-.dashboard-update-banner__icon {
-  width: 40px;
-  height: 40px;
-  flex-shrink: 0;
-
-  border-radius: 12px;
-
-  background: #fef3c7;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.dashboard-update-banner__header strong {
-  display: none;
-}
-
-.dashboard-update-banner__copy {
-  flex: 1;
-  min-width: 0;
-
-  color: #92400e;
-}
-
-.dashboard-update-banner__copy::before {
-  content: "Post updates to engage supporters!";
-
-  display: block;
-
-  margin-bottom: 4px;
-
-  color: #92400e;
-
-  font-size: 16px;
-  line-height: 1.3;
-  font-weight: 600;
-}
-
-.dashboard-update-banner__copy p {
-  margin: 0;
-
-  color: #92400e;
-
-  font-size: 12px;
-  line-height: 1.3;
-  font-weight: 500;
-}
-
-.dashboard-orange-btn {
-  min-height: 48px;
-
-  padding: 13.5px 24px;
-
-  border: 0;
-  border-radius: 8px;
-
-  background: #b45309;
-  color: #ffffff;
-
-  font: inherit;
-
-  font-size: 16px;
-  line-height: 1.3;
-  font-weight: 600;
-
-  cursor: pointer;
-
-  transition: background-color 0.15s ease;
-}
-
-.dashboard-orange-btn:hover {
-  background: #9a4708;
-}
-
-.dashboard-orange-btn:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-
-/* =========================================================
-   GENERAL SECTIONS
-========================================================= */
-
-.dashboard-section {
-  width: 100%;
-
-  display: flex;
-  flex-direction: column;
-
-  gap: 20px;
-}
-
-.dashboard-section-header {
-  width: 100%;
-
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  gap: 16px;
-}
-
-.dashboard-section-header h2 {
-  margin: 0;
-
-  color: #111827;
-
-  font-size: 20px;
-  line-height: 1.3;
-  font-weight: 600;
-}
-
-.dashboard-section-header a {
+.creator-dashboard .dashboard-section-header a {
   color: #1e807f;
-
   text-decoration: none;
-
   font-size: 14px;
   line-height: 1.3;
   font-weight: 500;
-
   white-space: nowrap;
 }
 
-.dashboard-section-header--simple {
-  justify-content: flex-start;
-}
-
-/* =========================================================
-   CAMPAIGN FILTER TABS
-========================================================= */
-
-.dashboard-section-header__title-group {
-  display: flex;
-  align-items: center;
-
-  gap: 24px;
-
+.creator-dashboard .dashboard-section-header__title-group {
+  flex: 1;
   min-width: 0;
-
-  flex-wrap: wrap;
-}
-
-.dashboard-campaign-tabs {
   display: flex;
-  align-items: flex-start;
-
-  gap: 24px;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
 }
 
-.dashboard-campaign-tab {
+.creator-dashboard .dashboard-campaign-tabs {
+  width: auto;
+  padding: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 12px;
+  background: #eff6f6;
+  flex-wrap: nowrap;
+}
+
+.creator-dashboard .dashboard-campaign-tab {
   appearance: none;
   -webkit-appearance: none;
-
-  padding: 0 0 4px;
-
-  border: 0;
-  border-bottom: 2px solid transparent;
-
-  background: transparent;
-  color: #000000;
-
+  min-height: 36px;
+  padding: 8px 14px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-
-  gap: 8px;
-
+  gap: 5px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #475467;
   font-family: inherit;
-
   font-size: 14px;
-  line-height: 1.3;
-  font-weight: 500;
-
-  white-space: nowrap;
-
-  cursor: pointer;
-
-  opacity: 0.5;
-
-  transition:
-    opacity 0.15s ease,
-    border-color 0.15s ease;
-}
-
-.dashboard-campaign-tab:hover {
-  opacity: 0.75;
-}
-
-.dashboard-campaign-tab.active {
-  opacity: 1;
-
-  border-bottom-color: #1e807f;
-}
-
-.dashboard-campaign-tab__count {
-  color: #888888;
-
-  font-size: 12px;
-  line-height: 1.3;
-  font-weight: 500;
-}
-
-.dashboard-campaign-tab:focus-visible {
-  outline: 2px solid #1e807f;
-  outline-offset: 4px;
-
-  border-radius: 2px;
-}
-
-/* =========================================================
-   EMPTY CAMPAIGN STATE
-========================================================= */
-
-.dashboard-empty-campaign {
-  width: 100%;
-
-  padding: 32px 40px;
-
-  border: 1px solid #e6e6e6;
-  border-radius: 16px;
-
-  background: #fafafa;
-
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-
-  gap: 16px;
-}
-
-.dashboard-empty-campaign__copy {
-  width: 100%;
-
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-
-  gap: 6px;
-
-  text-align: center;
-}
-
-.dashboard-empty-campaign__copy > span {
-  color: #1e807f;
-
-  font-size: 14px;
-  line-height: 1.3;
-  font-weight: 500;
-}
-
-.dashboard-empty-campaign__copy h3 {
-  margin: 0;
-
-  color: #333333;
-
-  font-size: 20px;
-  line-height: 1.3;
+  line-height: 20px;
   font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+  opacity: 1;
 }
 
-.dashboard-empty-campaign__copy p {
-  margin: 0;
-
-  color: #888888;
-
-  font-size: 14px;
-  line-height: 1.3;
+.creator-dashboard .dashboard-campaign-tab:hover {
+  background: #e2eeee;
+  opacity: 1;
 }
 
-.dashboard-empty-campaign__button {
-  width: auto;
+.creator-dashboard .dashboard-campaign-tab.active {
+  border: 0;
+  background: #ffffff;
+  color: #101828;
+  font-weight: 700;
+  box-shadow: 0 1px 3px rgb(16 24 40 / 8%);
+  opacity: 1;
 }
 
-/* =========================================================
-   CAMPAIGN GRID
-   Shared CampaignCard is used here.
-========================================================= */
+.creator-dashboard .dashboard-campaign-tab__count {
+  color: #475467;
+  font-size: inherit;
+  line-height: inherit;
+  font-weight: inherit;
+}
 
-.dashboard-campaign-grid {
+.creator-dashboard .dashboard-campaign-tab:focus-visible {
+  border-radius: 2px;
+  outline: 2px solid var(--orange);
+  outline-offset: 2px;
+}
+
+.creator-dashboard .dashboard-campaign-grid {
   width: 100%;
-
+  align-items: stretch;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-
-  gap: 24px;
-
-  align-items: stretch;
+  gap: 16px;
 }
 
-.dashboard-campaign-grid > .campaign-card {
+.creator-dashboard .dashboard-empty-activity {
   width: 100%;
-  min-width: 0;
-}
-
-/*
- * Keep cards in the dashboard grid from becoming wider
- * than their grid column.
- */
-
-.dashboard-campaign-grid .campaign-card--creator {
-  width: 100%;
-  min-width: 0;
-}
-
-/* =========================================================
-   ACTIVITY
-========================================================= */
-
-.dashboard-activity-list {
-  width: 100%;
-
-  display: flex;
-  flex-direction: column;
-
-  gap: 12px;
-}
-
-.dashboard-activity-row {
-  width: 100%;
-
-  padding: 16px;
-
-  border: 1px solid #e6e6e6;
-  border-radius: 12px;
-
-  background: #ffffff;
-}
-
-.dashboard-activity-row p {
-  margin: 0 0 4px;
-
-  color: #333333;
-
-  font-size: 14px;
-  line-height: 1.3;
-  font-weight: 500;
-}
-
-.dashboard-activity-row span {
-  color: #888888;
-
-  font-size: 12px;
-  line-height: 1.3;
-  font-weight: 400;
-}
-
-/* =========================================================
-   EMPTY ACTIVITY / EMPTY FILTER
-========================================================= */
-
-.dashboard-empty-activity {
-  width: 100%;
-
   padding: 24px;
-
   border: 1px solid #e6e6e6;
   border-radius: 12px;
-
   background: #fafafa;
-
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-
   gap: 4px;
-
   text-align: center;
 }
 
-.dashboard-empty-activity strong {
+.creator-dashboard .dashboard-empty-activity strong {
   color: #333333;
-
   font-size: 14px;
   line-height: 1.3;
   font-weight: 500;
 }
 
-.dashboard-empty-activity p {
+.creator-dashboard .dashboard-empty-activity p {
   max-width: 650px;
-
   margin: 0;
-
-  color: #888888;
-
   font-size: 12px;
   line-height: 1.3;
   font-weight: 400;
+  color: #475467;
 }
 
-/* =========================================================
-   POPULATED BANK
-========================================================= */
-
-.dashboard-bank-card {
+.creator-dashboard .dashboard-empty-bank {
   width: 100%;
-
   padding: 24px;
-
-  border: 1px solid #d1d1d1;
-  border-radius: 16px;
-
-  background: #ffffff;
-
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-
-  display: flex;
-  align-items: center;
-
-  gap: 24px;
-}
-
-.dashboard-bank-card__top {
-  flex: 1;
-  min-width: 0;
-
-  display: flex;
-  align-items: center;
-
-  gap: 24px;
-}
-
-.dashboard-bank-card__icon {
-  width: 56px;
-  height: 56px;
-  min-width: 56px;
-
-  border-radius: 12px;
-
-  background: #e9f2f2;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.dashboard-bank-card__info {
-  min-width: 0;
-
-  display: flex;
-  flex-direction: column;
-
-  gap: 8px;
-}
-
-.dashboard-bank-card__info strong {
-  color: #333333;
-
-  font-size: 18px;
-  line-height: 1.3;
-  font-weight: 600;
-}
-
-.dashboard-bank-card__info span {
-  color: #888888;
-
-  font-size: 14px;
-  line-height: 1.3;
-  font-weight: 400;
-}
-
-.dashboard-bank-card__divider {
-  display: none;
-}
-
-.dashboard-bank-card__footer {
-  flex-shrink: 0;
-
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-
-  gap: 8px;
-}
-
-.dashboard-bank-card__footer p {
-  margin: 0;
-
-  color: #6b7280;
-
-  font-size: 12px;
-  line-height: 1.3;
-  font-weight: 500;
-}
-
-.dashboard-bank-card__footer a {
-  color: #1a9b8c;
-
-  text-decoration: none;
-
-  font-size: 14px;
-  line-height: 1.3;
-  font-weight: 500;
-}
-
-/* =========================================================
-   EMPTY BANK
-========================================================= */
-
-.dashboard-empty-bank {
-  width: 100%;
-
-  padding: 24px;
-
   border: 1px solid #e6e6e6;
   border-radius: 12px;
-
   background: #fafafa;
-
   display: flex;
   align-items: center;
-
   gap: 24px;
 }
 
-.dashboard-empty-bank__details {
+.creator-dashboard .dashboard-empty-bank__details {
   flex: 1;
   min-width: 0;
-
   display: flex;
   align-items: center;
-
   gap: 24px;
 }
 
-.dashboard-empty-bank__icon {
+.creator-dashboard .dashboard-empty-bank__icon {
   width: 56px;
   height: 56px;
   min-width: 56px;
-
   border-radius: 12px;
-
   background: #e9f2f2;
-
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.dashboard-empty-bank__copy {
+.creator-dashboard .dashboard-empty-bank__copy {
   min-width: 0;
-
   display: flex;
   flex-direction: column;
-
   gap: 4px;
 }
 
-.dashboard-empty-bank__copy strong {
+.creator-dashboard .dashboard-empty-bank__copy strong {
   color: #333333;
-
   font-size: 16px;
   line-height: 1.3;
   font-weight: 600;
 }
 
-.dashboard-empty-bank__copy p {
+.creator-dashboard .dashboard-empty-bank__copy p {
   margin: 0;
-
-  color: #888888;
-
+  color: #475467;
   font-size: 14px;
   line-height: 1.3;
   font-weight: 400;
 }
-
-/* =========================================================
-   BOTTOM CTA
-========================================================= */
-
-.dashboard-bottom-cta {
-  width: 100%;
-
-  padding: 24px;
-
-  border: 1px solid #fed7aa;
-  border-radius: 16px;
-
-  background: #fff7ed;
-
-  display: flex;
-  align-items: center;
-
-  gap: 16px;
-
-  color: #92400e;
-}
-
-.dashboard-bottom-cta__copy {
-  flex: 1;
-  min-width: 0;
-}
-
-.dashboard-bottom-cta h2 {
-  margin: 0 0 8px;
-
-  color: #92400e;
-
-  font-size: 20px;
-  line-height: 1.3;
-  font-weight: 600;
-}
-
-.dashboard-bottom-cta p {
-  margin: 0;
-
-  color: #92400e;
-
-  font-size: 16px;
-  line-height: 1.3;
-  font-weight: 400;
-}
-
-/* =========================================================
-   POST UPDATE MODAL
-========================================================= */
 
 .campaign-update-modal-overlay {
   position: fixed;
   inset: 0;
-
   z-index: 1000;
-
   padding: 24px;
-
   background: rgba(15, 23, 42, 0.55);
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   overflow-y: auto;
 }
 
 .campaign-update-modal {
   width: min(100%, 620px);
   max-height: calc(100vh - 48px);
-
   overflow-y: auto;
-
   border-radius: 20px;
-
   background: #ffffff;
-
   box-shadow:
     0 24px 60px rgba(15, 23, 42, 0.18),
     0 8px 24px rgba(15, 23, 42, 0.08);
+  font-family: var(--font-urbanist), "Urbanist", sans-serif;
 }
 
 .campaign-update-modal__header {
   width: 100%;
-
   padding: 24px;
-
   border-bottom: 1px solid #e2e8f0;
-
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-
   gap: 20px;
 }
 
@@ -985,9 +434,7 @@
 
 .campaign-update-modal__header h2 {
   margin: 0 0 6px;
-
   color: #0f172a;
-
   font-size: 22px;
   line-height: 1.3;
   font-weight: 600;
@@ -995,9 +442,7 @@
 
 .campaign-update-modal__header p {
   margin: 0;
-
-  color: #64748b;
-
+  color: #475467;
   font-size: 14px;
   line-height: 1.5;
   font-weight: 400;
@@ -1007,23 +452,17 @@
   width: 36px;
   height: 36px;
   flex-shrink: 0;
-
   padding: 0;
-
   border: 1px solid #e2e8f0;
   border-radius: 8px;
-
   background: #ffffff;
   color: #475569;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   font-family: inherit;
   font-size: 24px;
   line-height: 1;
-
   cursor: pointer;
 }
 
@@ -1039,32 +478,25 @@
 .campaign-update-modal__campaign {
   margin: 20px 24px 0;
   padding: 12px 14px;
-
   border: 1px solid #dce8e8;
   border-radius: 10px;
-
   background: #f8fbfb;
-
   display: flex;
   flex-direction: column;
-
   gap: 3px;
 }
 
 .campaign-update-modal__campaign span {
-  color: #64748b;
-
+  color: #475467;
   font-size: 11px;
   line-height: 1.3;
   font-weight: 500;
-
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
 
 .campaign-update-modal__campaign strong {
   color: #0f172a;
-
   font-size: 14px;
   line-height: 1.4;
   font-weight: 600;
@@ -1072,112 +504,114 @@
 
 .campaign-update-modal__form {
   padding: 20px 24px 24px;
-
   display: flex;
   flex-direction: column;
-
   gap: 20px;
 }
 
 .campaign-update-modal__field {
   width: 100%;
-
   display: flex;
   flex-direction: column;
-
   gap: 8px;
 }
 
-.campaign-update-modal__field > span,
-.campaign-update-modal__photos-heading > div > span {
+.campaign-update-modal__field > span {
   color: #0f172a;
-
   font-size: 14px;
   line-height: 1.3;
   font-weight: 600;
 }
 
-.campaign-update-modal__field input,
-.campaign-update-modal__field textarea {
-  width: 100%;
-
-  padding: 12px 14px;
-
-  border: 1px solid #cbd5e1;
-  border-radius: 10px;
-
-  outline: none;
-
-  background: #ffffff;
+.campaign-update-modal__photos-heading > div > span {
   color: #0f172a;
-
-  font-family: inherit;
   font-size: 14px;
-  line-height: 1.5;
-
-  transition:
-    border-color 0.15s ease,
-    box-shadow 0.15s ease;
+  line-height: 1.3;
+  font-weight: 600;
 }
 
 .campaign-update-modal__field input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  outline: none;
+  background: #ffffff;
+  color: #0f172a;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
   min-height: 46px;
 }
 
 .campaign-update-modal__field textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  outline: none;
+  background: #ffffff;
+  color: #0f172a;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
   min-height: 140px;
-
   resize: vertical;
 }
 
-.campaign-update-modal__field input::placeholder,
-.campaign-update-modal__field textarea::placeholder {
-  color: #94a3b8;
+.campaign-update-modal__field input::placeholder {
+  color: #475467;
 }
 
-.campaign-update-modal__field input:focus,
-.campaign-update-modal__field textarea:focus {
-  border-color: #1e807f;
+.campaign-update-modal__field textarea::placeholder {
+  color: #475467;
+}
 
+.campaign-update-modal__field input:focus {
+  border-color: #1e807f;
   box-shadow: 0 0 0 3px rgba(30, 128, 127, 0.1);
 }
 
-.campaign-update-modal__field input:disabled,
+.campaign-update-modal__field textarea:focus {
+  border-color: #1e807f;
+  box-shadow: 0 0 0 3px rgba(30, 128, 127, 0.1);
+}
+
+.campaign-update-modal__field input:disabled {
+  background: #f8fafc;
+  cursor: not-allowed;
+}
+
 .campaign-update-modal__field textarea:disabled {
   background: #f8fafc;
-
   cursor: not-allowed;
 }
 
 .campaign-update-modal__field small {
   align-self: flex-end;
-
-  color: #94a3b8;
-
+  color: #475467;
   font-size: 11px;
   line-height: 1.3;
 }
 
-/* =========================================================
-   UPDATE PHOTOS
-========================================================= */
-
 .campaign-update-modal__photos {
   width: 100%;
-
   display: flex;
   flex-direction: column;
-
   gap: 12px;
 }
 
 .campaign-update-modal__photos-heading {
   width: 100%;
-
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-
   gap: 16px;
 }
 
@@ -1188,18 +622,14 @@
 
 .campaign-update-modal__photos-heading p {
   margin: 4px 0 0;
-
-  color: #64748b;
-
+  color: #475467;
   font-size: 12px;
   line-height: 1.4;
 }
 
 .campaign-update-modal__photos-heading > span {
   flex-shrink: 0;
-
-  color: #64748b;
-
+  color: #475467;
   font-size: 12px;
   line-height: 1.3;
   font-weight: 500;
@@ -1208,26 +638,18 @@
 .campaign-update-upload {
   width: 100%;
   min-height: 120px;
-
   padding: 20px;
-
   border: 1px dashed #94a3b8;
   border-radius: 12px;
-
   background: #f8fafc;
   color: #475569;
-
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-
   gap: 5px;
-
   font-family: inherit;
-
   cursor: pointer;
-
   transition:
     border-color 0.15s ease,
     background-color 0.15s ease;
@@ -1235,27 +657,21 @@
 
 .campaign-update-upload:hover {
   border-color: #1e807f;
-
   background: #f1f8f8;
 }
 
 .campaign-update-upload:disabled {
   opacity: 0.55;
-
   cursor: not-allowed;
 }
 
 .campaign-update-upload__icon {
   width: 36px;
   height: 36px;
-
   margin-bottom: 3px;
-
   border-radius: 50%;
-
   background: #e7f2f2;
   color: #1e807f;
-
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1263,107 +679,78 @@
 
 .campaign-update-upload strong {
   color: #0f172a;
-
   font-size: 14px;
   line-height: 1.3;
   font-weight: 600;
 }
 
 .campaign-update-upload > span:last-child {
-  color: #64748b;
-
+  color: #475467;
   font-size: 11px;
   line-height: 1.3;
 }
 
 .campaign-update-preview-grid {
   width: 100%;
-
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-
   gap: 10px;
 }
 
 .campaign-update-preview {
   position: relative;
-
   width: 100%;
   aspect-ratio: 1 / 1;
-
   overflow: hidden;
-
   border: 1px solid #e2e8f0;
   border-radius: 10px;
-
   background: #f8fafc;
 }
 
 .campaign-update-preview img {
   width: 100%;
   height: 100%;
-
   display: block;
-
   object-fit: cover;
 }
 
 .campaign-update-preview button {
   position: absolute;
-
   top: 6px;
   right: 6px;
-
   width: 26px;
   height: 26px;
-
   padding: 0;
-
   border: 0;
   border-radius: 50%;
-
   background: rgba(15, 23, 42, 0.8);
   color: #ffffff;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   font-family: inherit;
   font-size: 18px;
   line-height: 1;
-
   cursor: pointer;
 }
 
 .campaign-update-preview button:disabled {
   opacity: 0.5;
-
   cursor: not-allowed;
 }
 
-/* =========================================================
-   FINAL UPDATE NOTE
-========================================================= */
-
 .campaign-update-final-note {
   width: 100%;
-
   padding: 14px;
-
   border: 1px solid #fed7aa;
   border-radius: 10px;
-
   background: #fff7ed;
 }
 
 .campaign-update-final-note strong {
   display: block;
-
   margin-bottom: 4px;
-
   color: #92400e;
-
   font-size: 13px;
   line-height: 1.3;
   font-weight: 600;
@@ -1371,28 +758,18 @@
 
 .campaign-update-final-note p {
   margin: 0;
-
   color: #9a5b21;
-
   font-size: 12px;
   line-height: 1.45;
 }
 
-/* =========================================================
-   MODAL ERROR + ACTIONS
-========================================================= */
-
 .campaign-update-modal__error {
   margin: 0;
-
   padding: 10px 12px;
-
   border: 1px solid #fecaca;
   border-radius: 8px;
-
   background: #fef2f2;
   color: #b91c1c;
-
   font-size: 12px;
   line-height: 1.4;
   font-weight: 500;
@@ -1400,450 +777,1163 @@
 
 .campaign-update-modal__actions {
   width: 100%;
-
   padding-top: 4px;
-
   display: flex;
   align-items: center;
   justify-content: flex-end;
-
   gap: 12px;
 }
 
-.campaign-update-modal__cancel,
-.campaign-update-modal__publish {
+.campaign-update-modal__cancel {
   min-height: 44px;
-
   padding: 10px 20px;
-
   border-radius: 8px;
-
   font-family: inherit;
   font-size: 14px;
   line-height: 1.3;
   font-weight: 600;
-
   cursor: pointer;
-}
-
-.campaign-update-modal__cancel {
   border: 1px solid #cbd5e1;
-
   background: #ffffff;
   color: #475569;
+}
+
+.campaign-update-modal__publish {
+  min-height: 44px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.3;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid #1e807f;
+  background: #1e807f;
+  color: #ffffff;
 }
 
 .campaign-update-modal__cancel:hover {
   background: #f8fafc;
 }
 
-.campaign-update-modal__publish {
-  border: 1px solid #1e807f;
-
-  background: #1e807f;
-  color: #ffffff;
-}
-
 .campaign-update-modal__publish:hover {
   background: #1b7474;
 }
 
-.campaign-update-modal__cancel:disabled,
-.campaign-update-modal__publish:disabled {
+.campaign-update-modal__cancel:disabled {
   opacity: 0.55;
-
   cursor: not-allowed;
 }
 
-/* =========================================================
-   TABLET
-   769px - 1180px
-========================================================= */
+.campaign-update-modal__publish:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
 
-@media (min-width: 769px) and (max-width: 1180px) {
+.creator-dashboard .dashboard-fundraising-v2 {
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.creator-dashboard .dashboard-fundraising-v2 > h2 {
+  margin: 0;
+  color: var(--charcoal);
+  font-size: var(--dashboard-section-size);
+  line-height: 1.35;
+  font-weight: var(--dashboard-weight-bold);
+  letter-spacing: var(--dashboard-section-tracking);
+}
+
+.creator-dashboard .dashboard-fundraising-v2__stats {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1.35fr repeat(3, minmax(0, 1fr));
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--dashboard-card-radius);
+  background: #ffffff;
+}
+
+.creator-dashboard .dashboard-fundraising-v2__stat {
+  min-width: 0;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+}
+
+.creator-dashboard
+  .dashboard-fundraising-v2__stat
+  + .dashboard-fundraising-v2__stat {
+  border-left: 1px solid var(--divider);
+}
+
+.creator-dashboard .dashboard-fundraising-v2__stat dt {
+  margin: 0;
+  color: var(--text-2);
+  font-size: var(--dashboard-body-size);
+  line-height: 1.4;
+  font-weight: var(--dashboard-weight-semibold);
+}
+
+.creator-dashboard .dashboard-fundraising-v2__stat dd {
+  margin: 0;
+  color: var(--charcoal);
+  font-size: var(--dashboard-stat-size);
+  line-height: 1.2;
+  font-weight: var(--dashboard-weight-bold);
+  letter-spacing: -0.6px;
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+}
+
+.creator-dashboard .dashboard-fundraising-v2__stat p {
+  margin: 0;
+  color: var(--text-2);
+  font-size: var(--dashboard-helper-size);
+  line-height: 1.4;
+  font-weight: var(--dashboard-weight-semibold);
+}
+
+.creator-dashboard .dashboard-fundraising-v2__stat--raised {
+  background: var(--teal);
+}
+
+.creator-dashboard .dashboard-fundraising-v2__stat--raised dt {
+  color: #ffffff;
+}
+
+.creator-dashboard .dashboard-fundraising-v2__stat--raised dd {
+  color: #ffffff;
+  font-size: var(--dashboard-total-raised-size);
+  letter-spacing: -1px;
+}
+
+.creator-dashboard .dashboard-fundraising-v2__stat--raised p {
+  color: #ffffff;
+}
+
+.creator-dashboard .dashboard-fundraising-v2__stat--active p {
+  color: var(--teal-dark);
+}
+
+.creator-dashboard .dashboard-fundraising-v2__mobile-label {
+  display: none;
+}
+
+.creator-dashboard .dashboard-fundraising-v2__mobile-copy {
+  display: none;
+}
+
+.creator-dashboard .dashboard-fundraising-v2__prompt {
+  width: 100%;
+  min-width: 0;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border-radius: var(--dashboard-card-radius);
+  background: var(--cream);
+}
+
+.creator-dashboard .dashboard-fundraising-v2__prompt-icon {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: var(--orange-soft);
+  color: var(--orange-dark);
+}
+
+.creator-dashboard .dashboard-fundraising-v2__prompt-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.creator-dashboard .dashboard-fundraising-v2__prompt-copy strong {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--charcoal);
+  font-size: var(--dashboard-body-size);
+  line-height: 1.4;
+  font-weight: var(--dashboard-weight-bold);
+}
+
+.creator-dashboard .dashboard-fundraising-v2__prompt-copy p {
+  margin: 0;
+  color: var(--text-2);
+  font-size: var(--dashboard-body-size);
+  line-height: 1.5;
+  font-weight: var(--dashboard-weight-semibold);
+}
+
+.creator-dashboard .dashboard-fundraising-v2__post-button {
+  min-height: var(--dashboard-button-height);
+  flex-shrink: 0;
+  padding: 10px 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: var(--dashboard-button-radius);
+  background: var(--orange);
+  color: var(--charcoal);
+  font-family: inherit;
+  font-size: var(--dashboard-body-size);
+  line-height: 1.4;
+  font-weight: var(--dashboard-weight-bold);
+  text-align: center;
+  cursor: pointer;
+}
+
+.creator-dashboard .dashboard-fundraising-v2__post-button:hover {
+  box-shadow: inset 0 0 0 2px var(--orange-dark);
+}
+
+.creator-dashboard .dashboard-fundraising-v2__post-button:focus-visible {
+  outline: 2px solid var(--orange);
+  outline-offset: 2px;
+}
+
+.creator-dashboard .dashboard-lower-grid {
+  width: 100%;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  align-items: stretch;
+  gap: 24px;
+}
+
+.creator-dashboard .dashboard-lower-section {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.creator-dashboard .dashboard-lower-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.creator-dashboard .dashboard-lower-heading h2 {
+  margin: 0;
+  color: var(--charcoal);
+  font-size: var(--dashboard-section-size);
+  line-height: 1.35;
+  font-weight: 700;
+  letter-spacing: var(--dashboard-section-tracking);
+}
+
+.creator-dashboard .dashboard-lower-heading a {
+  flex-shrink: 0;
+  color: var(--teal-dark);
+  font-size: 14px;
+  line-height: 1.4;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.creator-dashboard .dashboard-lower-heading a:hover {
+  color: var(--teal-darker);
+}
+
+.creator-dashboard .dashboard-lower-heading a:focus-visible {
+  outline: 2px solid var(--orange);
+  outline-offset: 2px;
+}
+
+.creator-dashboard .dashboard-recent-list {
+  flex: 1;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: #ffffff;
+}
+
+.creator-dashboard .dashboard-recent-row {
+  padding: 16px;
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+}
+
+.creator-dashboard .dashboard-recent-row + .dashboard-recent-row {
+  border-top: 1px solid var(--divider);
+}
+
+.creator-dashboard .dashboard-recent-icon {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: var(--teal-soft);
+  color: var(--teal-dark);
+}
+
+.creator-dashboard .dashboard-recent-icon--ended {
+  background: var(--orange-soft);
+  color: var(--orange-dark);
+}
+
+.creator-dashboard .dashboard-recent-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.creator-dashboard .dashboard-recent-sentence {
+  min-width: 0;
+  margin: 0;
+  color: var(--text-3);
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.creator-dashboard .dashboard-recent-sentence strong {
+  color: var(--charcoal);
+  font-weight: 700;
+}
+
+.creator-dashboard .dashboard-recent-time {
+  color: var(--text-2);
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.creator-dashboard .dashboard-recent-empty {
+  flex: 1;
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  border: 1px dashed var(--border-strong);
+  border-radius: 16px;
+  color: var(--text-2);
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 600;
+}
+
+.creator-dashboard .dashboard-bank-v2 {
+  flex: 1;
+  min-width: 0;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  border-radius: 18px;
+  background: var(--charcoal);
+  color: #ffffff;
+}
+
+.creator-dashboard .dashboard-bank-v2__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.creator-dashboard .dashboard-bank-v2__icon {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: var(--teal);
+  color: #ffffff;
+}
+
+.creator-dashboard .dashboard-bank-v2__icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.creator-dashboard .dashboard-bank-v2__number {
+  color: #cbd5e1;
+  font-size: 14px;
+  line-height: 1.4;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.creator-dashboard .dashboard-bank-v2__details h3 {
+  margin: 0 0 4px;
+  color: #ffffff;
+  font-size: 20px;
+  line-height: 1.3;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.creator-dashboard .dashboard-bank-v2__details p {
+  margin: 0;
+  color: #cbd5e1;
+  font-size: 14px;
+  line-height: 1.4;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.creator-dashboard .dashboard-bank-v2__helper {
+  margin: auto 0 0;
+  padding-top: 14px;
+  border-top: 1px solid #334155;
+  color: #cbd5e1;
+  font-size: 13px;
+  line-height: 1.5;
+  font-weight: 600;
+}
+
+.creator-dashboard .dashboard-followup {
+  width: 100%;
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  border-radius: 18px;
+  background: var(--cream);
+}
+
+.creator-dashboard .dashboard-followup > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.creator-dashboard .dashboard-followup h2 {
+  margin: 0 0 6px;
+  color: var(--charcoal);
+  font-size: 20px;
+  line-height: 1.35;
+  font-weight: 700;
+  letter-spacing: -0.4px;
+}
+
+.creator-dashboard .dashboard-followup p {
+  margin: 0;
+  color: var(--text-2);
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 600;
+}
+
+.creator-dashboard .dashboard-recent-icon img {
+  display: block;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  object-fit: contain;
+}
+
+.creator-dashboard.dashboard-empty-v2 {
+  gap: 28px;
+}
+
+.creator-dashboard .dashboard-empty-v2__welcome h1 {
+  margin: 0 0 8px;
+  color: var(--charcoal);
+  font-size: var(--dashboard-greeting-size);
+  line-height: 1.25;
+  font-weight: 700;
+  letter-spacing: var(--dashboard-greeting-tracking);
+}
+
+.creator-dashboard .dashboard-empty-v2__welcome p {
+  margin: 0;
+  color: var(--text-2);
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 600;
+}
+
+.creator-dashboard .dashboard-empty-v2__hero {
+  min-width: 0;
+  padding: 40px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  align-items: center;
+  gap: 40px;
+  border-radius: 18px;
+  background: var(--cream);
+}
+
+.creator-dashboard .dashboard-empty-v2__hero-copy {
+  min-width: 0;
+}
+
+.creator-dashboard .dashboard-empty-v2__hero-copy h2 {
+  margin: 0 0 18px;
+  color: var(--charcoal);
+  font-size: var(--dashboard-hero-size);
+  line-height: 1.2;
+  font-weight: 800;
+  letter-spacing: -0.8px;
+}
+
+.creator-dashboard .dashboard-empty-v2__hero-copy > p {
+  max-width: 640px;
+  margin: 0;
+  color: var(--text-2);
+  font-size: 14px;
+  line-height: 1.65;
+  font-weight: 600;
+}
+
+.creator-dashboard .dashboard-empty-v2__hero-actions {
+  margin-top: 24px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.creator-dashboard .dashboard-empty-v2__button {
+  min-height: 40px;
+  width: fit-content;
+  padding: 10px 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  background: #ffffff;
+  color: var(--charcoal);
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.35;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.creator-dashboard .dashboard-empty-v2__button:hover {
+  background: var(--page);
+}
+
+.creator-dashboard .dashboard-empty-v2__button--primary {
+  border-color: var(--teal);
+  background: var(--teal);
+  color: #ffffff;
+}
+
+.creator-dashboard .dashboard-empty-v2__button--primary:hover {
+  background: var(--teal-dark);
+}
+
+.creator-dashboard .dashboard-empty-v2__button--dark {
+  border-color: var(--charcoal);
+  background: var(--charcoal);
+  color: #ffffff;
+}
+
+.creator-dashboard .dashboard-empty-v2__button--dark:hover {
+  background: #1e293b;
+}
+
+.creator-dashboard
+  .dashboard-empty-v2__hero-actions
+  .dashboard-empty-v2__button
+  > span {
+  font-size: 22px;
+  line-height: 1;
+  font-weight: 500;
+}
+
+.creator-dashboard .dashboard-empty-v2__explore {
+  color: var(--teal-dark);
+  font-size: 14px;
+  line-height: 1.4;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.creator-dashboard .dashboard-empty-v2__explore:hover {
+  color: var(--teal-darker);
+}
+
+.creator-dashboard.dashboard-empty-v2 :where(a, button):focus-visible {
+  outline: 2px solid var(--orange);
+  outline-offset: 2px;
+}
+
+.creator-dashboard .dashboard-empty-v2__sample {
+  padding: 8px 8px 16px;
+  transform: rotate(2deg);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 16px 30px rgba(15, 23, 42, 0.08);
+}
+
+.creator-dashboard .dashboard-empty-v2__sample-image {
+  height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  background: var(--teal-tint);
+  color: var(--teal-dark);
+}
+
+.creator-dashboard .dashboard-empty-v2__sample h3 {
+  margin: 14px 8px;
+  color: var(--charcoal);
+  font-size: 15px;
+  line-height: 1.4;
+  font-weight: 700;
+}
+
+.creator-dashboard .dashboard-empty-v2__sample-amount {
+  margin: 0 8px 12px;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  color: var(--text-2);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.creator-dashboard .dashboard-empty-v2__sample-amount strong {
+  color: var(--charcoal);
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.creator-dashboard .dashboard-empty-v2__sample-progress {
+  height: 6px;
+  margin: 0 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--divider);
+}
+
+.creator-dashboard .dashboard-empty-v2__sample-progress span {
+  display: block;
+  width: 32%;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--orange);
+}
+
+.creator-dashboard .dashboard-empty-v2__sample-link {
+  margin: 10px 8px 0;
+  color: var(--teal-dark);
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: 700;
+}
+
+.creator-dashboard .dashboard-empty-v2__section {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.creator-dashboard .dashboard-empty-v2__section > h2 {
+  margin: 0;
+  color: var(--charcoal);
+  font-size: var(--dashboard-section-size);
+  line-height: 1.35;
+  font-weight: 700;
+  letter-spacing: var(--dashboard-section-tracking);
+}
+
+.creator-dashboard .dashboard-empty-v2__steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.creator-dashboard .dashboard-empty-v2__step {
+  min-width: 0;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: #ffffff;
+}
+
+.creator-dashboard .dashboard-empty-v2__step-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.creator-dashboard .dashboard-empty-v2__icon {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: var(--teal-soft);
+  color: var(--teal-dark);
+}
+
+.creator-dashboard .dashboard-empty-v2__icon::before {
+  content: "";
+  width: 20px;
+  height: 20px;
+  background: currentColor;
+  -webkit-mask-image: var(--empty-icon);
+  mask-image: var(--empty-icon);
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+}
+
+.creator-dashboard .dashboard-empty-v2__icon--orange {
+  background: var(--orange-soft);
+  color: var(--orange-dark);
+}
+
+.creator-dashboard .dashboard-empty-v2__step-number {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  color: var(--text-2);
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: 600;
+}
+
+.creator-dashboard .dashboard-empty-v2__done {
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: var(--teal-soft);
+  color: var(--teal-dark);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.creator-dashboard .dashboard-empty-v2__step-copy h3 {
+  margin: 0 0 5px;
+  color: var(--charcoal);
+  font-size: 15px;
+  line-height: 1.4;
+  font-weight: 700;
+}
+
+.creator-dashboard .dashboard-empty-v2__step-copy p {
+  margin: 0;
+  color: var(--text-2);
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 600;
+}
+
+.creator-dashboard .dashboard-empty-v2__step > .dashboard-empty-v2__button {
+  margin-top: auto;
+}
+
+.creator-dashboard .dashboard-empty-v2__sharing-help {
+  margin: 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--divider);
+  color: var(--text-2);
+  font-size: 13px;
+  line-height: 1.5;
+  font-weight: 600;
+}
+
+.creator-dashboard .dashboard-empty-v2__activity {
+  gap: 14px;
+}
+
+.creator-dashboard .dashboard-empty-v2__activity p {
+  margin: 0;
+}
+
+.creator-dashboard .dashboard-empty-v2__missing-bank {
+  flex: 1;
+  min-width: 0;
+  padding: 18px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  border: 1px dashed #eab987;
+  border-radius: 16px;
+  background: #fffbf6;
+}
+
+.creator-dashboard .dashboard-empty-v2__missing-bank-copy {
+  flex: 1;
+  min-width: 120px;
+}
+
+.creator-dashboard .dashboard-empty-v2__missing-bank-copy h3 {
+  margin: 0 0 4px;
+  color: var(--charcoal);
+  font-size: 15px;
+  line-height: 1.4;
+  font-weight: 700;
+}
+
+.creator-dashboard .dashboard-empty-v2__missing-bank-copy p {
+  margin: 0;
+  color: var(--text-2);
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: 600;
+}
+
+.creator-dashboard .dashboard-campaign-grid > * {
+  min-width: 0;
+}
+
+.creator-dashboard .dashboard-campaign-view-all {
+  display: none;
+}
+
+.creator-dashboard .dashboard-campaign-panel {
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.creator-dashboard
+  :where(a, button, input, select, textarea, [tabindex="0"]):focus-visible {
+  outline: 2px solid var(--orange);
+  outline-offset: 2px;
+}
+
+.creator-dashboard
+  .dashboard-campaign-tab.active
+  .dashboard-campaign-tab__count {
+  color: #176b6a;
+}
+
+.creator-dashboard .dashboard-section-header > a {
+  color: #176b6a;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.campaign-update-modal
+  :where(a, button, input, select, textarea):focus-visible {
+  outline: 2px solid #f28c28;
+  outline-offset: 2px;
+}
+
+/* Responsive: (min-width: 768px) and (max-width: 1279px) */
+
+@media (min-width: 768px) and (max-width: 1279px) {
   .creator-dashboard {
-    padding: 24px;
-
-    gap: 28px;
+    --dashboard-panel-padding: 24px;
+    padding: var(--dashboard-panel-padding);
+    gap: var(--dashboard-section-gap);
   }
 
-  .dashboard-header {
+  .creator-dashboard .dashboard-header {
     gap: 20px;
+    flex-direction: row;
+    align-items: center;
   }
 
-  .dashboard-header h1 {
-    font-size: 24px;
-  }
-
-  .dashboard-stats {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-
-    gap: 12px;
-  }
-
-  .dashboard-section-header {
-    align-items: flex-start;
-  }
-
-  .dashboard-section-header__title-group {
+  .creator-dashboard .dashboard-campaign-grid {
     gap: 16px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .dashboard-campaign-tabs {
-    gap: 18px;
-
-    flex-wrap: wrap;
+  .creator-dashboard .dashboard-empty-v2__hero {
+    padding: 28px;
+    grid-template-columns: minmax(0, 1fr) 240px;
+    gap: 24px;
   }
 
-  .dashboard-campaign-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-
-    gap: 16px;
-  }
-
-  .dashboard-update-banner {
-    align-items: flex-start;
-  }
-
-  .dashboard-update-banner__button {
-    flex-shrink: 0;
-  }
-
-  .dashboard-bank-card {
-    align-items: flex-start;
-  }
-
-  .dashboard-bank-card__footer {
-    max-width: 320px;
+  .creator-dashboard .dashboard-empty-v2__step {
+    padding: 16px;
   }
 }
 
-/* =========================================================
-   MOBILE
-========================================================= */
+/* Responsive: (min-width: 768px) and (max-width: 1023px) */
 
-@media (max-width: 768px) {
+@media (min-width: 768px) and (max-width: 1023px) {
+  .creator-dashboard .dashboard-fundraising-v2__stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .creator-dashboard .dashboard-fundraising-v2__stat--active {
+    border-left: 0;
+    border-top: 1px solid var(--divider);
+  }
+
+  .creator-dashboard .dashboard-fundraising-v2__stat--total {
+    border-top: 1px solid var(--divider);
+  }
+
+  .creator-dashboard .dashboard-fundraising-v2__prompt {
+    flex-wrap: wrap;
+  }
+
+  .creator-dashboard .dashboard-fundraising-v2__post-button {
+    margin-left: auto;
+  }
+
+  .creator-dashboard .dashboard-empty-v2__hero {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .creator-dashboard .dashboard-empty-v2__sample {
+    display: none;
+  }
+
+  .creator-dashboard .dashboard-empty-v2__steps {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .creator-dashboard {
-    padding: 16px 16px 40px;
+    padding: 24px;
+  }
 
+  .creator-dashboard .dashboard-campaign-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .creator-dashboard .dashboard-campaign-grid > :nth-child(n + 3) {
+    display: none;
+  }
+
+  .creator-dashboard .dashboard-lower-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Responsive: (min-width: 1024px) and (max-width: 1279px) */
+
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .creator-dashboard .dashboard-lower-grid {
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    gap: 20px;
+  }
+
+  .creator-dashboard .dashboard-recent-row {
+    gap: 12px;
+  }
+
+  .creator-dashboard {
+    padding: 24px;
+  }
+
+  .creator-dashboard .dashboard-campaign-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* Responsive: (max-width: 1023px) */
+
+@media (max-width: 1023px) {
+  .creator-dashboard .dashboard-lower-grid {
+    grid-template-columns: minmax(0, 1fr);
     gap: 24px;
   }
 
-  /* HEADER */
+  .creator-dashboard .dashboard-followup {
+    display: none;
+  }
+}
 
-  .dashboard-header {
+/* Responsive: (max-width: 767px) */
+
+@media (max-width: 767px) {
+  .creator-dashboard {
+    --dashboard-greeting-size: 22px;
+    --dashboard-hero-size: 24px;
+    --dashboard-section-size: 17px;
+    --dashboard-total-raised-size: 28px;
+    --dashboard-stat-size: 20px;
+    --dashboard-card-amount-size: 20px;
+    --dashboard-helper-size: 12px;
+    --dashboard-panel-padding: 16px;
+    --dashboard-section-gap: 24px;
+    --dashboard-button-height: 44px;
+    padding: var(--dashboard-panel-padding);
+    gap: var(--dashboard-section-gap);
+  }
+
+  .creator-dashboard .dashboard-header {
     flex-direction: column;
-    align-items: stretch;
-
-    gap: 16px;
+    align-items: flex-start;
+    gap: 12px;
   }
 
-  .dashboard-header h1 {
+  .creator-dashboard .dashboard-header h1 {
     margin-bottom: 4px;
-
-    font-size: 24px;
-    font-weight: 600;
   }
 
-  .dashboard-header p {
+  .creator-dashboard .dashboard-header p {
     font-size: 14px;
   }
 
-  .dashboard-header__button {
+  .creator-dashboard .dashboard-header__button {
     width: 100%;
+    display: none;
   }
 
-  /* BANK NOTICE */
-
-  .dashboard-bank-notice {
+  .creator-dashboard .dashboard-bank-notice {
     padding: 16px;
-
     border: 1px solid #fde68a;
     border-radius: 12px;
-
     align-items: flex-start;
   }
 
-  .dashboard-bank-notice__content {
+  .creator-dashboard .dashboard-bank-notice__content {
     flex-direction: column;
     align-items: flex-start;
-
     gap: 8px;
   }
 
-  .dashboard-bank-notice__copy {
+  .creator-dashboard .dashboard-bank-notice__copy {
     gap: 4px;
   }
 
-  .dashboard-bank-notice__link {
+  .creator-dashboard .dashboard-bank-notice__link {
     padding-top: 4px;
-
     font-size: 16px;
   }
 
-  /* FUNDRAISING */
+  .creator-dashboard .dashboard-section {
+    gap: 12px;
+  }
 
-  .dashboard-fundraising {
-    padding: 20px;
+  .creator-dashboard .dashboard-section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    position: relative;
+    display: block;
+  }
 
-    border-radius: 16px;
+  .creator-dashboard .dashboard-section-header h2 {
+    color: #1b2022;
+    min-height: 44px;
+    padding-right: 80px;
+    display: flex;
+    align-items: center;
+  }
 
+  .creator-dashboard .dashboard-section-header > a {
+    align-self: flex-end;
+    padding-top: 0;
+    font-size: 13px;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    position: absolute;
+    top: 0;
+    right: 0;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .creator-dashboard .dashboard-section-header__title-group {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
     gap: 16px;
   }
 
-  .dashboard-fundraising__header h2 {
-    color: #1b2022;
-  }
-
-  .dashboard-stats {
-    grid-template-columns: 1fr;
-
-    gap: 8px;
-  }
-
-  .dashboard-stat-card {
-    padding: 12px;
-
-    border-radius: 12px;
-  }
-
-  /* SECTION HEADER */
-
-  .dashboard-section {
-    gap: 12px;
-  }
-
-  .dashboard-section-header {
-    flex-direction: column;
-    align-items: flex-start;
-
-    gap: 12px;
-  }
-
-  .dashboard-section-header h2 {
-    color: #1b2022;
-  }
-
-  .dashboard-section-header > a {
-    align-self: flex-end;
-
-    padding-top: 0;
-  }
-
-  .dashboard-section-header__title-group {
-    width: 100%;
-
-    flex-direction: column;
-    align-items: flex-start;
-
-    gap: 10px;
-  }
-
-  /* FILTER TABS */
-
-  .dashboard-campaign-tabs {
-    width: 100%;
-
-    gap: 18px;
-
+  .creator-dashboard .dashboard-campaign-tabs {
     overflow-x: auto;
-
     padding-bottom: 4px;
-
     scrollbar-width: none;
+    min-width: 0;
+    gap: 4px;
+    box-sizing: border-box;
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    flex-wrap: nowrap;
   }
 
-  .dashboard-campaign-tabs::-webkit-scrollbar {
+  .creator-dashboard .dashboard-campaign-tabs::-webkit-scrollbar {
     display: none;
   }
 
-  .dashboard-campaign-tab {
+  .creator-dashboard .dashboard-campaign-tab {
     flex-shrink: 0;
-  }
-
-  /* UPDATE BANNER */
-
-  .dashboard-update-banner {
-    padding: 16px;
-
-    flex-direction: column;
-    align-items: stretch;
-
-    gap: 12px;
-  }
-
-  .dashboard-update-banner__header {
-    display: flex;
-    align-items: center;
-
-    gap: 8px;
-  }
-
-  .dashboard-update-banner__icon {
-    width: 32px;
-    height: 32px;
-
-    border-radius: 8px;
-  }
-
-  .dashboard-update-banner__icon img {
-    width: 14px;
-    height: 14px;
-  }
-
-  .dashboard-update-banner__header strong {
-    display: block;
-
-    color: #92400e;
-
-    font-size: 14px;
-    line-height: 1.3;
-    font-weight: 600;
-  }
-
-  .dashboard-update-banner__copy::before {
-    display: none;
-  }
-
-  .dashboard-update-banner__copy p {
+    min-width: 0;
+    min-height: 44px;
+    padding: 8px 4px;
     font-size: 12px;
   }
 
-  .dashboard-update-banner__button {
-    width: 100%;
-  }
-
-  /* CAMPAIGN GRID */
-
-  .dashboard-campaign-grid {
-    grid-template-columns: 1fr;
-
-    gap: 16px;
-  }
-
-  /* EMPTY CAMPAIGN */
-
-  .dashboard-empty-campaign {
-    padding: 32px 24px;
-  }
-
-  .dashboard-empty-campaign__button {
-    width: 100%;
-  }
-
-  /* ACTIVITY */
-
-  .dashboard-activity-list {
-    gap: 8px;
-  }
-
-  .dashboard-activity-row {
-    padding: 12px;
-  }
-
-  /* POPULATED BANK */
-
-  .dashboard-bank-card {
-    padding: 16px;
-
-    flex-direction: column;
-    align-items: stretch;
-
-    gap: 16px;
-  }
-
-  .dashboard-bank-card__top {
+  .creator-dashboard .dashboard-campaign-grid {
+    grid-template-columns: minmax(0, 1fr);
     gap: 12px;
   }
 
-  .dashboard-bank-card__icon {
-    width: 48px;
-    height: 48px;
-    min-width: 48px;
-  }
-
-  .dashboard-bank-card__info {
-    gap: 2px;
-  }
-
-  .dashboard-bank-card__divider {
-    display: block;
-
-    width: 100%;
-    height: 1px;
-
-    background: #e6e6e6;
-  }
-
-  .dashboard-bank-card__footer {
-    width: 100%;
-
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-
-    gap: 16px;
-  }
-
-  .dashboard-bank-card__footer p {
-    flex: 1;
-  }
-
-  /* EMPTY BANK */
-
-  .dashboard-empty-bank {
+  .creator-dashboard .dashboard-empty-bank {
     padding: 24px 16px;
-
     flex-direction: column;
     align-items: stretch;
-
     gap: 24px;
   }
 
-  .dashboard-empty-bank__details {
+  .creator-dashboard .dashboard-empty-bank__details {
     gap: 16px;
   }
 
-  .dashboard-empty-bank__icon {
+  .creator-dashboard .dashboard-empty-bank__icon {
     width: 56px;
     height: 56px;
   }
 
-  .dashboard-empty-bank__button {
+  .creator-dashboard .dashboard-empty-bank__button {
     width: 100%;
   }
-
-  /* BOTTOM CTA */
-
-  .dashboard-bottom-cta {
-    padding: 20px;
-
-    flex-direction: column;
-    align-items: stretch;
-
-    gap: 16px;
-  }
-
-  .dashboard-bottom-cta h2 {
-    margin-bottom: 6px;
-  }
-
-  .dashboard-bottom-cta__button {
-    width: 100%;
-  }
-
-  /* POST UPDATE MODAL */
 
   .campaign-update-modal-overlay {
     padding: 12px;
-
     align-items: flex-end;
   }
 
   .campaign-update-modal {
     width: 100%;
     max-height: calc(100vh - 24px);
-
     border-radius: 18px 18px 0 0;
   }
 
@@ -1861,7 +1951,6 @@
 
   .campaign-update-modal__form {
     padding: 18px 20px 20px;
-
     gap: 18px;
   }
 
@@ -1872,63 +1961,318 @@
   .campaign-update-modal__actions {
     flex-direction: column-reverse;
     align-items: stretch;
-
     gap: 8px;
   }
 
-  .campaign-update-modal__cancel,
+  .campaign-update-modal__cancel {
+    width: 100%;
+  }
+
   .campaign-update-modal__publish {
     width: 100%;
   }
-}
 
-/* =========================================================
-   SMALL MOBILE
-========================================================= */
-
-@media (max-width: 480px) {
-  .creator-dashboard {
-    padding-left: 16px;
-    padding-right: 16px;
+  .creator-dashboard .dashboard-fundraising-v2 {
+    gap: 10px;
   }
 
-  .dashboard-header h1 {
+  .creator-dashboard .dashboard-fundraising-v2__stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .creator-dashboard .dashboard-fundraising-v2__stat {
+    padding: 12px 16px;
+    gap: 4px;
+  }
+
+  .creator-dashboard .dashboard-fundraising-v2__stat--raised {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 4px 12px;
+  }
+
+  .creator-dashboard .dashboard-fundraising-v2__stat--raised dt {
+    grid-column: 1 / -1;
+  }
+
+  .creator-dashboard .dashboard-fundraising-v2__stat--raised p {
+    align-self: end;
+    padding-bottom: 3px;
+    font-size: 12px;
+    text-align: right;
+  }
+
+  .creator-dashboard .dashboard-fundraising-v2__stat--goal {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border-left: 0;
+    border-top: 1px solid var(--divider);
+  }
+
+  .creator-dashboard .dashboard-fundraising-v2__stat--goal dd {
+    font-size: 17px;
+    text-align: right;
+  }
+
+  .creator-dashboard .dashboard-fundraising-v2__stat--active {
+    border-left: 0;
+    border-top: 1px solid var(--divider);
+  }
+
+  .creator-dashboard .dashboard-fundraising-v2__stat--total {
+    border-top: 1px solid var(--divider);
+  }
+
+  .creator-dashboard .dashboard-fundraising-v2__stat dt {
+    font-size: 13px;
+  }
+
+  .creator-dashboard .dashboard-fundraising-v2__stat--goal p {
+    display: none;
+  }
+
+  .creator-dashboard .dashboard-fundraising-v2__stat--active p {
+    display: none;
+  }
+
+  .creator-dashboard .dashboard-fundraising-v2__stat--total p {
+    display: none;
+  }
+
+  .creator-dashboard .dashboard-fundraising-v2__desktop-label {
+    display: none;
+  }
+
+  .creator-dashboard .dashboard-fundraising-v2__desktop-copy {
+    display: none;
+  }
+
+  .creator-dashboard .dashboard-fundraising-v2__mobile-label {
+    display: block;
+  }
+
+  .creator-dashboard .dashboard-fundraising-v2__mobile-copy {
+    display: block;
+  }
+
+  .creator-dashboard .dashboard-fundraising-v2__prompt {
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .creator-dashboard .dashboard-fundraising-v2__prompt-icon {
+    display: none;
+  }
+
+  .creator-dashboard .dashboard-fundraising-v2__prompt-copy strong {
+    font-size: 13px;
+  }
+
+  .creator-dashboard .dashboard-fundraising-v2__prompt-copy p {
+    font-size: 13px;
+  }
+
+  .creator-dashboard .dashboard-fundraising-v2__post-button {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+
+  .creator-dashboard .dashboard-lower-heading h2 {
+    font-size: 17px;
+  }
+
+  .creator-dashboard .dashboard-lower-heading a {
+    font-size: 13px;
+  }
+
+  .creator-dashboard .dashboard-recent-row {
+    grid-template-columns: 36px minmax(0, 1fr);
+    align-items: start;
+    gap: 4px 12px;
+    padding: 14px 12px;
+  }
+
+  .creator-dashboard .dashboard-recent-icon {
+    grid-row: 1 / 3;
+  }
+
+  .creator-dashboard .dashboard-recent-time {
+    grid-column: 2;
+    font-size: 12px;
+  }
+
+  .creator-dashboard .dashboard-bank-v2 {
+    padding: 16px;
+  }
+
+  .creator-dashboard.dashboard-empty-v2 {
+    padding: var(--dashboard-panel-padding);
+    gap: var(--dashboard-section-gap);
+  }
+
+  .creator-dashboard .dashboard-empty-v2__welcome h1 {
+    font-size: 22px;
+  }
+
+  .creator-dashboard .dashboard-empty-v2__hero {
+    padding: 20px;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+
+  .creator-dashboard .dashboard-empty-v2__hero-copy h2 {
     font-size: 24px;
   }
 
-  .dashboard-fundraising__header {
+  .creator-dashboard .dashboard-empty-v2__hero-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 18px;
+  }
+
+  .creator-dashboard
+    .dashboard-empty-v2__hero-actions
+    .dashboard-empty-v2__button {
+    width: 100%;
+  }
+
+  .creator-dashboard .dashboard-empty-v2__explore {
+    text-align: center;
+  }
+
+  .creator-dashboard .dashboard-empty-v2__sample {
+    display: none;
+  }
+
+  .creator-dashboard .dashboard-empty-v2__section > h2 {
+    font-size: 17px;
+  }
+
+  .creator-dashboard .dashboard-empty-v2__steps {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+  }
+
+  .creator-dashboard .dashboard-empty-v2__step {
+    padding: 16px;
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr);
+    gap: 8px 14px;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .creator-dashboard .dashboard-empty-v2__step + .dashboard-empty-v2__step {
+    border-top: 1px solid var(--divider);
+  }
+
+  .creator-dashboard .dashboard-empty-v2__step-top {
+    display: contents;
+  }
+
+  .creator-dashboard .dashboard-empty-v2__step-top .dashboard-empty-v2__icon {
+    grid-column: 1;
+    grid-row: 1 / 4;
+  }
+
+  .creator-dashboard .dashboard-empty-v2__step-number {
+    grid-column: 2;
+    justify-content: flex-start;
+  }
+
+  .creator-dashboard .dashboard-empty-v2__step-copy {
+    grid-column: 2;
+  }
+
+  .creator-dashboard .dashboard-empty-v2__step > .dashboard-empty-v2__button {
+    grid-column: 2;
+  }
+
+  .creator-dashboard .dashboard-empty-v2__sharing-help {
+    grid-column: 2;
+  }
+
+  .creator-dashboard .dashboard-empty-v2__button {
+    min-height: 44px;
+  }
+
+  .creator-dashboard .dashboard-empty-v2__missing-bank {
+    padding: 16px;
+  }
+
+  .creator-dashboard
+    .dashboard-empty-v2__missing-bank
+    > .dashboard-empty-v2__button {
+    width: 100%;
+  }
+
+  .creator-dashboard .dashboard-campaign-tabs > button {
+    min-width: 0;
+    padding: 8px 4px;
+    justify-content: center;
+    gap: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    min-height: 44px;
+  }
+
+  .creator-dashboard .dashboard-campaign-view-all {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 44px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: #ffffff;
+    color: var(--teal-dark);
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 700;
+    text-align: center;
+    text-decoration: none;
+  }
+
+  .creator-dashboard .dashboard-campaign-view-all:focus-visible {
+    outline: 2px solid var(--orange);
+    outline-offset: 2px;
+  }
+
+  .creator-dashboard .dashboard-lower-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+  }
+
+  .creator-dashboard .dashboard-lower-heading > a {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+}
+
+/* Responsive: (max-width: 480px) */
+
+@media (max-width: 480px) {
+  .creator-dashboard .dashboard-empty-bank__details {
     align-items: flex-start;
-  }
-
-  .dashboard-fundraising__header > span {
-    padding-top: 5px;
-  }
-
-  .dashboard-empty-campaign__copy h3 {
-    font-size: 20px;
-  }
-
-  .dashboard-bank-card__footer {
-    align-items: flex-start;
-  }
-
-  .dashboard-empty-bank__details {
-    align-items: flex-start;
-  }
-
-  .dashboard-campaign-tabs {
-    gap: 16px;
   }
 
   .campaign-update-modal-overlay {
     padding: 0;
-
     align-items: flex-end;
   }
 
   .campaign-update-modal {
     max-height: 94vh;
-
     border-radius: 18px 18px 0 0;
   }
 

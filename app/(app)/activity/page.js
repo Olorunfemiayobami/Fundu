@@ -1,5 +1,6 @@
 "use client";
 
+import LoadingScreen from "@/components/feedback/LoadingScreen";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import "@/styles/activity.css";
@@ -402,9 +403,7 @@ export default function ActivityPage() {
 
   if (loading) {
     return (
-      <main className="activity-page activity-page--loading">
-        <p>Loading your activity...</p>
-      </main>
+      <LoadingScreen variant="list" label="Loading your activity" />
     );
   }
 

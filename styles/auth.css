@@ -702,6 +702,16 @@ body.auth-locked {
   color: rgb(var(--ink-2));
   font-weight: 450;
 }
+.auth .auth-consent { margin: 14px 0 18px; display: grid; gap: 10px; color: rgb(var(--ink-2)); font-size: 0.88rem; line-height: 1.45; }
+.auth .auth-consent label { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; }
+.auth .auth-consent label > span { display: block; min-width: 0; }
+.auth .auth-consent input { flex: none; margin: 3px 0 0; accent-color: #218582; }
+.auth .auth-consent a { color: #176c69; text-decoration: underline; }
+.auth .auth-consent-error { margin: 0; color: #bc261c; font-weight: 600; }
+.auth .auth-signup-consent { margin: 16px 0 12px; }
+.auth-consent-page { position: relative; z-index: 2; width: min(520px, calc(100% - 32px)); margin: min(18vh, 140px) auto; padding: 32px; border-radius: 20px; background: #fff; color: #182238; box-shadow: 0 18px 48px rgba(0,0,0,.16); }
+.auth-consent-page h1 { margin: 0 0 12px; font-size: 1.8rem; }
+.auth-consent-page p { margin: 0 0 12px; }
 
 /* ----------------------------------------------------------------------------
    7. Confirmation screens — verify email, reset complete

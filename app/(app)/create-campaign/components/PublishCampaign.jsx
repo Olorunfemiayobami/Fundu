@@ -2,6 +2,9 @@
 
 import React, { useEffect, useState } from "react";
 
+import CampaignStorageImage from "@/components/campaigns/CampaignStorageImage";
+import ActionDialog from "@/components/feedback/ActionDialog";
+
 import InputField from "@/components/ui/InputField";
 import { supabase } from "@/lib/supabase";
 
@@ -135,9 +138,9 @@ function BankAccountModal({
   isSavingBank,
 }) {
   const [bankDetails, setBankDetails] = useState({
-    accountName: "",
-    bankName: "",
-    accountNumber: "",
+    accountName: existingDetails?.accountName || "",
+    bankName: existingDetails?.bankName || "",
+    accountNumber: existingDetails?.accountNumber || "",
     confirmOwnership: false,
   });
 
@@ -150,26 +153,6 @@ function BankAccountModal({
    * RESET MODAL WHEN OPENED
    * =========================================================
    */
-
-  useEffect(() => {
-    if (!isOpen) {
-      return;
-    }
-
-    setBankDetails({
-      accountName: existingDetails?.accountName || "",
-
-      bankName: existingDetails?.bankName || "",
-
-      accountNumber: existingDetails?.accountNumber || "",
-
-      confirmOwnership: false,
-    });
-
-    setUseSavedAccount(false);
-
-    setErrors({});
-  }, [isOpen, existingDetails]);
 
   if (!isOpen) {
     return null;
@@ -332,55 +315,13 @@ function BankAccountModal({
       setErrors((previous) => ({
         ...previous,
 
-        save: "We couldn't save this bank account. Please try again.",
+        save: "We couldn't save your bank details. Nothing has changed yet. Check your connection and try again.",
       }));
     }
   };
 
   return (
-    <div
-      className="modal-overlay"
-      onClick={() => {
-        if (!isSavingBank) {
-          onClose();
-        }
-      }}
-    >
-      <div
-        className="payout-modal-content bank-account-modal-content"
-        onClick={(event) => event.stopPropagation()}
-      >
-        {/* HEADER */}
-
-        <div className="modal-header">
-          <div>
-            <h3>
-              {existingDetails ? "Update Bank Account" : "Add Bank Account"}
-            </h3>
-
-            <p className="bank-modal-description">
-              This is where supporters will send contributions to your campaign.
-            </p>
-          </div>
-
-          <button
-            type="button"
-            className="bank-modal-close"
-            onClick={onClose}
-            disabled={isSavingBank}
-            aria-label="Close"
-          >
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <path
-                d="M15 5L5 15M5 5L15 15"
-                stroke="#0A0A0A"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-              />
-            </svg>
-          </button>
-        </div>
-
+    <ActionDialog open={isOpen} onClose={onClose} busy={isSavingBank} error={errors.save} title={existingDetails ? "Update bank details" : "Bank details"} description="Supporters will see these on the campaign page." icon="bank" tone="success" safeLabel="Cancel" actionLabel={errors.save ? "Retry save" : existingDetails ? "Update bank details" : "Save bank details"} busyLabel="Saving…" onAction={handleSave}>
         <div className="bank-modal-fields">
           {/* SAVED BANK */}
 
@@ -396,7 +337,7 @@ function BankAccountModal({
                 type="checkbox"
                 checked={useSavedAccount}
                 onChange={handleSavedAccountToggle}
-                disabled={isLoadingSavedAccount || !savedAccount}
+                disabled={isSavingBank || isLoadingSavedAccount || !savedAccount}
               />
 
               <span className="saved-bank-toggle-slider" />
@@ -445,6 +386,7 @@ function BankAccountModal({
               placeholder="Full name as on the account"
               value={bankDetails.accountName}
               onChange={handleInputChange}
+              disabled={isSavingBank}
               required
             />
 
@@ -464,6 +406,7 @@ function BankAccountModal({
               placeholder="Select your bank"
               value={bankDetails.bankName}
               onChange={handleInputChange}
+              disabled={isSavingBank}
               required
             />
 
@@ -481,6 +424,7 @@ function BankAccountModal({
               placeholder="0123456789"
               value={bankDetails.accountNumber}
               onChange={handleInputChange}
+              disabled={isSavingBank}
               inputMode="numeric"
               required
             />
@@ -504,6 +448,7 @@ function BankAccountModal({
                 name="confirmOwnership"
                 checked={bankDetails.confirmOwnership}
                 onChange={handleInputChange}
+                disabled={isSavingBank}
               />
 
               <span>
@@ -517,23 +462,8 @@ function BankAccountModal({
             )}
           </div>
 
-          {errors.save && <p className="form-field-error">{errors.save}</p>}
-
-          <button
-            type="button"
-            className="btn-payout-save"
-            onClick={handleSave}
-            disabled={isSavingBank}
-          >
-            {isSavingBank
-              ? "Saving..."
-              : existingDetails
-                ? "Update Bank Account"
-                : "Save Bank Account"}
-          </button>
         </div>
-      </div>
-    </div>
+    </ActionDialog>
   );
 }
 
@@ -548,10 +478,12 @@ export default function PublishCampaign({
   onPublish,
   onSaveAndExit,
   isSaving,
+  publishError,
   duration,
   campaignId,
   campaignData,
   setCampaignData,
+  onEditStep,
 }) {
   const [resolvedCampaignId, setResolvedCampaignId] = useState(
     campaignId || null,
@@ -1112,7 +1044,7 @@ export default function PublishCampaign({
 
   const isPromoApplied = true;
 
-  const feePerDay = 200;
+  const feePerDay = 100;
 
   const campaignEndDate = duration ? new Date(`${duration}T00:00:00`) : null;
 
@@ -1186,429 +1118,35 @@ export default function PublishCampaign({
    * =========================================================
    */
 
-  return (
-    <div className="form-container-main publish-form-container">
-      {/* BANNER */}
-
-      <div className="publish-banner-promo">
-        <h3 className="banner-title-text">You're almost live! 🎉</h3>
-
-        <p className="banner-body-text">
-          Your campaign is ready to be published and shared.
-        </p>
-      </div>
-
-      {/* CAMPAIGN STATUS */}
-
-      <div className="publish-status-card">
-        <div className="publish-details-header">
-          <div className="status-flex-row">
-            <SuccessCheck />
-
-            <div className="status-text-stack">
-              <h4 className="status-label-title">Campaign details</h4>
-
-              <p className="status-label-sub">
-                Your campaign information is complete.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* BANK */}
-
-        <div className="payment-method-footer">
-          <div className="status-flex-row">
-            {savedBankAccount ? <SuccessCheck /> : <ErrorCheck />}
-
-            <div className="status-text-stack">
-              <h4 className="status-label-title">Bank Account</h4>
-
-              <p className="status-label-sub">
-                Add the bank account where supporters should send contributions.
-              </p>
-            </div>
-          </div>
-
-          {isLoadingBank && (
-            <p className="bank-loading-text">Checking bank account...</p>
-          )}
-
-          {savedBankAccount && (
-            <div className="saved-bank-account-card">
-              <div className="saved-bank-account-left">
-                <BankIcon />
-
-                <div className="status-text-stack">
-                  <h4 className="status-label-title">
-                    {savedBankAccount.bankName}
-                  </h4>
-
-                  <p className="status-label-sub">
-                    {savedBankAccount.accountName}
-                  </p>
-
-                  <p className="status-label-sub">
-                    ••••••
-                    {savedBankAccount.accountNumber.slice(-4)}
-                  </p>
-                </div>
-              </div>
-
-              <SuccessCheck />
-            </div>
-          )}
-
-          {publishErrors.bank && (
-            <p className="form-field-error publish-bank-error">
-              {publishErrors.bank}
-            </p>
-          )}
-
-          <button
-            type="button"
-            className="publish-bank-button"
-            onClick={() => {
-              setPublishErrors((previous) => ({
-                ...previous,
-                bank: "",
-              }));
-
-              setIsModalOpen(true);
-            }}
-          >
-            {savedBankAccount ? "Update Bank Account" : "Add Bank Account"}
-          </button>
-        </div>
-      </div>
-
-      {/* =====================================================
-          CAMPAIGN VISIBILITY
-      ====================================================== */}
-
-      <div
-        style={{
-          background: "#FFFFFF",
-          border: "1px solid #E2E8F0",
-          borderRadius: "12px",
-          padding: "24px",
-        }}
-      >
-        <div
-          style={{
-            marginBottom: "20px",
-          }}
-        >
-          <h3
-            style={{
-              margin: "0 0 6px",
-              fontSize: "18px",
-              fontWeight: "700",
-              color: "#0F172A",
-            }}
-          >
-            Campaign visibility
-          </h3>
-
-          <p
-            style={{
-              margin: 0,
-              fontSize: "14px",
-              lineHeight: "1.5",
-              color: "#64748B",
-            }}
-          >
-            Choose how people can discover your campaign.
-          </p>
-        </div>
-
-        <div
-          style={{
-            display: "grid",
-            gap: "12px",
-          }}
-        >
-          {/* PUBLIC */}
-
-          <label
-            style={{
-              display: "flex",
-              alignItems: "flex-start",
-              gap: "12px",
-              padding: "16px",
-              border: isPublic ? "1.5px solid #1E807F" : "1px solid #E2E8F0",
-              borderRadius: "10px",
-              background: isPublic ? "#F8FAFA" : "#FFFFFF",
-              cursor: "pointer",
-            }}
-          >
-            <input
-              type="radio"
-              name="campaignVisibility"
-              checked={isPublic}
-              onChange={() => handleVisibilityChange(true)}
-              style={{
-                marginTop: "3px",
-                accentColor: "#1E807F",
-              }}
-            />
-
-            <div>
-              <strong
-                style={{
-                  display: "block",
-                  fontSize: "15px",
-                  color: "#0F172A",
-                  marginBottom: "4px",
-                }}
-              >
-                Public
-              </strong>
-
-              <span
-                style={{
-                  display: "block",
-                  fontSize: "14px",
-                  lineHeight: "1.5",
-                  color: "#64748B",
-                }}
-              >
-                Anyone can discover your campaign on Fundu and you can share its
-                link anywhere.
-              </span>
-            </div>
-          </label>
-
-          {/* PRIVATE */}
-
-          <label
-            style={{
-              display: "flex",
-              alignItems: "flex-start",
-              gap: "12px",
-              padding: "16px",
-              border: !isPublic ? "1.5px solid #1E807F" : "1px solid #E2E8F0",
-              borderRadius: "10px",
-              background: !isPublic ? "#F8FAFA" : "#FFFFFF",
-              cursor: "pointer",
-            }}
-          >
-            <input
-              type="radio"
-              name="campaignVisibility"
-              checked={!isPublic}
-              onChange={() => handleVisibilityChange(false)}
-              style={{
-                marginTop: "3px",
-                accentColor: "#1E807F",
-              }}
-            />
-
-            <div>
-              <strong
-                style={{
-                  display: "block",
-                  fontSize: "15px",
-                  color: "#0F172A",
-                  marginBottom: "4px",
-                }}
-              >
-                Private
-              </strong>
-
-              <span
-                style={{
-                  display: "block",
-                  fontSize: "14px",
-                  lineHeight: "1.5",
-                  color: "#64748B",
-                }}
-              >
-                Your campaign won't appear in Explore. People you share the
-                campaign link with can still view it.
-              </span>
-            </div>
-          </label>
-        </div>
-      </div>
-
-      {/* HOSTING FEE */}
-
-      <div className="hosting-fee-card">
-        <div className="hosting-fee-header">
-          <SuccessCheck />
-
-          <div>
-            <span className="hosting-fee-title">Hosting fee</span>
-
-            <span className="hosting-fee-description">
-              Your campaign is hosted on Fundu for the duration you choose.
-            </span>
-          </div>
-        </div>
-
-        <div>
-          <span className="hosting-pricing-label">Standard pricing</span>
-
-          <div className="hosting-pricing-grid">
-            <div className="hosting-pricing-item">
-              <span>Hosting rate</span>
-
-              <strong>₦200 / day</strong>
-            </div>
-
-            <div className="hosting-pricing-item">
-              <span>Campaign duration</span>
-
-              <strong>
-                {durationInDays} {durationInDays === 1 ? "day" : "days"}
-              </strong>
-            </div>
-
-            <div className="hosting-pricing-item">
-              <span>Total hosting fee</span>
-
-              <strong>₦{normalHostingFee.toLocaleString("en-NG")}</strong>
-            </div>
-          </div>
-        </div>
-
-        {isPromoApplied && (
-          <div className="early-access-card">
-            <span className="early-access-label">Early access offer</span>
-
-            <div className="early-access-price-row">
-              <span className="early-access-old-price">
-                ₦{normalHostingFee.toLocaleString("en-NG")}
-              </span>
-
-              <span className="early-access-free-price">₦0</span>
-            </div>
-
-            <p className="early-access-description">
-              Your early access promotion covers the full hosting fee for your
-              campaign.
-            </p>
-          </div>
-        )}
-
-        {isPromoApplied && (
-          <div className="promotion-section">
-            <span className="promotion-title">Promotion applied</span>
-
-            <div className="promotion-code-row">
-              <strong>{promoCode}</strong>
-
-              <span className="promotion-applied-badge">✓ Applied</span>
-            </div>
-
-            <p className="promotion-description">
-              This promotion was automatically applied to your account. No
-              action needed.
-            </p>
-          </div>
-        )}
-
-        <div className="hosting-total-card">
-          <span className="hosting-total-label">Total to pay</span>
-
-          <span className="hosting-total-amount">
-            ₦{totalFee.toLocaleString("en-NG")}
-          </span>
-
-          <span className="hosting-total-note">Free during early access</span>
-        </div>
-      </div>
-
-      {/* FUND FLOW NOTICE */}
-
-      <div className="info-notice-box">
-        <InfoIcon />
-
-        <p className="info-notice-text">
-          Fundu does not receive or hold campaign contributions. Supporters send
-          contributions directly to the bank account you provide.
-        </p>
-      </div>
-
-      {/* TERMS */}
-
-      <div className="publish-terms-section">
-        <div className="terms-container">
-          <input
-            type="checkbox"
-            id="terms-check"
-            checked={agreed}
-            onChange={(event) => {
-              const checked = event.target.checked;
-
-              setAgreed(checked);
-
-              if (checked) {
-                setPublishErrors((previous) => ({
-                  ...previous,
-                  terms: "",
-                }));
-              }
-            }}
-          />
-
-          <label htmlFor="terms-check" className="terms-label">
-            I confirm all information is accurate and agree to{" "}
-            <span className="terms-link">Terms of Service</span>
-          </label>
-        </div>
-
-        {publishErrors.terms && (
-          <p className="form-field-error">{publishErrors.terms}</p>
-        )}
-      </div>
-
-      {/* BOTTOM NAVIGATION */}
-
-      <div className="campaign-bottom-actions">
-        <button
-          type="button"
-          className="campaign-action-save-exit"
-          onClick={onSaveAndExit}
-          disabled={isSaving}
-        >
-          {isSaving ? "Saving..." : "Save & Exit"}
-        </button>
-
-        <div className="campaign-bottom-actions__right">
-          <button
-            type="button"
-            className="campaign-action-secondary"
-            onClick={onBack}
-            disabled={isSaving}
-          >
-            Back to Preview
-          </button>
-
-          <button
-            type="button"
-            className="campaign-action-primary"
-            onClick={handlePublishClick}
-            disabled={isSaving || isLoadingBank}
-          >
-            {isSaving ? "Publishing..." : "Publish Campaign"}
-          </button>
-        </div>
-      </div>
-
-      {/* BANK MODAL */}
-
-      <BankAccountModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSave={handleSaveBankAccount}
-        existingDetails={savedBankAccount}
-        savedAccount={reusableBankAccount}
-        isLoadingSavedAccount={isLoadingSavedAccount}
-        savedAccountError={savedAccountError}
-        isSavingBank={isSavingBank}
-      />
-    </div>
-  );
+  const storyBlocks = campaignData?.storyBlocks || [];
+  const photoCount = storyBlocks.reduce((count, block) => count + (Array.isArray(block.media) ? block.media.length : 0), 0);
+  const cover = campaignData?.imagePreview || campaignData?.cover_image || campaignData?.image_url || campaignData?.preview_image || campaignData?.coverImage;
+  const detailsComplete = Boolean(campaignData?.title?.trim() && campaignData?.category && Number(campaignData?.goal) > 0 && duration && cover);
+  const storyComplete = storyBlocks.some(block => block.content?.trim() || block.media?.length || block.url?.trim());
+  const completed = Number(detailsComplete) + Number(storyComplete) + Number(Boolean(savedBankAccount));
+  const publishDisabled = isSaving || isLoadingBank || isSavingBank || !savedBankAccount || !agreed;
+  const publishReason = publishError || (isSaving ? "Publishing your campaign…" : isLoadingBank ? "Checking bank account…" : isSavingBank ? "Saving bank account…" : !savedBankAccount && !agreed ? "Add a bank account and confirm to publish" : !savedBankAccount ? "Add a bank account to publish" : !agreed ? "Confirm the information to publish" : "");
+  const money = value => "₦" + Number(value || 0).toLocaleString("en-NG");
+  const openBank = () => { setPublishErrors(previous => ({ ...previous, bank: "" })); setIsModalOpen(true); };
+  const editStep = step => onEditStep?.(step);
+
+  return <section className="cw-publish">
+    <div className="cw-publish-columns"><div className="cw-publish-main">
+      <div className="cw-publish-heading"><h2>Publish your campaign</h2><p>A few last things, then your page goes live and you get a link to share.</p></div>
+      <section className="cw-publish-checklist" aria-labelledby="cw-publish-checklist-title">
+        <header><h3 id="cw-publish-checklist-title">Before you publish</h3><span className={completed === 3 ? "cw-publish-complete" : "cw-publish-incomplete"} role="status">{completed} of 3 done</span></header>
+        <div className="cw-publish-check-row"><span className={detailsComplete ? "cw-publish-complete" : "cw-publish-incomplete"}>{detailsComplete ? <SuccessCheck /> : <ErrorCheck />}</span><div><h4>Campaign details</h4><p>{detailsComplete ? "Title, category, goal, end date and cover are complete." : "Add a title, category, goal, end date and cover."}</p></div><button type="button" className="cw-publish-edit" onClick={() => editStep(1)} disabled={isSaving}>Edit</button></div>
+        <div className="cw-publish-check-row"><span className={storyComplete ? "cw-publish-complete" : "cw-publish-incomplete"}>{storyComplete ? <SuccessCheck /> : <ErrorCheck />}</span><div><h4>Story</h4><p>{storyBlocks.length} {storyBlocks.length === 1 ? "block" : "blocks"} with {photoCount} {photoCount === 1 ? "photo" : "photos"}.</p></div><button type="button" className="cw-publish-edit" onClick={() => editStep(2)} disabled={isSaving}>Edit</button></div>
+        <div className="cw-publish-check-row cw-publish-bank"><span className={savedBankAccount ? "cw-publish-complete" : "cw-publish-incomplete"}>{isLoadingBank ? <span className="cw-saving-spinner" aria-label="Checking bank account" /> : savedBankAccount ? <SuccessCheck /> : <ErrorCheck />}</span><div><h4>Bank account</h4><p>{isLoadingBank ? "Checking bank account…" : savedBankAccount ? `${savedBankAccount.bankName} •••• ${savedBankAccount.accountNumber.slice(-4)}` : "Add the account supporters will send money to. It's shown on your public page."}</p>{savedBankAccount && <p>{savedBankAccount.accountName}</p>}{publishErrors.bank && <p className="form-field-error">{publishErrors.bank}</p>}</div><button type="button" className={savedBankAccount ? "cw-publish-edit" : "cw-publish-add-bank"} onClick={openBank} disabled={isLoadingBank || isSaving || isSavingBank}>{savedBankAccount ? "Change" : <><BankIcon /> Add bank account</>}</button></div>
+      </section>
+      <fieldset className="cw-publish-visibility"><legend>Who can find it?</legend><div>{[{value:true,label:"Public",description:"Listed on Explore, and anyone with the link can view it."},{value:false,label:"Private",description:"Hidden from Explore. Anyone with the link can view and share it."}].map(option => <label key={option.label} className={isPublic === option.value ? "cw-visibility-selected" : ""}><input type="radio" name="campaignVisibility" checked={isPublic === option.value} disabled={isSaving} onChange={() => handleVisibilityChange(option.value)} /><div><strong>{option.value ? <VisibilityIcon /> : <VisibilityIcon locked />} {option.label}</strong><span>{option.description}</span></div></label>)}</div>{!isPublic && <p className="cw-publish-privacy-warning">Anyone with this link can view and share your campaign. It isn&apos;t confidential.</p>}</fieldset>
+      <section className="cw-publish-fee"><header><h3>Hosting fee</h3>{isPromoApplied && <span>✓ Early access applied</span>}</header><p>Fundu charges for hosting your page, never a cut of what you raise.</p><dl><div><dt>₦{feePerDay} per day × {durationInDays} {durationInDays === 1 ? "day" : "days"}</dt><dd>{isPromoApplied ? <s>{money(normalHostingFee)}</s> : money(normalHostingFee)}</dd></div>{isPromoApplied && <div><dt>{promoCode}</dt><dd>−{money(normalHostingFee)}</dd></div>}<div className="cw-publish-total"><dt>Total to pay</dt><dd><strong>{money(totalFee)}</strong>{isPromoApplied && <span>Free during early access</span>}</dd></div></dl></section>
+      <div className="cw-publish-notice"><InfoIcon /><p>Fundu doesn&apos;t receive or hold contributions. Supporters send money straight to the bank account you add. The receiving information will be visible to people who can view your campaign.</p></div>
+      <div className="cw-publish-confirm"><input type="checkbox" id="terms-check" checked={agreed} disabled={isSaving} aria-invalid={Boolean(publishErrors.terms)} aria-describedby={publishErrors.terms ? "cw-publish-terms-error" : undefined} onChange={event => {setAgreed(event.target.checked);if(event.target.checked)setPublishErrors(previous => ({...previous,terms:""}));}} /><label htmlFor="terms-check">I confirm the information is accurate and I agree to the <a href="/terms" target="_blank" rel="noopener noreferrer">Terms of Service</a>.</label></div>{publishErrors.terms && <p className="form-field-error" id="cw-publish-terms-error">{publishErrors.terms}</p>}
+      <div className="campaign-bottom-actions cw-publish-footer"><div className="campaign-bottom-actions__right"><button type="button" className="campaign-action-secondary" aria-label="Back to preview" onClick={onBack} disabled={isSaving}>← Back to preview</button><span id="cw-publish-reason" role={publishError ? "alert" : "status"} className={publishError ? "cw-publish-error" : ""}>{publishError && <span className="action-icon action-icon--alert" />}{publishReason}</span><button type="button" className="campaign-action-primary" onClick={handlePublishClick} disabled={publishDisabled} aria-describedby={publishReason ? "cw-publish-reason" : undefined}>{isSaving ? <><span className="action-dialog-spinner" />Publishing…</> : publishError ? <><span className="action-icon action-icon--refresh" />Retry publishing</> : "Publish campaign"}</button></div></div>
+    </div><aside className="cw-publish-summary"><CampaignStorageImage src={cover} alt={`${campaignData?.title || "Campaign"} cover`} /><div><h3>{campaignData?.title || "Untitled campaign"}</h3><p>{campaignData?.category || "Choose a category"}</p><dl>{[["Goal",money(campaignData?.goal)],["Ends",campaignEndDate && !Number.isNaN(campaignEndDate.getTime()) ? campaignEndDate.toLocaleDateString("en-NG",{day:"numeric",month:"short",year:"numeric"}) : "Not set"],["Visibility",isPublic ? "Public" : "Private"],["Hosting fee",money(totalFee)]].map(([label,value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl></div></aside></div>
+    {isModalOpen && <BankAccountModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={handleSaveBankAccount} existingDetails={savedBankAccount} savedAccount={reusableBankAccount} isLoadingSavedAccount={isLoadingSavedAccount} savedAccountError={savedAccountError} isSavingBank={isSavingBank} />}
+  </section>;
 }
+
+function VisibilityIcon({locked=false}) { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">{locked ? <><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V6a4 4 0 0 1 8 0v4"/></> : <><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18"/></>}</svg>; }
