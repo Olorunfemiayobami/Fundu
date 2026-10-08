@@ -102,9 +102,9 @@ export default function CampaignPublicLayout({ children }) {
 
   return (
     <div className="pc-website">
-      <Navbar campaignPage />
+      <Navbar />
 
-      <main>{children}</main>
+      <main id="main-content" tabIndex={-1}>{children}</main>
 
       <Footer />
     </div>

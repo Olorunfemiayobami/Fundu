@@ -1,118 +1,142 @@
-import Link from "next/link";
+"use client";
 
-/* Fundu footer, ported verbatim from the design artifact, including the
-   torchlight wordmark. The cursor-follow light is driven by the marketing
-   page's effect, which finds #torch in the DOM. */
+import { useRef } from "react";
+import Link from "next/link";
+import { usePublicUser } from "./usePublicUser";
+import { useFooterMotion } from "./useFooterMotion";
+import "./public-layout.css";
 
 export default function Footer() {
+  const footerRef = useRef(null);
+  const user = usePublicUser();
+  const fundraiserHref = user ? "/create-campaign" : "/signup";
+  useFooterMotion(footerRef);
   return (
     <>
-      <footer className="footer" data-tint="--tint-mist">
-        <div className="wrap">
-          <div className="footer__grid">
-            <div className="footer__brand" data-mo>
-              <svg
-                className="footer__logo"
-                viewBox="0 0 56 16"
-                xmlns="http://www.w3.org/2000/svg"
-                role="img"
-                aria-label="Fundu"
-              >
-                <path
-                  d="M0 15V1H8.3V3.76H2.76V6.12H7.34V8.88H2.76V15H0ZM8.83832 11.34V5H11.5983V10.58C11.5983 10.9334 11.6816 11.2534 11.8483 11.54C12.0216 11.82 12.2516 12.0434 12.5383 12.21C12.825 12.3766 13.1383 12.46 13.4783 12.46C13.825 12.46 14.1416 12.3766 14.4283 12.21C14.715 12.0434 14.9416 11.82 15.1083 11.54C15.275 11.2534 15.3583 10.9334 15.3583 10.58V5H18.1183L18.1283 15H15.3683L15.3583 14.24C15.025 14.56 14.6316 14.81 14.1783 14.99C13.7316 15.17 13.2583 15.26 12.7583 15.26C12.0383 15.26 11.3816 15.0834 10.7883 14.73C10.195 14.3766 9.7216 13.9066 9.36832 13.32C9.01496 12.7266 8.83832 12.0666 8.83832 11.34ZM29.4267 8.64V15H26.6667V9.4C26.6667 9.04664 26.5801 8.73 26.4067 8.45C26.2401 8.16336 26.0134 7.93664 25.7267 7.77C25.4467 7.60336 25.1334 7.52 24.7867 7.52C24.4401 7.52 24.1234 7.60336 23.8367 7.77C23.5501 7.93664 23.3234 8.16336 23.1567 8.45C22.9901 8.73 22.9067 9.04664 22.9067 9.4V15H20.1467L20.1367 5H22.8967L22.9067 5.74C23.2401 5.42 23.6301 5.17 24.0767 4.99C24.5301 4.81 25.0067 4.72 25.5067 4.72C26.2334 4.72 26.8901 4.89664 27.4767 5.25C28.0701 5.60336 28.5434 6.07664 28.8967 6.67C29.2501 7.25664 29.4267 7.91336 29.4267 8.64ZM38.5805 0H41.3405V15H38.5805V13.94C38.2738 14.3266 37.8938 14.6434 37.4405 14.89C36.9871 15.1366 36.4705 15.26 35.8905 15.26C35.1638 15.26 34.4838 15.1234 33.8505 14.85C33.2171 14.5766 32.6571 14.2 32.1705 13.72C31.6905 13.2334 31.3138 12.6734 31.0405 12.04C30.7671 11.4066 30.6305 10.7266 30.6305 10C30.6305 9.27336 30.7671 8.59336 31.0405 7.96C31.3138 7.32664 31.6905 6.77 32.1705 6.29C32.6571 5.80336 33.2171 5.42336 33.8505 5.15C34.4838 4.87664 35.1638 4.74 35.8905 4.74C36.4705 4.74 36.9871 4.86336 37.4405 5.11C37.8938 5.35 38.2738 5.66664 38.5805 6.06V0ZM35.9305 12.61C36.3838 12.61 36.7938 12.4934 37.1605 12.26C37.5271 12.0266 37.8171 11.7134 38.0305 11.32C38.2438 10.92 38.3505 10.48 38.3505 10C38.3505 9.51336 38.2438 9.07336 38.0305 8.68C37.8171 8.28664 37.5271 7.97336 37.1605 7.74C36.7938 7.50664 36.3838 7.39 35.9305 7.39C35.4705 7.39 35.0538 7.50664 34.6805 7.74C34.3071 7.97336 34.0105 8.29 33.7905 8.69C33.5705 9.08336 33.4605 9.52 33.4605 10C33.4605 10.48 33.5705 10.92 33.7905 11.32C34.0171 11.7134 34.3171 12.0266 34.6905 12.26C35.0638 12.4934 35.4771 12.61 35.9305 12.61Z"
-                  fill="rgb(var(--teal))"
-                />
-                <path
-                  d="M50.0037 15.26C48.8837 15.26 47.8971 14.9866 47.0438 14.44C46.1971 13.8934 45.5338 13.16 45.0538 12.24C44.5804 11.3134 44.3438 10.2866 44.3438 9.16V1H47.1038V9.16C47.1038 9.76664 47.2171 10.3234 47.4438 10.83C47.6704 11.3366 48.0004 11.7434 48.4338 12.05C48.8671 12.35 49.3904 12.5 50.0037 12.5C50.6237 12.5 51.1471 12.35 51.5737 12.05C52.0071 11.75 52.3337 11.3466 52.5537 10.84C52.7737 10.3334 52.8838 9.77336 52.8838 9.16V1H55.6438V9.16C55.6438 10.0066 55.5071 10.8 55.2338 11.54C54.9671 12.2734 54.5838 12.92 54.0838 13.48C53.5838 14.04 52.9871 14.4766 52.2938 14.79C51.6071 15.1034 50.8437 15.26 50.0037 15.26Z"
-                  fill="rgb(var(--mango))"
-                />
+    <footer ref={footerRef} className="fundu-chrome fs-cfoot">{" "}
+      <div className="fs-wrap">{" "}
+        <div className="f-top">{" "}
+          <p className="f-ask">{"Raising money for "}
+            <span className="f-rot" aria-live="off">
+              <span className="f-word">{"school fees?"}
+              </span>
+            </span>
+          </p>{" "}
+          <Link className="fs-btn btn-primary f-cta" href={fundraiserHref}>{"Give it a page"}
+            <svg className="b-arr" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M5 12h14M13 6l6 6-6 6" />
+            </svg>
+          </Link>{" "}
+        </div>{" "}
+        <div className="f-mid">{" "}
+          <div className="f-note">
+            <Link className="f-brand" href="/" aria-label="Fundu home">
+              <svg className="foot-mark" aria-hidden="true" focusable="false" viewBox="0 0 1000 1000" fill="none" xmlns="http://www.w3.org/2000/svg">{" "}
+                <rect width="1000" height="1000" rx="250" fill="#1E807F" />{" "}
+                <path d="M106.5 604.32V406.155H223.951V445.222H145.556V478.626H210.367V517.693H145.556V604.32H106.5ZM231.569 552.514V462.773H270.625V541.756C270.625 546.758 271.804 551.287 274.163 555.345C276.615 559.308 279.87 562.47 283.927 564.828C287.983 567.187 292.417 568.367 297.229 568.367C302.134 568.367 306.615 567.187 310.672 564.828C314.728 562.47 317.935 559.308 320.295 555.345C322.653 551.287 323.832 546.758 323.832 541.756V462.773H362.888L363.03 604.32H323.974L323.832 593.562C319.115 598.092 313.549 601.63 307.134 604.178C300.813 606.726 294.116 608 287.04 608C276.852 608 267.559 605.5 259.163 600.498C250.767 595.496 244.068 588.844 239.069 580.54C234.069 572.141 231.569 562.799 231.569 552.514ZM522.911 514.296V604.32H483.855V525.054C483.855 520.052 482.629 515.57 480.176 511.607C477.818 507.55 474.609 504.34 470.553 501.982C466.591 499.623 462.157 498.443 457.251 498.443C452.346 498.443 447.864 499.623 443.808 501.982C439.752 504.34 436.544 507.55 434.186 511.607C431.828 515.57 430.648 520.052 430.648 525.054V604.32H391.592L391.45 462.773H430.506L430.648 473.248C435.365 468.718 440.884 465.18 447.204 462.632C453.62 460.084 460.365 458.81 467.44 458.81C477.722 458.81 487.016 461.31 495.317 466.312C503.714 471.314 510.411 478.013 515.411 486.412C520.411 494.715 522.911 504.011 522.911 514.296ZM652.444 392H691.5V604.32H652.444V589.316C648.105 594.789 642.727 599.272 636.312 602.763C629.897 606.254 622.586 608 614.378 608C604.096 608 594.473 606.066 585.511 602.197C576.548 598.327 568.624 592.996 561.737 586.202C554.945 579.314 549.615 571.387 545.747 562.422C541.879 553.457 539.945 543.832 539.945 533.547C539.945 523.261 541.879 513.636 545.747 504.671C549.615 495.706 554.945 487.827 561.737 481.033C568.624 474.145 576.548 468.766 585.511 464.896C594.473 461.027 604.096 459.093 614.378 459.093C622.586 459.093 629.897 460.839 636.312 464.33C642.727 467.727 648.105 472.209 652.444 477.777V392ZM614.944 570.49C621.36 570.49 627.162 568.839 632.35 565.536C637.538 562.233 641.642 557.799 644.661 552.231C647.68 546.569 649.189 540.341 649.189 533.547C649.189 526.658 647.68 520.43 644.661 514.862C641.642 509.294 637.538 504.86 632.35 501.557C627.162 498.254 621.36 496.603 614.944 496.603C608.435 496.603 602.539 498.254 597.256 501.557C591.972 504.86 587.775 509.342 584.662 515.004C581.548 520.572 579.992 526.752 579.992 533.547C579.992 540.341 581.548 546.569 584.662 552.231C587.869 557.799 592.114 562.233 597.397 565.536C602.681 568.839 608.529 570.49 614.944 570.49Z" fill="white" />{" "}
+                <path d="M807.652 608C790.604 608 775.587 603.859 762.597 595.579C749.71 587.299 739.613 576.191 732.307 562.255C725.102 548.219 721.5 532.667 721.5 515.602V392H763.511V515.602C763.511 524.791 765.236 533.223 768.686 540.898C772.136 548.572 777.159 554.733 783.755 559.377C790.351 563.921 798.316 566.194 807.652 566.194C817.089 566.194 825.056 563.921 831.55 559.377C838.146 554.833 843.118 548.723 846.466 541.049C849.815 533.375 851.489 524.892 851.489 515.602V392H893.5V515.602C893.5 528.426 891.42 540.443 887.259 551.652C883.201 562.761 877.366 572.555 869.755 581.038C862.144 589.52 853.063 596.134 842.509 600.881C832.057 605.627 820.438 608 807.652 608Z" fill="#F98D2C" />{" "}
               </svg>
-              <p className="small">
-                The infrastructure around a fundraiser, not an intermediary
-                holding the money.
-              </p>
-              <div className="social">
-                <a href="#top" aria-label="Fundu on WhatsApp" title="WhatsApp">
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.46 1.32 4.97L2 22l5.25-1.38a9.87 9.87 0 0 0 4.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2Zm0 18.15h-.01a8.2 8.2 0 0 1-4.18-1.14l-.3-.18-3.11.82.83-3.04-.2-.31a8.18 8.18 0 0 1-1.25-4.39c0-4.54 3.7-8.23 8.24-8.23 2.2 0 4.26.86 5.82 2.41a8.16 8.16 0 0 1 2.41 5.83c0 4.54-3.7 8.23-8.25 8.23Zm4.52-6.16c-.25-.13-1.47-.72-1.69-.81-.23-.08-.39-.13-.56.13-.16.25-.64.81-.79.97-.14.17-.29.19-.54.07-.25-.13-1.05-.39-2-1.23-.74-.66-1.24-1.47-1.38-1.72-.15-.25-.02-.39.11-.51.11-.11.25-.29.37-.44.13-.14.17-.25.25-.41.08-.17.04-.31-.02-.44-.06-.12-.56-1.35-.77-1.85-.2-.48-.41-.41-.56-.42h-.48c-.16 0-.42.06-.64.31-.22.25-.85.83-.85 2.03 0 1.2.87 2.35.99 2.51.12.17 1.7 2.6 4.12 3.65.58.25 1.03.4 1.38.51.58.19 1.11.16 1.53.1.46-.07 1.47-.6 1.68-1.19.21-.58.21-1.08.15-1.19-.06-.1-.23-.17-.48-.29Z" />
-                  </svg>
-                </a>
-                <a
-                  href="#top"
-                  aria-label="Fundu on Instagram"
-                  title="Instagram"
-                >
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M12 2.16c3.2 0 3.58.01 4.85.07 1.17.05 1.96.24 2.65.51.71.28 1.31.65 1.91 1.25.6.6.97 1.2 1.25 1.91.27.69.46 1.48.51 2.65.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.24 1.96-.51 2.65-.28.71-.65 1.31-1.25 1.91-.6.6-1.2.97-1.91 1.25-.69.27-1.48.46-2.65.51-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.96-.24-2.65-.51a5.27 5.27 0 0 1-1.91-1.25 5.27 5.27 0 0 1-1.25-1.91c-.27-.69-.46-1.48-.51-2.65C2.17 15.58 2.16 15.2 2.16 12s.01-3.58.07-4.85c.05-1.17.24-1.96.51-2.65.28-.71.65-1.31 1.25-1.91.6-.6 1.2-.97 1.91-1.25.69-.27 1.48-.46 2.65-.51C8.42 2.17 8.8 2.16 12 2.16Zm0 1.98c-3.14 0-3.49.01-4.72.07-.94.04-1.45.2-1.79.33-.45.18-.77.39-1.11.73-.34.34-.55.66-.73 1.11-.13.34-.29.85-.33 1.79-.06 1.23-.07 1.58-.07 4.72s.01 3.49.07 4.72c.04.94.2 1.45.33 1.79.18.45.39.77.73 1.11.34.34.66.55 1.11.73.34.13.85.29 1.79.33 1.23.06 1.58.07 4.72.07s3.49-.01 4.72-.07c.94-.04 1.45-.2 1.79-.33.45-.18.77-.39 1.11-.73.34-.34.55-.66.73-1.11.13-.34.29-.85.33-1.79.06-1.23.07-1.58.07-4.72s-.01-3.49-.07-4.72c-.04-.94-.2-1.45-.33-1.79a2.98 2.98 0 0 0-.73-1.11 2.98 2.98 0 0 0-1.11-.73c-.34-.13-.85-.29-1.79-.33-1.23-.06-1.58-.07-4.72-.07Zm0 3.37a5.07 5.07 0 1 1 0 10.14 5.07 5.07 0 0 1 0-10.14Zm0 8.36a3.29 3.29 0 1 0 0-6.58 3.29 3.29 0 0 0 0 6.58Zm6.46-8.58a1.19 1.19 0 1 1-2.37 0 1.19 1.19 0 0 1 2.37 0Z" />
-                  </svg>
-                </a>
-                <a href="#top" aria-label="Fundu on X" title="X">
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M17.53 3h3.2l-6.99 7.99L22 21h-6.27l-4.9-6.41L5.2 21H2l7.48-8.54L2 3h6.27l4.6 6.08L17.53 3Zm-1.12 16.08h1.77L6.68 4.82H4.78l11.63 14.26Z" />
-                  </svg>
-                </a>
-                <a href="#top" aria-label="Fundu on Facebook" title="Facebook">
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M22 12.06C22 6.5 17.52 2 12 2S2 6.5 2 12.06c0 5.02 3.66 9.18 8.44 9.94v-7.03H7.9v-2.91h2.54V9.85c0-2.51 1.49-3.9 3.77-3.9 1.09 0 2.23.2 2.23.2v2.46h-1.26c-1.24 0-1.63.78-1.63 1.57v1.88h2.77l-.44 2.91h-2.33V22c4.78-.76 8.45-4.92 8.45-9.94Z" />
-                  </svg>
-                </a>
-                <a href="#top" aria-label="Fundu on LinkedIn" title="LinkedIn">
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M6.94 5.5a2.44 2.44 0 1 1-4.88 0 2.44 2.44 0 0 1 4.88 0ZM2.4 21.5h4.28V8.25H2.4V21.5Zm7.1-13.25h4.1v1.82h.06c.57-1.03 1.97-2.12 4.05-2.12 4.33 0 5.13 2.71 5.13 6.23V21.5h-4.28v-6.6c0-1.57-.03-3.6-2.24-3.6-2.24 0-2.59 1.71-2.59 3.48v6.72H9.5V8.25Z" />
-                  </svg>
-                </a>
-                <a href="#top" aria-label="Fundu on TikTok" title="TikTok">
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M16.6 5.82A4.28 4.28 0 0 1 15.54 3h-3.09v12.4a2.59 2.59 0 1 1-1.85-2.48V9.78a5.67 5.67 0 1 0 4.94 5.62V9.01a7.35 7.35 0 0 0 4.3 1.38V7.3a4.3 4.3 0 0 1-3.24-1.48Z" />
-                  </svg>
-                </a>
-              </div>
-            </div>
-            <nav className="fcol" data-mo aria-label="Product">
-              <h4>Fundraise</h4>
-              <a href="/signup">Start a fundraiser</a>
-              <a href="/signin">Sign in</a>
-              <a href="/how-it-works">How it works</a>
-            </nav>
-            <nav className="fcol" data-mo aria-label="Discover">
-              <h4>Discover</h4>
-              <a href="#campaigns">Explore campaigns</a>
-              <a href="#who">Medical</a>
-              <a href="#who">Education</a>
-              <a href="#who">Community</a>
-            </nav>
-            <nav className="fcol" data-mo aria-label="Company">
-              <h4>Company</h4>
-              <a href="#trust">Trust &amp; safety</a>
-              <a href="#trust">Prohibited campaigns</a>
-              <a href="mailto:funduhelp@gmail.com?subject=Report%20a%20Fundu%20campaign">Report a campaign</a>
-              <Link href="/help">Help</Link>
-              <Link href="/help#contact">Contact</Link>
-            </nav>
-          </div>
-
-          <div className="footer__legal">
-            <p className="small">
-              © 2026 Fundu. Amounts shown on campaigns are maintained by
-              organisers, not verified by Fundu.
+            </Link>
+            <p>{"Fundu gives every goal a proper page and one link to share. The money goes straight to the person raising it."}
             </p>
-            <p className="small">
-              <a href="/terms">Terms</a> · <a href="/privacy">Privacy</a> ·{" "}
-              <a href="#trust">Cookies</a>
-            </p>
+            <ul className="f-social" aria-label="Fundu on social media">
+              <li>
+                <a href="https://www.instagram.com/usefundu/" target="_blank" rel="noopener" aria-label="Fundu on Instagram (opens in a new tab)">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <rect x="3" y="3" width="18" height="18" rx="5" />
+                    <circle cx="12" cy="12" r="4" />
+                    <circle cx="17.5" cy="6.5" r=".6" fill="currentColor" />
+                  </svg>
+                </a>
+              </li>
+              <li>
+                <a href="https://x.com/Usefundu" target="_blank" rel="noopener" aria-label="Fundu on X (opens in a new tab)">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M4 4l16 16M20 4L4 20" />
+                  </svg>
+                </a>
+              </li>
+              <li>
+                <a href="https://www.facebook.com/profile.php?id=61594806624482" target="_blank" rel="noopener" aria-label="Fundu on Facebook (opens in a new tab)">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M14 8h3V4h-3a4 4 0 0 0-4 4v3H7v4h3v7h4v-7h3l1-4h-4V8a0 0 0 0 1 0 0z" />
+                  </svg>
+                </a>
+              </li>
+              <li>
+                <a href="https://www.tiktok.com/@usefundu" target="_blank" rel="noopener" aria-label="Fundu on TikTok (opens in a new tab)">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M14 3v11.5a3.5 3.5 0 1 1-3.5-3.5" />
+                    <path d="M14 3c.5 2.5 2.2 4 5 4" />
+                  </svg>
+                </a>
+              </li>
+            </ul>
+          </div>{" "}
+          <nav className="f-cols" aria-label="Footer">{" "}
+            <div>
+              <h2>{"Raise money"}
+              </h2>
+              <Link href="/how-it-works">{"How it works"}
+              </Link>
+              <Link href="/pricing">{"Pricing"}
+              </Link>
+              <Link href="/guides">{"Tips & guides"}
+              </Link>
+              <Link href="/fundraising-rules">{"Fundraising rules"}
+              </Link>
+            </div>{" "}
+            <div>
+              <h2>{"Discover"}
+              </h2>
+              <Link href="/webexplore">{"Explore pages"}
+              </Link>
+              <Link href="/#cats">{"Categories"}
+              </Link>
+              <Link href="/about">{"About us"}
+              </Link>
+            </div>{" "}
+            <div>
+              <h2>{"Support"}
+              </h2>
+              <Link href="/help">{"Help Centre"}
+              </Link>
+              <Link href="/trust-and-safety">{"Trust & safety"}
+              </Link>
+              <Link href="/contact">{"Contact us"}
+              </Link>
+            </div>{" "}
+            <div>
+              <h2>{"Legal"}
+              </h2>
+              <Link href="/terms">{"Terms of Service"}
+              </Link>
+              <Link href="/privacy">{"Privacy Policy"}
+              </Link>
+            </div>{" "}
+          </nav>{" "}
+        </div>{" "}
+        <div className="f-base">
+          <span>{"© 2026 Fundu. Made for people raising money together."}
+          </span>
+          <a className="f-up" href="#site-top" onClick={event => { event.preventDefault(); window.scrollTo({ top: 0, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" }); }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M12 19V5M6 11l6-6 6 6" />
+            </svg>{"Back to top"}
+          </a>
+        </div>{" "}
+      </div>{" "}
+      <div className="f-mark" aria-hidden="true">
+        <div className="fs-wrap">
+          <div className="fbig-logo fbig-text">
+            <span className="fb-f">{"Fund"}
+            </span>
+            <span className="fb-u">{"U"}
+            </span>
           </div>
         </div>
-
-        {/* Feed Forge style torchlight reveal */}
-        <div className="torch" id="torch" aria-hidden="true">
-          <span className="torch__base">
-            fund<i>u</i>
-          </span>
-          <span className="torch__lit" id="torchLit">
-            fund<i>u</i>
-          </span>
-        </div>
-      </footer>
+      </div>{" "}
+    </footer>
     </>
   );
 }

@@ -1,7 +1,8 @@
-import { Urbanist, Bricolage_Grotesque } from "next/font/google";
+import { Urbanist, Montserrat_Alternates } from "next/font/google";
 import "@/app/globals.css";
 import "@/styles/feedback.css";
 import "@/app/(website)/marketing.css";
+import "@/styles/website-typography.css";
 
 const urbanist = Urbanist({
   subsets: ["latin"],
@@ -10,18 +11,19 @@ const urbanist = Urbanist({
   variable: "--font-urbanist",
 });
 
-const bricolage = Bricolage_Grotesque({
+// Change the heading font here to update every shared display style.
+const heading = Montserrat_Alternates({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800"],
+  weight: ["600", "700", "800"],
   display: "swap",
-  variable: "--font-bricolage",
+  variable: "--font-heading",
 });
 
 export default function RootLayout({ children }) {
   return (
     <html
       lang="en"
-      className={`${urbanist.variable} ${bricolage.variable}`}
+      className={`${urbanist.variable} ${heading.variable}`}
       suppressHydrationWarning
     >
       <body className={urbanist.className} suppressHydrationWarning>

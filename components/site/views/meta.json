@@ -1,0 +1,58 @@
+{
+  "categories": {
+    "education": {
+      "title": "Raise money for school fees and learning",
+      "description": "School and university fees, exams, books or training. Give your education goal a page your family, church and alumni can share."
+    },
+    "health": {
+      "title": "Raise money for medical bills and emergencies",
+      "description": "Surgery, treatment, hospital bills, or getting back on your feet after an accident, fire or flood. Get help quickly from the people who care."
+    },
+    "church": {
+      "title": "Raise money for church and faith projects",
+      "description": "A new building, renovations, equipment, outreach or a special programme. Give your congregation one link to rally around."
+    },
+    "creators": {
+      "title": "Raise money for your film, music, book or craft",
+      "description": "Your first album, a short film, a book, an exhibition or the tools to make your craft. Let the people who believe in you back you."
+    },
+    "community": {
+      "title": "Raise money for your community",
+      "description": "A borehole, repairs to a school, solar power, a clean-up or support for neighbours. Bring everyone behind one goal."
+    },
+    "business": {
+      "title": "Raise money for your small business",
+      "description": "Starting out, restocking after a loss, new equipment or repairs to your shop. Let your customers and community help you grow."
+    },
+    "milestones": {
+      "title": "Raise money for weddings and life’s big moments",
+      "description": "Weddings, send-offs, memorials, naming ceremonies and graduations. Give friends and family near and far one place to join in."
+    }
+  },
+  "guides": {
+    "story": {
+      "title": "How to write a story people want to support",
+      "description": "Your story does the asking for you. Make it clear, honest and easy to share."
+    },
+    "cover": {
+      "title": "How to choose a cover photo",
+      "description": "The first thing people see when your link is shared. Make it count."
+    },
+    "goal": {
+      "title": "How to set a goal people trust",
+      "description": "A goal people can understand is a goal people want to help reach."
+    },
+    "share": {
+      "title": "How to share your page on WhatsApp and beyond",
+      "description": "Most support comes from people who know you. Here’s how to reach them."
+    },
+    "updates": {
+      "title": "How to post updates that bring new support",
+      "description": "Updates keep supporters close and give you a reason to share again."
+    },
+    "thanks": {
+      "title": "How to thank your supporters",
+      "description": "A good thank-you turns supporters into people who’ll help again."
+    }
+  }
+}

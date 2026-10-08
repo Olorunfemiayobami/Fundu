@@ -5,7 +5,7 @@ export default function WebsiteLayout({ children }) {
   return (
     <div className="marketing-shell">
       <Navbar />
-      {children}
+      <div id="main-content" tabIndex={-1}>{children}</div>
       <Footer />
     </div>
   );

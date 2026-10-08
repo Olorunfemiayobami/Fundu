@@ -1,177 +1,110 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { usePublicUser } from "./usePublicUser";
+import "./public-layout.css";
 
 const NAV_ITEMS = [
-  { label: "About us", href: "/about" },
   { label: "How it works", href: "/how-it-works" },
+  { label: "Pricing", href: "/pricing" },
+  { label: "Trust & safety", href: "/trust-and-safety" },
   { label: "Explore", href: "/webexplore" },
+  { label: "Help", href: "/help" },
 ];
 
-export default function Navbar({ campaignPage = false }) {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+function Arrow() {
+  return <svg className="b-arr" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>;
+}
+
+function Navigation({ pathname }) {
+  const user = usePublicUser();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const header = useRef(null);
+  const menuButton = useRef(null);
+  const fundraiserHref = user ? "/create-campaign" : "/signup";
+  const accountHref = user ? "/campaigns" : "/signin";
+  const accountLabel = user ? "My campaigns" : "Sign in";
 
-  const pathname = usePathname();
-
-  /* ---------------------------------------------------------
-     SUPABASE AUTH
-     --------------------------------------------------------- */
   useEffect(() => {
-    const getSession = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      setUser(session?.user ?? null);
-      setLoading(false);
-    };
-
-    getSession();
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    if (campaignPage) {
-      return (
-        <header className="pc-public-header">
-          <div className="pc-public-header__inner">
-            <Link href="/" className="pc-public-logo" aria-label="Fundu home">
-              <img src="/logo.svg" alt="Fundu" />
-            </Link>
-            <nav aria-label="Public navigation">
-              <Link href="/webexplore">Explore campaigns</Link>
-              <Link href="/how-it-works">How it works</Link>
-            </nav>
-            <Link
-              href={fundraiserHref}
-              className="pc-button pc-button--teal pc-public-header__cta"
-            >
-              Start a fundraiser
-            </Link>
-          </div>
-        </header>
-      );
-    }
-
-    return () => {
-      subscription.unsubscribe();
-    };
+    const onScroll = () => header.current?.classList.toggle("scrolled", window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  /* ---------------------------------------------------------
-     CLOSE MOBILE MENU WHEN ROUTE CHANGES
-     --------------------------------------------------------- */
   useEffect(() => {
+    if (!mobileOpen) return;
+    const onKey = event => {
+      if (event.key === "Escape") { setMobileOpen(false); menuButton.current?.focus(); }
+    };
+    const onOutside = event => { if (!header.current?.contains(event.target)) setMobileOpen(false); };
+    const desktop = window.matchMedia("(min-width: 901px)");
+    const onResize = event => { if (event.matches) setMobileOpen(false); };
+    document.addEventListener("keydown", onKey);
+    document.addEventListener("pointerdown", onOutside);
+    desktop.addEventListener("change", onResize);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("pointerdown", onOutside);
+      desktop.removeEventListener("change", onResize);
+    };
+  }, [mobileOpen]);
+
+  function skipToContent(event) {
+    const content = document.getElementById("main-content") || document.querySelector("main");
+    if (!content) return;
+    event.preventDefault();
+    content.setAttribute("tabindex", "-1");
+    content.focus({ preventScroll: true });
+    content.scrollIntoView({ block: "start" });
     setMobileOpen(false);
-  }, [pathname]);
+  }
 
-  const isActive = (href) =>
-    pathname === href || pathname.startsWith(`${href}/`);
-
-  /*
-    Logged out:
-    Start a fundraiser -> Signup
-
-    Logged in:
-    Start a fundraiser -> Create Campaign
-  */
-  const fundraiserHref = user ? "/create-campaign" : "/signup";
+  const links = NAV_ITEMS.map(item => (
+    <Link key={item.href} href={item.href} aria-current={pathname === item.href || pathname.startsWith(item.href + "/") ? "page" : undefined} onClick={() => setMobileOpen(false)}>{item.label}</Link>
+  ));
 
   return (
-    <header
-      className="topbar"
-      id="topbar"
-      data-open={mobileOpen ? "true" : "false"}
-    >
-      <div className="wrap topbar__in">
-        {/* ---------------------------------------------------
-            CLAUDE FUNDU BRAND
-            --------------------------------------------------- */}
-        <Link className="brand" href="/" aria-label="Fundu home">
-          <svg
-            className="brandmark"
-            role="img"
-            aria-label="Fundu"
-            viewBox="0 0 64 64"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <g clipPath="url(#clip0_1958_17998)">
-              <path
-                d="M44.8 0H19.2C8.59613 0 0 8.59613 0 19.2V44.8C0 55.4039 8.59613 64 19.2 64H44.8C55.4039 64 64 55.4039 64 44.8V19.2C64 8.59613 55.4039 0 44.8 0Z"
-                fill="#1E807F"
-              />
-
-              <path
-                d="M4 39.1992V25.1992H12.3V27.9592H6.76V30.3192H11.34V33.0792H6.76V39.1992H4ZM12.8383 35.5392V29.1992H15.5983V34.7792C15.5983 35.1326 15.6816 35.4526 15.8483 35.7392C16.0216 36.0192 16.2516 36.2426 16.5383 36.4092C16.825 36.5759 17.1383 36.6592 17.4783 36.6592C17.825 36.6592 18.1416 36.5759 18.4283 36.4092C18.715 36.2426 18.9416 36.0192 19.1083 35.7392C19.275 35.4526 19.3583 35.1326 19.3583 34.7792V29.1992H22.1183L22.1283 39.1992H19.3683L19.3583 38.4392C19.025 38.7592 18.6316 39.0092 18.1783 39.1892C17.7316 39.3692 17.2583 39.4592 16.7583 39.4592C16.0383 39.4592 15.3816 39.2826 14.7883 38.9292C14.195 38.5759 13.7216 38.1059 13.3683 37.5192C13.015 36.9259 12.8383 36.2659 12.8383 35.5392ZM33.4267 32.8392V39.1992H30.6667V33.5992C30.6667 33.2459 30.5801 32.9292 30.4067 32.6492C30.2401 32.3626 30.0134 32.1359 29.7267 31.9692C29.4467 31.8026 29.1334 31.7192 28.7867 31.7192C28.4401 31.7192 28.1234 31.8026 27.8367 31.9692C27.5501 32.1359 27.3234 32.3626 27.1567 32.6492C26.9901 32.9292 26.9067 33.2459 26.9067 33.5992V39.1992H24.1467L24.1367 29.1992H26.8967L26.9067 29.9392C27.2401 29.6192 27.6301 29.3692 28.0767 29.1892C28.5301 29.0092 29.0067 28.9192 29.5067 28.9192C30.2334 28.9192 30.8901 29.0959 31.4767 29.4492C32.0701 29.8026 32.5434 30.2759 32.8967 30.8692C33.2501 31.4559 33.4267 32.1126 33.4267 32.8392ZM42.5805 24.1992H45.3405V39.1992H42.5805V38.1392C42.2738 38.5259 41.8938 38.8426 41.4405 39.0892C40.9871 39.3359 40.4705 39.4592 39.8905 39.4592C39.1638 39.4592 38.4838 39.3226 37.8505 39.0492C37.2171 38.7759 36.6571 38.3992 36.1705 37.9192C35.6905 37.4326 35.3138 36.8726 35.0405 36.2392C34.7671 35.6059 34.6305 34.9259 34.6305 34.1992C34.6305 33.4726 34.7671 32.7926 35.0405 32.1592C35.3138 31.5259 35.6905 30.9692 36.1705 30.4892C36.6571 30.0026 37.2171 29.6226 37.8505 29.3492C38.4838 29.0759 39.1638 28.9392 39.8905 28.9392C40.4705 28.9392 40.9871 29.0626 41.4405 29.3092C41.8938 29.5492 42.2738 29.8659 42.5805 30.2592V24.1992ZM39.9305 36.8092C40.3838 36.8092 40.7938 36.6926 41.1605 36.4592C41.5271 36.2259 41.8171 35.9126 42.0305 35.5192C42.2438 35.1192 42.3505 34.6792 42.3505 34.1992C42.3505 33.7126 42.2438 33.2726 42.0305 32.8792C41.8171 32.4859 41.5271 32.1726 41.1605 31.9392C40.7938 31.7059 40.3838 31.5892 39.9305 31.5892C39.4705 31.5892 39.0538 31.7059 38.6805 31.9392C38.3071 32.1726 38.0105 32.4892 37.7905 32.8892C37.5705 33.2826 37.4605 33.7192 37.4605 34.1992C37.4605 34.6792 37.5705 35.1192 37.7905 35.5192C38.0171 35.9126 38.3171 36.2259 38.6905 36.4592C39.0638 36.6926 39.4771 36.8092 39.9305 36.8092Z"
-                fill="white"
-              />
-
-              <path
-                d="M53.66 39.4592C52.54 39.4592 51.5534 39.1859 50.7 38.6392C49.8534 38.0926 49.19 37.3592 48.71 36.4392C48.2366 35.5126 48 34.4859 48 33.3592V25.1992H50.76V33.3592C50.76 33.9659 50.8734 34.5226 51.1 35.0292C51.3266 35.5359 51.6566 35.9426 52.09 36.2492C52.5234 36.5492 53.0466 36.6992 53.66 36.6992C54.28 36.6992 54.8034 36.5492 55.23 36.2492C55.6634 35.9492 55.99 35.5459 56.21 35.0392C56.43 34.5326 56.54 33.9726 56.54 33.3592V25.1992H59.3V33.3592C59.3 34.2059 59.1634 34.9992 58.89 35.7392C58.6234 36.4726 58.24 37.1192 57.74 37.6792C57.24 38.2392 56.6434 38.6759 55.95 38.9892C55.2634 39.3026 54.5 39.4592 53.66 39.4592Z"
-                fill="#F98D2C"
-              />
-            </g>
-
-            <defs>
-              <clipPath id="clip0_1958_17998">
-                <rect width="64" height="64" rx="19.2" fill="white" />
-              </clipPath>
-            </defs>
+    <header ref={header} className="fundu-chrome nav" id="site-top">
+      <a className="public-skip" href="#main-content" onClick={skipToContent}>Skip to content</a>
+      <div className="fs-wrap nav-in">
+        <Link className="logo" href="/" aria-label="Fundu home" onClick={() => setMobileOpen(false)}>
+          <svg className="nav-logo" aria-hidden="true" focusable="false" viewBox="0 0 56 16" fill="none" xmlns="http://www.w3.org/2000/svg">{" "}
+            <g clipPath="url(#clip0_1958_18052_nav)">{" "}
+              <path d="M0 15V1H8.3V3.76H2.76V6.12H7.34V8.88H2.76V15H0ZM8.83832 11.34V5H11.5983V10.58C11.5983 10.9334 11.6816 11.2534 11.8483 11.54C12.0216 11.82 12.2516 12.0434 12.5383 12.21C12.825 12.3766 13.1383 12.46 13.4783 12.46C13.825 12.46 14.1416 12.3766 14.4283 12.21C14.715 12.0434 14.9416 11.82 15.1083 11.54C15.275 11.2534 15.3583 10.9334 15.3583 10.58V5H18.1183L18.1283 15H15.3683L15.3583 14.24C15.025 14.56 14.6316 14.81 14.1783 14.99C13.7316 15.17 13.2583 15.26 12.7583 15.26C12.0383 15.26 11.3816 15.0834 10.7883 14.73C10.195 14.3766 9.7216 13.9066 9.36832 13.32C9.01496 12.7266 8.83832 12.0666 8.83832 11.34ZM29.4267 8.64V15H26.6667V9.4C26.6667 9.04664 26.5801 8.73 26.4067 8.45C26.2401 8.16336 26.0134 7.93664 25.7267 7.77C25.4467 7.60336 25.1334 7.52 24.7867 7.52C24.4401 7.52 24.1234 7.60336 23.8367 7.77C23.5501 7.93664 23.3234 8.16336 23.1567 8.45C22.9901 8.73 22.9067 9.04664 22.9067 9.4V15H20.1467L20.1367 5H22.8967L22.9067 5.74C23.2401 5.42 23.6301 5.17 24.0767 4.99C24.5301 4.81 25.0067 4.72 25.5067 4.72C26.2334 4.72 26.8901 4.89664 27.4767 5.25C28.0701 5.60336 28.5434 6.07664 28.8967 6.67C29.2501 7.25664 29.4267 7.91336 29.4267 8.64ZM38.5805 0H41.3405V15H38.5805V13.94C38.2738 14.3266 37.8938 14.6434 37.4405 14.89C36.9871 15.1366 36.4705 15.26 35.8905 15.26C35.1638 15.26 34.4838 15.1234 33.8505 14.85C33.2171 14.5766 32.6571 14.2 32.1705 13.72C31.6905 13.2334 31.3138 12.6734 31.0405 12.04C30.7671 11.4066 30.6305 10.7266 30.6305 10C30.6305 9.27336 30.7671 8.59336 31.0405 7.96C31.3138 7.32664 31.6905 6.77 32.1705 6.29C32.6571 5.80336 33.2171 5.42336 33.8505 5.15C34.4838 4.87664 35.1638 4.74 35.8905 4.74C36.4705 4.74 36.9871 4.86336 37.4405 5.11C37.8938 5.35 38.2738 5.66664 38.5805 6.06V0ZM35.9305 12.61C36.3838 12.61 36.7938 12.4934 37.1605 12.26C37.5271 12.0266 37.8171 11.7134 38.0305 11.32C38.2438 10.92 38.3505 10.48 38.3505 10C38.3505 9.51336 38.2438 9.07336 38.0305 8.68C37.8171 8.28664 37.5271 7.97336 37.1605 7.74C36.7938 7.50664 36.3838 7.39 35.9305 7.39C35.4705 7.39 35.0538 7.50664 34.6805 7.74C34.3071 7.97336 34.0105 8.29 33.7905 8.69C33.5705 9.08336 33.4605 9.52 33.4605 10C33.4605 10.48 33.5705 10.92 33.7905 11.32C34.0171 11.7134 34.3171 12.0266 34.6905 12.26C35.0638 12.4934 35.4771 12.61 35.9305 12.61Z" fill="#1E807F" />{" "}
+              <path d="M50.0037 15.26C48.8837 15.26 47.8971 14.9866 47.0438 14.44C46.1971 13.8934 45.5338 13.16 45.0538 12.24C44.5804 11.3134 44.3438 10.2866 44.3438 9.16V1H47.1038V9.16C47.1038 9.76664 47.2171 10.3234 47.4438 10.83C47.6704 11.3366 48.0004 11.7434 48.4338 12.05C48.8671 12.35 49.3904 12.5 50.0037 12.5C50.6237 12.5 51.1471 12.35 51.5737 12.05C52.0071 11.75 52.3337 11.3466 52.5537 10.84C52.7737 10.3334 52.8838 9.77336 52.8838 9.16V1H55.6438V9.16C55.6438 10.0066 55.5071 10.8 55.2338 11.54C54.9671 12.2734 54.5838 12.92 54.0838 13.48C53.5838 14.04 52.9871 14.4766 52.2938 14.79C51.6071 15.1034 50.8437 15.26 50.0037 15.26Z" fill="#F98D2C" />{" "}
+            </g>{" "}
+            <defs>{" "}
+              <clipPath id="clip0_1958_18052_nav">{" "}
+                <rect width="55.6405" height="15.26" fill="white" />{" "}
+              </clipPath>{" "}
+            </defs>{" "}
           </svg>
-
-          <span className="brand__word">fundu</span>
         </Link>
-
-        {/* ---------------------------------------------------
-            MOBILE MENU
-            React controls this instead of Claude's DOM script.
-            --------------------------------------------------- */}
-        <button
-          className="topbar__toggle"
-          id="navToggle"
-          type="button"
-          aria-label={mobileOpen ? "Close menu" : "Menu"}
-          aria-expanded={mobileOpen}
-          onClick={() => setMobileOpen((current) => !current)}
-        >
-          <i />
-          <i />
-        </button>
-
-        {/* ---------------------------------------------------
-            NAVIGATION
-            --------------------------------------------------- */}
-        <nav className="topbar__links" id="navLinks" aria-label="Main">
-          {NAV_ITEMS.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              aria-current={isActive(item.href) ? "page" : undefined}
-            >
-              {item.label}
-            </Link>
-          ))}
-
-          {!loading && (
-            <Link
-              className="btn btn--primary topbar__cta"
-              href={fundraiserHref}
-            >
-              <span>Start a fundraiser</span>
-            </Link>
-          )}
+        <nav className="nav-links" aria-label="Main">{links}</nav>
+        <div className="nav-cta">
+          <Link className="signin" href={accountHref}>{accountLabel}</Link>
+          <Link className="fs-btn btn-primary" href={fundraiserHref}>Create your free page <Arrow /></Link>
+          <button ref={menuButton} type="button" className="menu-btn" aria-expanded={mobileOpen} aria-controls="public-mobile-menu" aria-label={mobileOpen ? "Close menu" : "Open menu"} onClick={() => setMobileOpen(open => !open)}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><path d={mobileOpen ? "M6 6l12 12M18 6L6 18" : "M4 7h16M4 12h16M4 17h16"} /></svg>
+          </button>
+        </div>
+      </div>
+      <div className="mmenu" id="public-mobile-menu" hidden={!mobileOpen}>
+        <nav className="fs-wrap" aria-label="Mobile">
+          {links}
+          <Link href={accountHref} onClick={() => setMobileOpen(false)}>{accountLabel}</Link>
+          <Link className="fs-btn btn-primary" href={fundraiserHref} onClick={() => setMobileOpen(false)}>Create your free page <Arrow /></Link>
         </nav>
       </div>
     </header>
   );
+}
+
+export default function Navbar() {
+  const pathname = usePathname();
+  // Reset the mobile menu when a new route is displayed.
+  return <Navigation key={pathname} pathname={pathname} />;
 }

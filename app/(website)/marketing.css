@@ -15,7 +15,7 @@
 
   /* Bricolage Grotesque carries every headline and figure.
      Urbanist carries everything you read at length. */
-  --display: var(--font-body);
+  --display: var(--font-heading), var(--font-body);
   --sans: var(--font-body);
 
   --ink: 2, 6, 13;
@@ -87,7 +87,7 @@ body {
   margin: 0;
 }
 .marketing-shell {
-  --display: var(--font-bricolage), var(--font-body);
+  --display: var(--font-heading), var(--font-body);
   margin: 0;
   font-family: var(--sans);
   font-size: var(--fs-body);
@@ -95,7 +95,7 @@ body {
   color: rgb(var(--ink));
   /* no background here: #bgwash is a fixed z-index:-2 layer inside this
      element, so any background on the shell would paint over it */
-  overflow-x: hidden;
+  overflow-x: clip;
   -webkit-font-smoothing: antialiased;
 }
 #bgwash {

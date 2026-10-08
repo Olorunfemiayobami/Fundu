@@ -1,0 +1,94 @@
+/* Shared support-page headings. Marketing headings and the footer use
+   the same --font-heading variable through their existing --display token. */
+#main-content .help-page :is(h1, h2, h3),
+#main-content .legal-page :is(h1, h2, h3) {
+  font-family: var(--font-heading), "Montserrat Alternates", sans-serif;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+/* Keep reading text comfortable on phones and make form entries legible. */
+.help-page .help-article-body p,
+.help-page .help-steps p {
+  font-size: 16px;
+  line-height: 1.7;
+}
+.help-page .help-contact-form :is(input, select, textarea) {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/* Keep the accessible search label from squeezing the visible placeholder. */
+.help-page .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+@media (min-width: 601px) {
+  .help-page .help-card-arrow { display: none; }
+}
+
+/* Weight hierarchy: keep display headings and primary actions at 700.
+   Reading copy stays 500; navigation, labels and secondary actions use 600.
+   These selectors target real content, leaving the animated product demos alone. */
+#main-content .help-page :is(.help-topic-card strong, .help-article-row strong,
+  .help-faq-list summary, .help-contact-card strong, .help-related-card a,
+  .help-all-articles, .help-feedback button, .help-contact-form form label,
+  .help-topic-select, .help-topic-sidebar > span) {
+  font-weight: 600;
+}
+#main-content .help-page :is(.help-topic-card small, .help-article-row small,
+  .help-row-time, .help-reading-time, .help-hero p, .help-topic-heading p,
+  .help-article-intro, .help-contact-card p, .help-contact-form > p,
+  .help-search input, .help-topic-sidebar a, .help-breadcrumb) {
+  font-weight: 500;
+}
+#main-content .help-page :is(.help-topic-sidebar a.active, .help-button,
+  .help-article-topic, .help-faq-list details a, .help-article-link a) {
+  font-weight: 700;
+}
+
+#main-content .legal-page :is(.legal-date, .legal-intro > p,
+  .legal-summary-card p, .legal-contents-desktop a, .legal-contents-mobile a) {
+  font-weight: 500;
+}
+#main-content .legal-page :is(.legal-eyebrow, .legal-contents-desktop > p,
+  .legal-contents-mobile summary, .legal-back-top) {
+  font-weight: 600;
+}
+#main-content .legal-page :is(.legal-summary-card strong, .legal-sections strong,
+  .legal-contents-desktop a[aria-current], .legal-contents-mobile a[aria-current]) {
+  font-weight: 700;
+}
+
+/* Lists explain a feature or instruction; their headings carry the emphasis. */
+#main-content .fundu-site :is(.pr-inc li, .ts-list li, .rl-can li, .rl-no li,
+  .cat-ideas li, .ga-body ul.ga-l, .ga-dd li, .ts-limits span, .rl-must span,
+  .cat-tips span, .oc-tx span, .ab-page > span) {
+  font-weight: 500;
+}
+#main-content .fundu-site :is(.gd-meta, .ct-note, .ct-where, .pr-fine,
+  .calc-hint, .calc-scale, .calc-days, .co-row, .ab-stamp span) {
+  font-weight: 500;
+}
+#main-content .fundu-site :is(.label, .ab-tag, .ab-role, .ab-pill, .gd-start,
+  .ga-next small, .calc-l, .co-l, .co-row.early span, .cat-back, .cat-chips a,
+  .gd-go, .gd-fbtn, .hq-sl, .ct-mail, .ck-list label, .ck-ring span,
+  .ga-toc a, .ga-tpl-h, .tpl-copy) {
+  font-weight: 600;
+}
+#main-content .fundu-site #cform label { font-weight: 600; }
+#main-content .fundu-site #cform :is(input, select, textarea, .opt) {
+  font-weight: 500;
+}
+
+/* Footer supporting copy should sit below the call to action in hierarchy. */
+.fundu-chrome.fs-cfoot .f-note p,
+.fundu-chrome.fs-cfoot .f-base { font-weight: 500; }
+.fundu-chrome.fs-cfoot .f-cols h2 { font-weight: 700; }

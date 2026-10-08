@@ -18,7 +18,7 @@
 .auth {
   color-scheme: light;
 
-  --display: var(--font-body);
+  --display: var(--font-heading), var(--font-body);
   --sans: var(--font-body);
 
   --ink: 2, 6, 13;
