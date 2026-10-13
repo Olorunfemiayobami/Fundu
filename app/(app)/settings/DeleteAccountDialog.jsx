@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import TurnstileField from "@/components/auth/TurnstileField";
+import { turnstileReady } from "@/lib/turnstileClient";
 import SettingsDialog from "./SettingsDialog";
 
 const reasons = ["My fundraiser is finished", "I made a mistake or a duplicate account", "It didn’t work for my supporters", "Privacy concerns", "Something else"];
@@ -23,6 +25,8 @@ export default function DeleteAccountDialog({ campaignCount, liveCount, googleOn
   const [busy, setBusy] = useState(false);
   const [availability, setAvailability] = useState(null);
   const [error, setError] = useState("");
+  const [captchaToken, setCaptchaToken] = useState("");
+  const [captchaReset, setCaptchaReset] = useState(0);
   const input = useRef(null), pending = useRef(false);
 
   const checkAvailability = useCallback(async () => {
@@ -51,9 +55,11 @@ export default function DeleteAccountDialog({ campaignCount, liveCount, googleOn
   async function deleteAccount(event) {
     event.preventDefault();
     if (pending.current || !availability?.ready || !acknowledged || confirmation !== "DELETE" || (googleOnly ? !availability.googleConfirmed : !password)) return;
+    if (!googleOnly && !turnstileReady(captchaToken)) { setError("Complete verification before continuing."); return; }
     pending.current = true; setBusy(true); setError("");
     try {
-      const response = await fetch("/api/account", { method: "POST", headers: await authHeaders(), body: JSON.stringify({ acknowledged, confirmation, password: googleOnly ? undefined : password, reason }) });
+      const response = await fetch("/api/account", { method: "POST", headers: await authHeaders(), body: JSON.stringify({ acknowledged, confirmation, password: googleOnly ? undefined : password, captchaToken: googleOnly ? undefined : captchaToken, reason }) });
+      setCaptchaToken(""); setCaptchaReset((value) => value + 1);
       const data = await response.json();
       if (!response.ok || !data.deleted) { setError(data.message || "Deletion couldn’t finish. Please retry."); return; }
       setPassword("");
@@ -73,6 +79,7 @@ export default function DeleteAccountDialog({ campaignCount, liveCount, googleOn
       <label className="settings-password-field"><span>Type DELETE to confirm</span><input className="settings-delete-input" autoComplete="off" spellCheck={false} value={confirmation} disabled={busy} required onChange={(event) => setConfirmation(event.target.value)} /></label>
       <label className="settings-password-field"><span>Why are you leaving? <span className="settings-security-muted">(optional)</span></span><select className="settings-delete-input" value={reason} disabled={busy} onChange={(event) => setReason(event.target.value)}><option value="">Choose a reason</option>{reasons.map((item) => <option key={item}>{item}</option>)}</select><small>Optional. Reason feedback isn’t saved yet.</small></label>
       {!acknowledged && <label className="settings-password-checkbox"><input type="checkbox" disabled={busy} checked={acknowledged} onChange={(event) => setAcknowledged(event.target.checked)} />I understand this is permanent and can’t be undone.</label>}
+      {!googleOnly && <TurnstileField onToken={setCaptchaToken} resetKey={captchaReset} />}
       {!availability && <p role="status">Checking account deletion…</p>}{unavailable && <div><p role="status">{availability.message}</p><button type="button" className="settings-outline-btn" disabled={busy} onClick={checkAvailability}>Retry availability check</button></div>}{error && <p role="alert" className="settings-security-error">{error}</p>}
     </form>}
   </SettingsDialog>;

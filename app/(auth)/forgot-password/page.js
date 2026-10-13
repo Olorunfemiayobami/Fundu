@@ -5,6 +5,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import TurnstileField from "@/components/auth/TurnstileField";
+import { turnstileReady } from "@/lib/turnstileClient";
 import "@/styles/auth.css";
 
 const TESTIMONIALS = [
@@ -73,6 +75,8 @@ export default function ForgotPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
   const [error, setError] = useState("");
+  const [captchaToken, setCaptchaToken] = useState("");
+  const [captchaReset, setCaptchaReset] = useState(0);
 
   const [quoteIndex, setQuoteIndex] = useState(0);
   const [quotePaused, setQuotePaused] = useState(false);
@@ -99,6 +103,10 @@ export default function ForgotPasswordPage() {
       setError("That email doesn't look right.");
       return;
     }
+    if (!turnstileReady(captchaToken)) {
+      setError("Complete verification before continuing.");
+      return;
+    }
 
     setLoading(true);
 
@@ -106,10 +114,13 @@ export default function ForgotPasswordPage() {
       cleanEmail,
       {
         redirectTo: `${window.location.origin}/reset-password`,
+        captchaToken,
       },
     );
 
     setLoading(false);
+    setCaptchaToken("");
+    setCaptchaReset((value) => value + 1);
 
     /*
       Keep the response generic.
@@ -267,6 +278,8 @@ export default function ForgotPasswordPage() {
                         {error || "That email doesn't look right."}
                       </p>
                     </div>
+
+                    <TurnstileField onToken={setCaptchaToken} resetKey={captchaReset} />
 
                     <button
                       className="btn btn--primary authsubmit"

@@ -5,6 +5,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import TurnstileField from "@/components/auth/TurnstileField";
+import { turnstileReady } from "@/lib/turnstileClient";
 import "@/styles/auth.css";
 
 const TESTIMONIALS = [
@@ -76,6 +78,8 @@ function VerifyEmailContent() {
   const [quotePaused, setQuotePaused] = useState(false);
 
   const [resending, setResending] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState("");
+  const [captchaReset, setCaptchaReset] = useState(0);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [cooldown, setCooldown] = useState(0);
@@ -109,6 +113,10 @@ function VerifyEmailContent() {
 
   const handleResend = async () => {
     if (!email || resending || cooldown > 0) return;
+    if (!turnstileReady(captchaToken)) {
+      setError("Complete verification before requesting another email.");
+      return;
+    }
 
     setResending(true);
     setMessage("");
@@ -119,10 +127,13 @@ function VerifyEmailContent() {
       email,
       options: {
         emailRedirectTo: `${window.location.origin}/auth/callback`,
+        captchaToken,
       },
     });
 
     setResending(false);
+    setCaptchaToken("");
+    setCaptchaReset((value) => value + 1);
 
     if (resendError) {
       setError(resendError.message);
@@ -274,6 +285,10 @@ function VerifyEmailContent() {
                   <div className="auth-server-error" role="alert">
                     {error}
                   </div>
+                )}
+
+                {email && (
+                  <TurnstileField onToken={setCaptchaToken} resetKey={captchaReset} />
                 )}
 
                 {email && (
