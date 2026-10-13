@@ -28,7 +28,7 @@ export async function POST(request) {
   const googleConfirmed = proof?.id === user.id;
   if (!googleConfirmed) {
     if (typeof body.password !== "string" || !body.password || body.password.length > 1024) return reply({ message: "Confirm your identity first." }, 400);
-    const { data, error } = await clients.auth.auth.signInWithPassword({ email: user.email, password: body.password });
+    const { data, error } = await clients.auth.auth.signInWithPassword({ email: user.email, password: body.password, options: { captchaToken: body.captchaToken } });
     if (error || data?.user?.id !== user.id) return reply({ message: "That password isn’t right, or we couldn’t verify it. Please try again." }, 401);
     // Revoke the temporary verification session, leaving the browser session alone.
     await clients.auth.auth.signOut({ scope: "local" });

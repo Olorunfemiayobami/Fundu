@@ -5,6 +5,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import TurnstileField from "@/components/auth/TurnstileField";
+import { turnstileReady } from "@/lib/turnstileClient";
 import "@/styles/auth.css";
 
 const TESTIMONIALS = [
@@ -77,6 +79,8 @@ export default function SigninPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState("");
+  const [captchaReset, setCaptchaReset] = useState(0);
 
   const [errors, setErrors] = useState({
     email: "",
@@ -138,6 +142,10 @@ export default function SigninPage() {
     event.preventDefault();
 
     if (!validateForm()) return;
+    if (!turnstileReady(captchaToken)) {
+      setErrors((current) => ({ ...current, general: "Complete verification before continuing." }));
+      return;
+    }
 
     setLoading(true);
 
@@ -150,7 +158,10 @@ export default function SigninPage() {
     const { error: signinError } = await supabase.auth.signInWithPassword({
       email: form.email.trim(),
       password: form.password,
+      options: { captchaToken },
     });
+    setCaptchaToken("");
+    setCaptchaReset((value) => value + 1);
 
     if (signinError) {
       const message = signinError.message.toLowerCase();
@@ -423,6 +434,8 @@ export default function SigninPage() {
                     Forgot password?
                   </Link>
                 </div>
+
+                <TurnstileField onToken={setCaptchaToken} resetKey={captchaReset} />
 
                 <button
                   className="btn btn--primary authsubmit"

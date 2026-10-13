@@ -6,6 +6,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { TERMS_VERSION } from "@/lib/legalVersion";
+import TurnstileField from "@/components/auth/TurnstileField";
+import { turnstileReady } from "@/lib/turnstileClient";
 import "@/styles/auth.css";
 
 const TESTIMONIALS = [
@@ -79,6 +81,8 @@ export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState("");
+  const [captchaReset, setCaptchaReset] = useState(0);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [consentError, setConsentError] = useState("");
 
@@ -152,6 +156,10 @@ export default function SignupPage() {
     event.preventDefault();
 
     if (!validateForm()) return;
+    if (!turnstileReady(captchaToken)) {
+      setErrors((current) => ({ ...current, general: "Complete verification before continuing." }));
+      return;
+    }
 
     setLoading(true);
 
@@ -175,8 +183,11 @@ export default function SignupPage() {
           fundu_terms_version: TERMS_VERSION,
         },
         emailRedirectTo: `${window.location.origin}/auth/callback`,
+        captchaToken,
       },
     });
+    setCaptchaToken("");
+    setCaptchaReset((value) => value + 1);
 
     if (signupError) {
       const message = signupError.message.toLowerCase();
@@ -451,6 +462,8 @@ export default function SignupPage() {
                   </label>
                   {consentError && <p id="signup-consent-error" role="alert" className="auth-consent-error">{consentError}</p>}
                 </div>
+
+                <TurnstileField onToken={setCaptchaToken} resetKey={captchaReset} />
 
                 <button
                   className="btn btn--primary authsubmit"

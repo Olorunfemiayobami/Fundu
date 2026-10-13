@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import TurnstileField from "@/components/auth/TurnstileField";
+import { turnstileReady } from "@/lib/turnstileClient";
 import SettingsDialog from "./SettingsDialog";
 
 function PasswordField({ label, id, value, onChange, autoComplete, invalid, describedBy, inputRef, initialFocus, disabled }) {
@@ -23,6 +25,8 @@ export default function ChangePasswordDialog({ authUser, googleOnly, onClose, on
   const [updated, setUpdated] = useState(false);
   const [othersSignedOut, setOthersSignedOut] = useState(false);
   const [deviceError, setDeviceError] = useState("");
+  const [captchaToken, setCaptchaToken] = useState("");
+  const [captchaReset, setCaptchaReset] = useState(0);
   const currentInput = useRef(null);
   const doneButton = useRef(null);
   const requestInFlight = useRef(false);
@@ -36,22 +40,25 @@ export default function ChangePasswordDialog({ authUser, googleOnly, onClose, on
 
   async function sendResetLink() {
     if (requestInFlight.current || !authUser?.email) return;
+    if (!turnstileReady(captchaToken)) { setFormError("Complete verification before requesting a reset link."); return; }
     requestInFlight.current = true; setResetSending(true); setFormError(""); setResetNotice("");
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(authUser.email, { redirectTo: `${window.location.origin}/reset-password` });
+      const { error } = await supabase.auth.resetPasswordForEmail(authUser.email, { redirectTo: `${window.location.origin}/reset-password`, captchaToken });
       if (error) throw error;
       setResetNotice("Check your email for a password reset link.");
     } catch { setFormError("We couldn’t send the reset link. Please try again."); }
-    finally { requestInFlight.current = false; setResetSending(false); }
+    finally { requestInFlight.current = false; setResetSending(false); setCaptchaToken(""); setCaptchaReset((value) => value + 1); }
   }
 
   async function updatePassword(event) {
     event.preventDefault();
     if (!valid || requestInFlight.current) return;
+    if (!googleOnly && !turnstileReady(captchaToken)) { setFormError("Complete verification before updating your password."); return; }
     requestInFlight.current = true; setUpdating(true); setCurrentError(""); setNewError(""); setFormError("");
     try {
       if (!googleOnly) {
-        const { data, error } = await supabase.auth.signInWithPassword({ email: authUser.email, password: currentPassword });
+        const { data, error } = await supabase.auth.signInWithPassword({ email: authUser.email, password: currentPassword, options: { captchaToken } });
+        setCaptchaToken(""); setCaptchaReset((value) => value + 1);
         if (error || data?.user?.id !== authUser.id) {
           setCurrentError(error?.code && error.code !== "invalid_credentials" ? "We couldn’t verify your current password. Please try again." : "That password isn’t right");
           requestAnimationFrame(() => currentInput.current?.focus());
@@ -105,6 +112,7 @@ export default function ChangePasswordDialog({ authUser, googleOnly, onClose, on
       <div><PasswordField label="Confirm new password" id="settings-confirm-password" value={confirmPassword} disabled={busy} autoComplete="new-password" onChange={(event) => setConfirmPassword(event.target.value)} invalid={mismatch} describedBy={mismatch ? "settings-password-mismatch" : undefined} />{mismatch && <p id="settings-password-mismatch" className="settings-security-error" role="alert">⚠ Passwords don’t match</p>}</div>
       <label className="settings-password-checkbox"><input type="checkbox" checked={signOutOthers} disabled={busy} onChange={(event) => setSignOutOthers(event.target.checked)} />Sign out of other devices too</label>
       {googleOnly && <button className="settings-password-reset" type="button" disabled={busy || Boolean(resetNotice)} onClick={sendResetLink}>Email me a reset link instead</button>}
+      <TurnstileField onToken={setCaptchaToken} resetKey={captchaReset} />
       {resetNotice && <p role="status" className="settings-password-reset-notice">{resetNotice}</p>}{formError && <p role="alert" className="settings-security-error">{formError}</p>}
     </form>}
   </SettingsDialog>;

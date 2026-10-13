@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import TurnstileField from "@/components/auth/TurnstileField";
+import { turnstileReady } from "@/lib/turnstileClient";
 import SettingsDialog from "./SettingsDialog";
 import ChangePasswordDialog from "./ChangePasswordDialog";
 import DeleteAccountDialog from "./DeleteAccountDialog";
@@ -28,6 +30,8 @@ export default function SecuritySettings({ authUser, campaignCount, liveCount = 
   const [resending, setResending] = useState(false);
   const [resendError, setResendError] = useState("");
   const [resendNotice, setResendNotice] = useState("");
+  const [captchaToken, setCaptchaToken] = useState("");
+  const [captchaReset, setCaptchaReset] = useState(0);
   const [cooldown, setCooldown] = useState(0);
   const email = authUser?.email || "";
   const verified = Boolean(email && authUser?.email_confirmed_at);
@@ -43,13 +47,14 @@ export default function SecuritySettings({ authUser, campaignCount, liveCount = 
   }, [cooldown]);
   async function resendVerification() {
     if (!email || resending || cooldown) return;
+    if (!turnstileReady(captchaToken)) { setResendError("Complete verification before requesting another email."); return; }
     setResending(true); setResendError(""); setResendNotice("");
     try {
-      const { error } = await supabase.auth.resend({ type: "signup", email, options: { emailRedirectTo: `${window.location.origin}/auth/callback` } });
+      const { error } = await supabase.auth.resend({ type: "signup", email, options: { emailRedirectTo: `${window.location.origin}/auth/callback`, captchaToken } });
       if (error) throw error;
       setResendNotice("Check your email for a verification link."); setCooldown(60);
     } catch { setResendError("We couldn’t send the verification email. Please try again."); }
-    finally { setResending(false); }
+    finally { setResending(false); setCaptchaToken(""); setCaptchaReset((value) => value + 1); }
   }
   async function signOutOthers() {
     if (signingOut) return;
@@ -68,6 +73,7 @@ export default function SecuritySettings({ authUser, campaignCount, liveCount = 
       <div><h3>Sign-in methods</h3><div className="settings-security-list">
         <div className="settings-security-row"><span className="settings-security-icon"><SecurityIcon name="email" /></span><div className="settings-security-copy"><h4>Email</h4><p>{email || "No email address linked."}{email && (verified ? ". Verified." : ". Not verified.")}</p></div>{verified ? <span className="settings-security-pill">✓ Verified</span> : <div className="settings-security-action"><button className="settings-outline-btn" type="button" disabled={!email || resending || cooldown > 0} onClick={resendVerification}>{resending ? "Sending…" : cooldown ? `Resend in ${cooldown}s` : "Resend verification email"}</button></div>}</div>
         {(resendError || resendNotice) && <div className="settings-security-feedback">{resendError && <p role="alert" className="settings-security-error">{resendError}</p>}{resendNotice && <p role="status">{resendNotice}</p>}</div>}
+        {!verified && email && <TurnstileField onToken={setCaptchaToken} resetKey={captchaReset} />}
         <div className="settings-security-row"><span className="settings-security-icon"><SecurityIcon name="key" /></span><div className="settings-security-copy"><h4>Password</h4><p>{googleOnly ? "Add a password to sign in with your email, too." : "Use a password you don’t use anywhere else."}</p></div><button type="button" className="settings-outline-btn settings-security-action" disabled={!email} onClick={() => setPasswordOpen(true)}>{googleOnly ? "Set a password" : "Change password"}</button></div>
         <div className="settings-security-row"><span className="settings-security-icon"><SecurityIcon name="google" /></span><div className="settings-security-copy"><h4>Google</h4><p>Sign in with your Google account instead of a password.</p></div><span className={googleConnected ? "settings-security-pill" : "settings-security-muted"}>{googleConnected ? "✓ Connected" : "Not connected"}</span></div>
       </div></div>
